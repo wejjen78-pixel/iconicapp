@@ -87,7 +87,7 @@ const CSS=`
 @media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr}}
 `;
 
-const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>};
+const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>};
 
 // ── SMALL COMPONENTS ─────────────────────────────────────────────────────────
 function CT({active,payload,label}){if(!active||!payload?.length)return null;return <div style={{background:"#fff",border:"1px solid #e8e8f0",borderRadius:7,padding:"8px 12px",fontSize:12}}><div style={{color:"#888",marginBottom:4}}>{label}</div>{payload.map((p,i)=><div key={i} style={{color:p.color||"#7c3aed"}}>{p.name}: {p.value>200?R(p.value):p.value}</div>)}</div>;}
@@ -416,6 +416,10 @@ export default function App(){
   const[metasBon,setMetasBon]=useState([]);
   const[txB,setTxB]=useState(45);const[txBar,setTxBar]=useState(55);
   const[cnpj,setCnpj]=useState("");
+  const[clt,setClt]=useState([]);const[fClt,setFClt]=useState({nome:"",salario:0,dia:5});
+  const[custos,setCustos]=useState([]);const[fCusto,setFCusto]=useState({desc:"",categoria:"",tipo:"fixo",direcao:"saida",valor:0,dia:5});
+  const[saldoAtual,setSaldoAtual]=useState(0);
+  const[diaPagAssin,setDiaPagAssin]=useState(15);const[diaPagAvulso,setDiaPagAvulso]=useState(30);
   const[ss,setSs]=useState("idle");const[sv,setSv]=useState(null);const[loaded,setLoaded]=useState(false);
   const[onboardingSkipped,setOnboardingSkipped]=useState(false);
   const stRef=useRef(null);
@@ -462,7 +466,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -483,6 +487,8 @@ export default function App(){
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
       if(d.coaching)setCoaching(d.coaching);if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
       if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
+      if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
+      if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       addNotif("✅","Backup restaurado com sucesso!");
     }catch(err){alert("Arquivo inválido!");}};
     reader.readAsText(file);e.target.value="";
@@ -491,12 +497,12 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["insta","Instagram"],["rel","Relatório"],["fech","Fechamento"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["insta","Instagram"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["insta","Instagram"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
-  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,insta:ICO.insta}[k]||ICO.dash);
-  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",insta:"📸 Instagram",rel:"Relatório",fech:"Fechamento",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
+  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,insta:ICO.insta}[k]||ICO.dash);
+  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",insta:"📸 Instagram",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
 
   // ── CARREGAR DADOS (Supabase) ────────────────────────────────────────────
   const[loadError,setLoadError]=useState(null);const[loadTick,setLoadTick]=useState(0);
@@ -520,6 +526,8 @@ export default function App(){
       if(d.coaching)setCoaching(d.coaching);if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
       if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
       if(d.desafio)setDesafio(d.desafio);
+      if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
+      if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       setSv(d._at||null);
     }
     setLoaded(true);
@@ -528,10 +536,10 @@ export default function App(){
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
   useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(async()=>{
-    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");}else{setSv(payload._at);setSs("saved");setTimeout(()=>setSs("idle"),2500);}
-  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,loaded,isDono,orgId,loadError]);
+  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,loaded,isDono,orgId,loadError]);
 
   // ── CÁLCULOS ────────────────────────────────────────────────────────────────
   const dim=new Date(ano,mes+1,0).getDate();
@@ -1527,6 +1535,136 @@ export default function App(){
       </div>
     </div>
     <button className="btn" style={{background:"#1a1a2e",alignSelf:"flex-start",fontSize:13,padding:"10px 24px"}} onClick={()=>exportarRecibo(bS)}>🖨️ Exportar Recibo PDF</button>
+  </div>;
+})()}
+
+{/* ─── COMISSÕES ─── */}
+{aba==="comis"&&isDono&&(()=>{
+  const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
+  const totalComAssin=tCP;
+  const totalComAvulso=calcB.reduce((a,b)=>a+b.fAv*(txB/100),0);
+  const totalComExtras=calcB.reduce((a,b)=>a+b.fEx*(txB/100),0);
+  const totalComProd=calcB.reduce((a,b)=>a+b.fPr,0);
+  const totalComissoes=calcB.reduce((a,b)=>a+b.totCBon,0);
+  const totalEquipe=totalComissoes+totalCLT;
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div className="card"><div className="st">💰 Comissões por barbeiro</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:620}}>
+      <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro","Assinatura","Avulso","Extras","Produtos","Bônus","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
+      <tbody>{calcB.map(b=>{
+        const comAvulso=b.fAv*(txB/100);const comExtras=b.fEx*(txB/100);
+        return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5"}}>
+          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{b.nome.split(" ")[0]}</span></div></td>
+          <td style={{padding:"7px 8px",color:"#d97706"}}>{R(b.cPote)}</td>
+          <td style={{padding:"7px 8px",color:"#7c3aed"}}>{R(comAvulso)}</td>
+          <td style={{padding:"7px 8px",color:"#0891b2"}}>{R(comExtras)}</td>
+          <td style={{padding:"7px 8px",color:"#059669"}}>{R(b.fPr)}</td>
+          <td style={{padding:"7px 8px",color:"#059669"}}>{b.bonTotal>0?"+"+R(b.bonTotal):"—"}</td>
+          <td style={{padding:"7px 8px",fontWeight:700,color:b.cor}}>{R(b.totCBon)}</td>
+        </tr>;
+      })}
+      <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
+        <td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#d97706"}}>{R(totalComAssin)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#7c3aed"}}>{R(totalComAvulso)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#0891b2"}}>{R(totalComExtras)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(totalComProd)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(tBon)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700}}>{R(totalComissoes)}</td>
+      </tr></tbody></table></div></div>
+
+    <div className="card"><div className="st">👔 CLT (funcionários fixos)</div>
+      {clt.length===0&&<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhum funcionário CLT cadastrado.</div>}
+      {clt.map(c=><div key={c.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,padding:"8px 10px",background:"#fafafa",borderRadius:8,flexWrap:"wrap"}}>
+        <div style={{flex:2,minWidth:100,fontWeight:600,fontSize:13}}>{c.nome}</div>
+        <div style={{fontSize:11,color:"#aaa"}}>Pagamento dia {c.dia}</div>
+        <div style={{fontWeight:700,fontSize:14,color:"#0891b2"}}>{R(c.salario)}</div>
+        <button className="bg bsm" onClick={()=>setClt(l=>l.filter(x=>x.id!==c.id))}>Remover</button>
+      </div>)}
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
+        <input className="inp" placeholder="Nome" style={{flex:2,minWidth:120}} value={fClt.nome} onChange={e=>setFClt(f=>({...f,nome:e.target.value}))}/>
+        <input type="number" className="inp" placeholder="Salário" style={{flex:1,minWidth:100}} value={fClt.salario||""} onChange={e=>setFClt(f=>({...f,salario:+e.target.value||0}))}/>
+        <input type="number" className="inp" placeholder="Dia pgto" style={{flex:1,minWidth:80}} value={fClt.dia} onChange={e=>setFClt(f=>({...f,dia:+e.target.value||1}))}/>
+        <button className="btn bsm" onClick={()=>{if(!fClt.nome)return;setClt(l=>[...l,{id:uid(),...fClt}]);setFClt({nome:"",salario:0,dia:5});}}>Adicionar</button>
+      </div>
+      <div style={{marginTop:12,paddingTop:10,borderTop:"1px solid #f0f0f5",display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:700,fontSize:13}}>Total CLT</span><span style={{fontWeight:800,fontSize:16,color:"#0891b2"}}>{R(totalCLT)}</span></div>
+    </div>
+
+    <div className="card" style={{borderLeft:"5px solid #dc2626",background:"linear-gradient(135deg,#fef2f2,#fff)"}}>
+      <div style={{fontSize:12,fontWeight:700,color:"#dc2626",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>Total despesas com equipe (Comissões + CLT)</div>
+      <div style={{fontSize:30,fontWeight:900,color:"#dc2626"}}>{R(totalEquipe)}</div>
+      <div style={{fontSize:12,color:"#888",marginTop:4}}>{R(totalComissoes)} em comissões · {R(totalCLT)} em CLT</div>
+    </div>
+  </div>;
+})()}
+
+{/* ─── CUSTOS ─── */}
+{aba==="custos"&&isDono&&(()=>{
+  const hoje=new Date().getDate();
+  const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
+  const totalComissoes=calcB.reduce((a,b)=>a+b.totCBon,0);
+  const custosFixos=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
+  const custosVar=custos.filter(c=>c.tipo==="variavel"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
+  const totalEntradas=custos.filter(c=>c.direcao==="entrada").reduce((a,c)=>a+c.valor,0);
+  const totalSaidas=custosFixos+custosVar;
+  const totalGeral=totalComissoes+totalCLT+totalSaidas;
+  const pendCom=(hoje<diaPagAssin?tCP:0)+(hoje<diaPagAvulso?calcB.reduce((a,b)=>a+Math.max(0,b.cAv+b.fPr+b.bonTotal-b.tVale),0):0);
+  const pendCLT=clt.reduce((a,c)=>a+(hoje<(c.dia||5)?(c.salario||0):0),0);
+  const pendSaida=custos.filter(c=>c.direcao==="saida"&&hoje<(c.dia||1)).reduce((a,c)=>a+c.valor,0);
+  const pendEntrada=custos.filter(c=>c.direcao==="entrada"&&hoje<(c.dia||1)).reduce((a,c)=>a+c.valor,0);
+  const saldoFuturo=saldoAtual-pendCom-pendCLT-pendSaida+pendEntrada;
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div className="g2">
+      <div className="card" style={{borderLeft:"4px solid #059669"}}>
+        <div className="st">Saldo atual</div>
+        <input type="number" className="inp" style={{fontSize:20,fontWeight:800,color:"#059669"}} value={saldoAtual} onChange={e=>setSaldoAtual(+e.target.value||0)}/>
+        <div style={{fontSize:11,color:"#aaa",marginTop:4}}>Digite o saldo da conta hoje</div>
+      </div>
+      <div className="card" style={{borderLeft:"4px solid "+(saldoFuturo>=0?"#0891b2":"#dc2626")}}>
+        <div className="st">Saldo futuro (após pagamentos do mês)</div>
+        <div style={{fontSize:26,fontWeight:900,color:saldoFuturo>=0?"#0891b2":"#dc2626"}}>{R(saldoFuturo)}</div>
+        <div style={{fontSize:11,color:"#888",marginTop:4}}>Considera comissão assinatura, avulso, CLT e custos ainda não pagos este mês</div>
+      </div>
+    </div>
+
+    <div className="card"><div className="st">📅 Dias de pagamento</div><div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+      <div style={{flex:1,minWidth:140}}><span className="lbl">Comissão assinatura — dia</span><input type="number" className="inp" value={diaPagAssin} onChange={e=>setDiaPagAssin(+e.target.value||1)}/></div>
+      <div style={{flex:1,minWidth:140}}><span className="lbl">Comissão avulso — dia</span><input type="number" className="inp" value={diaPagAvulso} onChange={e=>setDiaPagAvulso(+e.target.value||1)}/></div>
+    </div></div>
+
+    <div className="card"><div className="st">📉 Custos fixos e variáveis</div>
+      {custos.length===0&&<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhum custo cadastrado.</div>}
+      <div style={{overflowX:"auto"}}>{custos.length>0&&<table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:560}}>
+        <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Descrição","Categoria","Tipo","Direção","Dia","Valor",""].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
+        <tbody>{custos.map(c=><tr key={c.id} style={{borderBottom:"1px solid #f0f0f5"}}>
+          <td style={{padding:"7px 8px",fontWeight:600}}>{c.desc}</td>
+          <td style={{padding:"7px 8px",color:"#888"}}>{c.categoria||"—"}</td>
+          <td style={{padding:"7px 8px"}}>{c.tipo==="fixo"?"Fixo":"Variável"}</td>
+          <td style={{padding:"7px 8px",color:c.direcao==="entrada"?"#059669":"#dc2626"}}>{c.direcao==="entrada"?"Entrada":"Saída"}</td>
+          <td style={{padding:"7px 8px",color:"#aaa"}}>{c.dia}</td>
+          <td style={{padding:"7px 8px",fontWeight:700,color:c.direcao==="entrada"?"#059669":"#dc2626"}}>{c.direcao==="entrada"?"+":"-"}{R(c.valor)}</td>
+          <td style={{padding:"7px 8px"}}><button className="bg bsm" onClick={()=>setCustos(l=>l.filter(x=>x.id!==c.id))}>Remover</button></td>
+        </tr>)}</tbody></table>}</div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
+        <input className="inp" placeholder="Descrição" style={{flex:2,minWidth:120}} value={fCusto.desc} onChange={e=>setFCusto(f=>({...f,desc:e.target.value}))}/>
+        <input className="inp" placeholder="Categoria" style={{flex:1,minWidth:100}} value={fCusto.categoria} onChange={e=>setFCusto(f=>({...f,categoria:e.target.value}))}/>
+        <select className="inp" style={{flex:1,minWidth:100}} value={fCusto.tipo} onChange={e=>setFCusto(f=>({...f,tipo:e.target.value}))}><option value="fixo">Fixo</option><option value="variavel">Variável</option></select>
+        <select className="inp" style={{flex:1,minWidth:100}} value={fCusto.direcao} onChange={e=>setFCusto(f=>({...f,direcao:e.target.value}))}><option value="saida">Saída</option><option value="entrada">Entrada</option></select>
+        <input type="number" className="inp" placeholder="Valor" style={{flex:1,minWidth:90}} value={fCusto.valor||""} onChange={e=>setFCusto(f=>({...f,valor:+e.target.value||0}))}/>
+        <input type="number" className="inp" placeholder="Dia" style={{flex:1,minWidth:70}} value={fCusto.dia} onChange={e=>setFCusto(f=>({...f,dia:+e.target.value||1}))}/>
+        <button className="btn bsm" onClick={()=>{if(!fCusto.desc||!fCusto.valor)return;setCustos(l=>[...l,{id:uid(),...fCusto}]);setFCusto({desc:"",categoria:"",tipo:"fixo",direcao:"saida",valor:0,dia:5});}}>Adicionar</button>
+      </div>
+    </div>
+
+    <div className="card"><div className="st">Resumo do mês</div>
+      {[{l:"Custos fixos",v:R(custosFixos),c:"#d97706"},{l:"Custos variáveis",v:R(custosVar),c:"#dc2626"},{l:"Entradas extras",v:"+"+R(totalEntradas),c:"#059669"}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12,color:"#666"}}>{k.l}</span><span style={{fontSize:13,fontWeight:600,color:k.c}}>{k.v}</span></div>)}
+      <div style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",marginTop:6,background:"#fef2f2",borderRadius:7}}><span style={{fontWeight:700,fontSize:13,color:"#dc2626"}}>Total custos (saídas)</span><span style={{fontWeight:800,fontSize:16,color:"#dc2626"}}>{R(totalSaidas)}</span></div>
+    </div>
+
+    <div className="card" style={{borderLeft:"5px solid #1a1a2e",background:"linear-gradient(135deg,#f5f5f7,#fff)"}}>
+      <div style={{fontSize:12,fontWeight:700,color:"#1a1a2e",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>Tudo somado — Comissões + CLT + Custos</div>
+      <div style={{fontSize:32,fontWeight:900,color:"#1a1a2e"}}>{R(totalGeral)}</div>
+      <div style={{fontSize:12,color:"#888",marginTop:4}}>{R(totalComissoes)} comissões + {R(totalCLT)} CLT + {R(totalSaidas)} custos</div>
+    </div>
   </div>;
 })()}
 
