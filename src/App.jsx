@@ -420,6 +420,7 @@ export default function App(){
   const[custos,setCustos]=useState([]);const[fCusto,setFCusto]=useState({desc:"",categoria:"",tipo:"fixo",direcao:"saida",valor:0,dia:5});
   const[saldoAtual,setSaldoAtual]=useState(0);
   const[diaPagAssin,setDiaPagAssin]=useState(15);const[diaPagAvulso,setDiaPagAvulso]=useState(30);
+  const[comisExcl,setComisExcl]=useState([]);
   const[ss,setSs]=useState("idle");const[sv,setSv]=useState(null);const[loaded,setLoaded]=useState(false);
   const[onboardingSkipped,setOnboardingSkipped]=useState(false);
   const stRef=useRef(null);
@@ -466,7 +467,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -489,6 +490,7 @@ export default function App(){
       if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
+      if(d.comisExcl)setComisExcl(d.comisExcl);
       addNotif("✅","Backup restaurado com sucesso!");
     }catch(err){alert("Arquivo inválido!");}};
     reader.readAsText(file);e.target.value="";
@@ -528,6 +530,7 @@ export default function App(){
       if(d.desafio)setDesafio(d.desafio);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
+      if(d.comisExcl)setComisExcl(d.comisExcl);
       setSv(d._at||null);
     }
     setLoaded(true);
@@ -536,10 +539,10 @@ export default function App(){
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
   useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(async()=>{
-    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");}else{setSv(payload._at);setSs("saved");setTimeout(()=>setSs("idle"),2500);}
-  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,loaded,isDono,orgId,loadError]);
+  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,loaded,isDono,orgId,loadError]);
 
   // ── CÁLCULOS ────────────────────────────────────────────────────────────────
   const dim=new Date(ano,mes+1,0).getDate();
@@ -1540,20 +1543,24 @@ export default function App(){
 
 {/* ─── COMISSÕES ─── */}
 {aba==="comis"&&isDono&&(()=>{
+  const calcBInc=calcB.filter(b=>!comisExcl.includes(b.id));
   const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
-  const totalComAssin=tCP;
-  const totalComAvulso=calcB.reduce((a,b)=>a+b.fAv*(txB/100),0);
-  const totalComExtras=calcB.reduce((a,b)=>a+b.fEx*(txB/100),0);
-  const totalComProd=calcB.reduce((a,b)=>a+b.fPr,0);
-  const totalComissoes=calcB.reduce((a,b)=>a+b.totCBon,0);
+  const totalComAssin=calcBInc.reduce((a,b)=>a+b.cPote,0);
+  const totalComAvulso=calcBInc.reduce((a,b)=>a+b.fAv*(txB/100),0);
+  const totalComExtras=calcBInc.reduce((a,b)=>a+b.fEx*(txB/100),0);
+  const totalComProd=calcBInc.reduce((a,b)=>a+b.fPr,0);
+  const totalBon=calcBInc.reduce((a,b)=>a+b.bonTotal,0);
+  const totalComissoes=calcBInc.reduce((a,b)=>a+b.totCBon,0);
   const totalEquipe=totalComissoes+totalCLT;
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-    <div className="card"><div className="st">💰 Comissões por barbeiro</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:620}}>
-      <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro","Assinatura","Avulso","Extras","Produtos","Bônus","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
+    <div className="card"><div className="st">💰 Comissões por barbeiro</div><div style={{fontSize:11,color:"#aaa",marginTop:-8,marginBottom:8}}>Clique no ✕ para excluir a comissão de um barbeiro da soma total.</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:660}}>
+      <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["","Barbeiro","Assinatura","Avulso","Extras","Produtos","Bônus","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
       <tbody>{calcB.map(b=>{
         const comAvulso=b.fAv*(txB/100);const comExtras=b.fEx*(txB/100);
-        return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5"}}>
-          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{b.nome.split(" ")[0]}</span></div></td>
+        const excl=comisExcl.includes(b.id);
+        return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5",opacity:excl?0.4:1}}>
+          <td style={{padding:"7px 8px"}}><button title={excl?"Incluir na soma":"Excluir da soma"} onClick={()=>setComisExcl(l=>excl?l.filter(x=>x!==b.id):[...l,b.id])} style={{width:22,height:22,borderRadius:"50%",border:"1px solid "+(excl?"#dc2626":"#e0e0e8"),background:excl?"#fee2e2":"#fff",color:excl?"#dc2626":"#aaa",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>✕</button></td>
+          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600,textDecoration:excl?"line-through":"none"}}>{b.nome.split(" ")[0]}</span></div></td>
           <td style={{padding:"7px 8px",color:"#d97706"}}>{R(b.cPote)}</td>
           <td style={{padding:"7px 8px",color:"#7c3aed"}}>{R(comAvulso)}</td>
           <td style={{padding:"7px 8px",color:"#0891b2"}}>{R(comExtras)}</td>
@@ -1563,14 +1570,15 @@ export default function App(){
         </tr>;
       })}
       <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
+        <td/>
         <td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td>
         <td style={{padding:"7px 8px",fontWeight:700,color:"#d97706"}}>{R(totalComAssin)}</td>
         <td style={{padding:"7px 8px",fontWeight:700,color:"#7c3aed"}}>{R(totalComAvulso)}</td>
         <td style={{padding:"7px 8px",fontWeight:700,color:"#0891b2"}}>{R(totalComExtras)}</td>
         <td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(totalComProd)}</td>
-        <td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(tBon)}</td>
+        <td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(totalBon)}</td>
         <td style={{padding:"7px 8px",fontWeight:700}}>{R(totalComissoes)}</td>
-      </tr></tbody></table></div></div>
+      </tr></tbody></table></div>{comisExcl.length>0&&<div style={{fontSize:11,color:"#dc2626",marginTop:8}}>{comisExcl.length} barbeiro{comisExcl.length!==1?"s":""} excluído{comisExcl.length!==1?"s":""} da soma total.</div>}</div>
 
     <div className="card"><div className="st">👔 CLT (funcionários fixos)</div>
       {clt.length===0&&<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhum funcionário CLT cadastrado.</div>}
@@ -1600,14 +1608,15 @@ export default function App(){
 {/* ─── CUSTOS ─── */}
 {aba==="custos"&&isDono&&(()=>{
   const hoje=new Date().getDate();
+  const calcBInc=calcB.filter(b=>!comisExcl.includes(b.id));
   const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
-  const totalComissoes=calcB.reduce((a,b)=>a+b.totCBon,0);
+  const totalComissoes=calcBInc.reduce((a,b)=>a+b.totCBon,0);
   const custosFixos=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
   const custosVar=custos.filter(c=>c.tipo==="variavel"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
   const totalEntradas=custos.filter(c=>c.direcao==="entrada").reduce((a,c)=>a+c.valor,0);
   const totalSaidas=custosFixos+custosVar;
   const totalGeral=totalComissoes+totalCLT+totalSaidas;
-  const pendCom=(hoje<diaPagAssin?tCP:0)+(hoje<diaPagAvulso?calcB.reduce((a,b)=>a+Math.max(0,b.cAv+b.fPr+b.bonTotal-b.tVale),0):0);
+  const pendCom=(hoje<diaPagAssin?calcBInc.reduce((a,b)=>a+b.cPote,0):0)+(hoje<diaPagAvulso?calcBInc.reduce((a,b)=>a+Math.max(0,b.cAv+b.fPr+b.bonTotal-b.tVale),0):0);
   const pendCLT=clt.reduce((a,c)=>a+(hoje<(c.dia||5)?(c.salario||0):0),0);
   const pendSaida=custos.filter(c=>c.direcao==="saida"&&hoje<(c.dia||1)).reduce((a,c)=>a+c.valor,0);
   const pendEntrada=custos.filter(c=>c.direcao==="entrada"&&hoje<(c.dia||1)).reduce((a,c)=>a+c.valor,0);
