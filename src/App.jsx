@@ -430,6 +430,7 @@ export default function App(){
   const[pdfLoading,setPdfLoading]=useState(false);const[pdfProgress,setPdfProgress]=useState(0);
   const[pdfApplied,setPdfApplied]=useState(false);const[pdfErr,setPdfErr]=useState("");
   const[editQtdOpen,setEditQtdOpen]=useState(false);const[lastImportIds,setLastImportIds]=useState(null);
+  const[importHistory,setImportHistory]=useState([]);
   const[melhoresDiasOpen,setMelhoresDiasOpen]=useState(false);
   const[meusMelhoresDiasOpen,setMeusMelhoresDiasOpen]=useState(false);
   const[fa,setFa]=useState({bId:1,svc:"Corte",val:40,dt:hj(),obs:"",qt:1,nota:5});
@@ -467,7 +468,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -490,7 +491,7 @@ export default function App(){
       if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
-      if(d.comisExcl)setComisExcl(d.comisExcl);
+      if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
       addNotif("✅","Backup restaurado com sucesso!");
     }catch(err){alert("Arquivo inválido!");}};
     reader.readAsText(file);e.target.value="";
@@ -530,7 +531,7 @@ export default function App(){
       if(d.desafio)setDesafio(d.desafio);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
-      if(d.comisExcl)setComisExcl(d.comisExcl);
+      if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
       setSv(d._at||null);
     }
     setLoaded(true);
@@ -539,10 +540,10 @@ export default function App(){
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
   useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(async()=>{
-    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");}else{setSv(payload._at);setSs("saved");setTimeout(()=>setSs("idle"),2500);}
-  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,loaded,isDono,orgId,loadError]);
+  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError]);
 
   // ── CÁLCULOS ────────────────────────────────────────────────────────────────
   const dim=new Date(ano,mes+1,0).getDate();
@@ -807,8 +808,21 @@ export default function App(){
     if(newAvulsos.length)setAvul(s=>[...newAvulsos,...s]);
     if(newExtras.length)setExtAv(s=>[...newExtras,...s]);
     if(newProdutos.length)setProd(s=>[...newProdutos,...s]);
-    setLastImportIds({svcs:newFichas.map(x=>x.id),avul:newAvulsos.map(x=>x.id),extras:newExtras.map(x=>x.id),prod:newProdutos.map(x=>x.id)});
+    const ids={svcs:newFichas.map(x=>x.id),avul:newAvulsos.map(x=>x.id),extras:newExtras.map(x=>x.id),prod:newProdutos.map(x=>x.id)};
+    setLastImportIds(ids);
+    setImportHistory(h=>[{id:uid(),dt:new Date().toLocaleString("pt-BR"),fichas:newFichas.length,avulsos:newAvulsos.length,extras:newExtras.length,produtos:newProdutos.length,ids},...h].slice(0,15));
     setPdfApplied(true);addNotif("✅",(newFichas.length+newAvulsos.length+newExtras.length+newProdutos.length)+" registros aplicados!");
+  }
+  function excluirImportHist(histId){
+    const item=importHistory.find(h=>h.id===histId);if(!item)return;
+    const totalItem=item.fichas+item.avulsos+item.extras+item.produtos;
+    if(!window.confirm("Excluir os "+totalItem+" registros importados em "+item.dt+"?"))return;
+    setSvcs(v=>v.filter(x=>!item.ids.svcs.includes(x.id)));
+    setAvul(v=>v.filter(x=>!item.ids.avul.includes(x.id)));
+    setExtAv(v=>v.filter(x=>!item.ids.extras.includes(x.id)));
+    setProd(v=>v.filter(x=>!item.ids.prod.includes(x.id)));
+    setImportHistory(h=>h.filter(x=>x.id!==histId));
+    addNotif("🗑","Importação de "+item.dt+" removida!");
   }
 
   function ERow({item,fields,setter,onDel,children}){return <div className="row"><div style={{display:"contents"}}>{children}</div><button onClick={()=>setEditModal({item,fields,setter,onSave:(tmp)=>{if(setter)setter(arr=>Array.isArray(arr)?arr.map(x=>x.id===tmp.id?tmp:x):arr);setEditModal(null);}})} style={{background:"none",border:"none",cursor:"pointer",color:"#bbb",flexShrink:0,fontSize:12}}>✏️</button><button className="bdel" onClick={()=>{if(onDel)onDel(item.id);else if(setter)setter(arr=>Array.isArray(arr)?arr.filter(x=>x.id!==item.id):arr);}}>×</button></div>;}
@@ -1723,6 +1737,16 @@ export default function App(){
 {aba==="pdf"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
   <div className="card" style={{borderLeft:"3px solid #7c3aed"}}><div style={{fontWeight:700,fontSize:15,marginBottom:4}}>Importação AppBarber</div><div style={{fontSize:12,color:"#555"}}>Relatório "Ranking Profissional x Serviço" exportado em Excel (.xlsx)</div></div>
   {hasPdfMes()&&<div className="card" style={{borderLeft:"3px solid #dc2626",background:"#fef2f2"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}><div><div style={{fontWeight:700,color:"#dc2626",fontSize:13}}>🗑 Importação de {MESES[mes]} ativa</div></div><div style={{display:"flex",gap:8}}>{lastImportIds&&(lastImportIds.svcs.length||lastImportIds.avul.length||lastImportIds.extras.length||lastImportIds.prod.length)>0&&<button className="btn bsm" style={{background:"#d97706"}} onClick={excluirUltimoImport}>↩️ Excluir só o último</button>}<button className="btn bsm" style={{background:"#dc2626"}} onClick={limparTudoPdf}>Excluir tudo</button></div></div></div>}
+  {importHistory.length>0&&<div className="card"><div className="st">📋 Relatório das últimas importações</div>{importHistory.map(h=>{const totalH=h.fichas+h.avulsos+h.extras+h.produtos;return <div key={h.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,padding:"9px 10px",background:"#fafafa",borderRadius:8,flexWrap:"wrap"}}>
+    <div style={{flex:1,minWidth:120}}><div style={{fontWeight:600,fontSize:13}}>{h.dt}</div><div style={{fontSize:11,color:"#888"}}>{totalH} registro{totalH!==1?"s":""}</div></div>
+    <div style={{display:"flex",gap:8,flexWrap:"wrap",fontSize:11}}>
+      {h.fichas>0&&<span style={{color:"#d97706",fontWeight:600}}>{h.fichas} fichas</span>}
+      {h.avulsos>0&&<span style={{color:"#7c3aed",fontWeight:600}}>{h.avulsos} avulsos</span>}
+      {h.extras>0&&<span style={{color:"#0891b2",fontWeight:600}}>{h.extras} extras</span>}
+      {h.produtos>0&&<span style={{color:"#059669",fontWeight:600}}>{h.produtos} produtos</span>}
+    </div>
+    <button className="bg bsm" onClick={()=>excluirImportHist(h.id)}>🗑 Excluir</button>
+  </div>;})}</div>}
   <div className="card"><div className="st">Selecionar arquivo</div>
     <div style={{border:"2px dashed #e0e0f0",borderRadius:10,padding:"22px",textAlign:"center",background:"#fafafe",cursor:"pointer",position:"relative"}} onDragOver={e=>{e.preventDefault();e.currentTarget.style.borderColor="#7c3aed";}} onDragLeave={e=>{e.currentTarget.style.borderColor="#e0e0f0";}} onDrop={e=>{e.preventDefault();e.currentTarget.style.borderColor="#e0e0f0";const f=e.dataTransfer.files[0];if(f){setPdfFile(f);setPdfParsed(null);setPdfApplied(false);setPdfEdit(null);setPdfErr("");setPdfProgress(0);}}}>
       <input type="file" accept=".xlsx,.xls" style={{position:"absolute",inset:0,opacity:0,cursor:"pointer",width:"100%",height:"100%"}} onChange={e=>{const f=e.target.files[0];if(f){setPdfFile(f);setPdfParsed(null);setPdfApplied(false);setPdfEdit(null);setPdfErr("");setPdfProgress(0);}e.target.value="";}}/>
