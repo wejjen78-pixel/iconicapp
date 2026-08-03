@@ -1287,6 +1287,40 @@ export default function App(){
 
 {/* ─── BARBEIRO ─── */}
 {aba==="barb"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
+  {(()=>{
+    const CATS=[["corte","Corte"],["barba","Barba"],["cortebarba","Corte+Barba"],["acabbarba","Acab. Barba"],["pezinho","Pézinho"]];
+    const linhas=barbs.map(b=>{
+      const cont={corte:0,barba:0,cortebarba:0,acabbarba:0,pezinho:0,outros:0};
+      const outrosNomes={};
+      sM.filter(s=>s.bId===b.id).forEach(s=>{const t=getTipoFicha(s.svc);const qt=s.qt||1;if(t){cont[t]+=qt;}else{cont.outros+=qt;outrosNomes[s.svc]=(outrosNomes[s.svc]||0)+qt;}});
+      const totalB=CATS.reduce((a,[k])=>a+cont[k],0)+cont.outros;
+      return{b,cont,outrosNomes,totalB};
+    });
+    const totCat=k=>linhas.reduce((a,l)=>a+l.cont[k],0);
+    const totOutros=linhas.reduce((a,l)=>a+l.cont.outros,0);
+    const totGeral=linhas.reduce((a,l)=>a+l.totalB,0);
+    const outrosTodos={};linhas.forEach(l=>Object.entries(l.outrosNomes).forEach(([nome,qt])=>{outrosTodos[nome]=(outrosTodos[nome]||0)+qt;}));
+    return <div className="card"><div className="st">✂️ Fichas por categoria (mês) — conferência</div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:600}}>
+        <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro",...CATS.map(c=>c[1]),"Não classif.","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
+        <tbody>{linhas.map(l=><tr key={l.b.id} style={{borderBottom:"1px solid #f0f0f5"}}>
+          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(l.b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{l.b.nome.split(" ")[0]}</span></div></td>
+          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px"}}>{l.cont[c[0]]||"—"}</td>)}
+          <td style={{padding:"7px 8px",color:l.cont.outros>0?"#dc2626":"#ccc",fontWeight:l.cont.outros>0?700:400}}>{l.cont.outros||"—"}</td>
+          <td style={{padding:"7px 8px",fontWeight:700}}>{l.totalB}</td>
+        </tr>)}
+        <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
+          <td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td>
+          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px",fontWeight:700}}>{totCat(c[0])}</td>)}
+          <td style={{padding:"7px 8px",fontWeight:700,color:totOutros>0?"#dc2626":"#888"}}>{totOutros}</td>
+          <td style={{padding:"7px 8px",fontWeight:700}}>{totGeral}</td>
+        </tr></tbody></table></div>
+      {totOutros>0&&<div style={{marginTop:10,padding:"10px 12px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8}}>
+        <div style={{fontSize:12,fontWeight:700,color:"#dc2626",marginBottom:6}}>⚠️ {totOutros} lançamento{totOutros!==1?"s":""} não entrou em nenhuma categoria — provável causa da diferença com sua planilha:</div>
+        {Object.entries(outrosTodos).map(([nome,qt])=><div key={nome} style={{fontSize:12,color:"#7f1d1d",padding:"2px 0"}}>{qt}× "{nome}"</div>)}
+      </div>}
+    </div>;
+  })()}
   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{barbs.map(b=><button key={b.id} className={"bg"+(barbSel===b.id?" on":"")} style={{borderColor:barbSel===b.id?b.cor:"#e0e0e8",color:barbSel===b.id?b.cor:"#555",display:"flex",alignItems:"center",gap:6}} onClick={()=>setBarbSel(b.id)}><BAv b={b} size={22} fs={10}/>{b.nome.split(" ")[0]}</button>)}</div>
   {bAtSel&&<>
     <div className="card" style={{borderLeft:"4px solid "+bAtSel.cor}}>
