@@ -540,11 +540,22 @@ export default function App(){
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
   const[saveErrMsg,setSaveErrMsg]=useState("");const[saveRetryTick,setSaveRetryTick]=useState(0);
-  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(async()=>{
+  const salvarRef=useRef(null);
+  salvarRef.current=async()=>{
+    if(!loaded||!isDono||!orgId||loadError)return;
     const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
-  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
+  };
+  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
+  // Salva na hora ao trocar de aba/minimizar, em vez de esperar o debounce (evita perder o ultimo lancamento).
+  useEffect(()=>{
+    const flush=()=>{if(stRef.current){clearTimeout(stRef.current);stRef.current=null;salvarRef.current();}};
+    const onVis=()=>{if(document.visibilityState==="hidden")flush();};
+    document.addEventListener("visibilitychange",onVis);
+    window.addEventListener("pagehide",flush);
+    return()=>{document.removeEventListener("visibilitychange",onVis);window.removeEventListener("pagehide",flush);};
+  },[]);
 
   // ── CÁLCULOS ────────────────────────────────────────────────────────────────
   const dim=new Date(ano,mes+1,0).getDate();
