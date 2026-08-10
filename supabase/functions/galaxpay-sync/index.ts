@@ -86,29 +86,44 @@ Deno.serve(async (req) => {
 
     const transactions = (gpData.transactions || []).filter((t: any) => PAID_STATUSES.has(t.status));
 
-    const { data: orgDataRow } = await admin.from("org_data").select("data").eq("org_id", profile.org_id).single();
-    const current = orgDataRow?.data || {};
-    const pote = Array.isArray(current.pote) ? [...current.pote] : [];
-    const existingExtIds = new Set(pote.filter((p: any) => p.extId).map((p: any) => p.extId));
+    // "pote" agora vive em org_lancamentos (uma linha por lançamento), não mais
+    // dentro do bloco JSON único de org_data — evita reescrever o histórico
+    // inteiro a cada sincronização.
+    const { data: existingRows } = await admin
+      .from("org_lancamentos")
+      .select("payload")
+      .eq("org_id", profile.org_id)
+      .eq("tipo", "pote");
+    const existingExtIds = new Set(
+      (existingRows || []).map((r: any) => r.payload?.extId).filter(Boolean)
+    );
 
-    let added = 0;
+    const newRows = [];
     for (const t of transactions) {
       const extId = "galaxpay:" + t.internalId;
       if (existingExtIds.has(extId)) continue;
-      pote.unshift({
-        id: Math.random().toString(36).substr(2, 8),
-        val: parseFloat(t.value) || 0,
-        dt: (t.payday || startDate).slice(0, 10),
-        obs: "GalaxPay · " + (t.statusDescription || t.status),
-        extId,
+      const appId = Math.random().toString(36).substr(2, 8);
+      const dt = (t.payday || startDate).slice(0, 10);
+      newRows.push({
+        org_id: profile.org_id,
+        tipo: "pote",
+        app_id: appId,
+        dt,
+        payload: {
+          id: appId,
+          val: parseFloat(t.value) || 0,
+          dt,
+          obs: "GalaxPay · " + (t.statusDescription || t.status),
+          extId,
+        },
       });
-      added++;
     }
 
-    await admin
-      .from("org_data")
-      .update({ data: { ...current, pote }, atualizado_em: new Date().toISOString() })
-      .eq("org_id", profile.org_id);
+    let added = 0;
+    if (newRows.length) {
+      const { error: insErr } = await admin.from("org_lancamentos").insert(newRows);
+      if (!insErr) added = newRows.length;
+    }
 
     await admin
       .from("org_integrations")

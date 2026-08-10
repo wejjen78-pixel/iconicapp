@@ -365,6 +365,49 @@ td:last-child{text-align:right;font-weight:600}
 </body></html>`;
 }
 
+// ── SINCRONIZAÇÃO DE LANÇAMENTOS (linha por linha, não mais em bloco único) ────
+// Em vez de reescrever o array inteiro no banco a cada mudança, calcula só o
+// que foi adicionado/editado/removido desde a última sincronização e envia
+// apenas essa diferença. Evita reescrever anos de histórico numa alteração só.
+function useLancamentoSync(tipo,arr,orgId,ready,retryTick,flushRegistry,onSaved,onError){
+  const lastRef=useRef(null);const wasReady=useRef(false);const timerRef=useRef(null);const runRef=useRef(null);
+  runRef.current=async()=>{
+    const prev=lastRef.current||[];
+    const prevMap=new Map(prev.map(x=>[x.id,x]));
+    const currMap=new Map(arr.map(x=>[x.id,x]));
+    const toUpsert=[];
+    currMap.forEach((item,id)=>{const old=prevMap.get(id);if(!old||JSON.stringify(old)!==JSON.stringify(item))toUpsert.push(item);});
+    const toDelete=[...prevMap.keys()].filter(id=>!currMap.has(id));
+    if(!toUpsert.length&&!toDelete.length){lastRef.current=arr;return;}
+    try{
+      if(toUpsert.length){
+        const rows=toUpsert.map(item=>({org_id:orgId,tipo,app_id:String(item.id),dt:item.dt||null,payload:item,atualizado_em:new Date().toISOString()}));
+        const{error}=await supabase.from("org_lancamentos").upsert(rows,{onConflict:"org_id,tipo,app_id"});
+        if(error)throw error;
+      }
+      if(toDelete.length){
+        const{error}=await supabase.from("org_lancamentos").delete().eq("org_id",orgId).eq("tipo",tipo).in("app_id",toDelete.map(String));
+        if(error)throw error;
+      }
+      lastRef.current=arr;
+      onSaved();
+    }catch(err){onError(err.message||err.code||"Erro desconhecido ao salvar");}
+  };
+  useEffect(()=>{
+    if(!flushRegistry)return;
+    const fn=()=>{if(timerRef.current){clearTimeout(timerRef.current);timerRef.current=null;runRef.current();}};
+    flushRegistry.current.add(fn);
+    return()=>flushRegistry.current.delete(fn);
+  },[flushRegistry]);
+  useEffect(()=>{
+    if(!ready||!orgId){wasReady.current=false;lastRef.current=null;return;}
+    if(!wasReady.current){wasReady.current=true;lastRef.current=arr;return;}
+    if(lastRef.current===arr)return;
+    if(timerRef.current)clearTimeout(timerRef.current);
+    timerRef.current=setTimeout(()=>{timerRef.current=null;runRef.current();},900);
+  },[arr,ready,orgId,retryTick]);
+}
+
 // ── APP PRINCIPAL ─────────────────────────────────────────────────────────────
 export default function App(){
   const now=new Date();
@@ -512,28 +555,35 @@ export default function App(){
   useEffect(()=>{(async()=>{
     if(!orgId)return;
     setLoadError(null);
-    const{data:row,error}=await supabase.from("org_data").select("data").eq("org_id",orgId).single();
+    const[{data:row,error},{data:lancRows,error:lancErr}]=await Promise.all([
+      supabase.from("org_data").select("data").eq("org_id",orgId).single(),
+      supabase.from("org_lancamentos").select("tipo,payload,criado_em").eq("org_id",orgId).order("criado_em",{ascending:false})
+    ]);
     // Se a busca falhar, NÃO marcamos como carregado — isso evita que o
     // salvamento automático grave dados vazios por cima dos dados reais.
     if(error){setLoadError(error.message);return;}
+    if(lancErr){setLoadError(lancErr.message);return;}
     const d=row?.data;
     if(d){
       if(d.barbs)setBarbs(d.barbs);
-      if(d.svcs)setSvcs(d.svcs);if(d.avul)setAvul(d.avul);if(d.ext)setExt(d.ext);if(d.extAv)setExtAv(d.extAv);
-      if(d.prod)setProd(d.prod);if(d.pote)setPote(d.pote);if(d.lote)setLote(d.lote);
-      if(d.assinD)setAssinD(d.assinD);if(d.assinV)setAssinV(d.assinV);if(d.vales)setVales(d.vales);
+      if(d.assinD)setAssinD(d.assinD);
       if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
-      if(d.coaching)setCoaching(d.coaching);if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
-      if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
+      if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
+      if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
       if(d.desafio)setDesafio(d.desafio);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
       setSv(d._at||null);
     }
+    const grupos={svcs:[],avul:[],ext:[],extAv:[],prod:[],pote:[],lote:[],assinV:[],vales:[],coaching:[],instaLancamentos:[]};
+    (lancRows||[]).forEach(r=>{if(grupos[r.tipo])grupos[r.tipo].push(r.payload);});
+    setSvcs(grupos.svcs);setAvul(grupos.avul);setExt(grupos.ext);setExtAv(grupos.extAv);
+    setProd(grupos.prod);setPote(grupos.pote);setLote(grupos.lote);setAssinV(grupos.assinV);
+    setVales(grupos.vales);setCoaching(grupos.coaching);setInstaLancamentos(grupos.instaLancamentos);
     setLoaded(true);
   })();},[orgId,loadTick]);
 
@@ -543,14 +593,33 @@ export default function App(){
   const salvarRef=useRef(null);
   salvarRef.current=async()=>{
     if(!loaded||!isDono||!orgId||loadError)return;
-    const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    // Os arrays de lançamentos (svcs/avul/ext/extAv/prod/pote/lote/assinV/vales/coaching/instaLancamentos)
+    // NÃO entram mais aqui — cada um sincroniza linha a linha via useLancamentoSync, para não reescrever
+    // o histórico inteiro a cada mudança (era isso que estourava o tempo limite do banco).
+    const payload={barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
   };
-  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
+  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
+  // Sincroniza cada tipo de lançamento linha a linha (só a diferença desde a última vez, nunca o histórico inteiro).
+  const lancFlushRegistry=useRef(new Set());
+  const lancReady=loaded&&isDono&&!!orgId&&!loadError;
+  const notifyLancSaved=useCallback(()=>{setSv(new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}));setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);},[]);
+  const notifyLancErr=useCallback(msg=>{setSs("err");setSaveErrMsg(msg);},[]);
+  useLancamentoSync("svcs",svcs,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("avul",avul,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("ext",ext,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("extAv",extAv,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("prod",prod,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("pote",pote,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("lote",lote,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("assinV",assinV,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("vales",vales,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("coaching",coaching,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
+  useLancamentoSync("instaLancamentos",instaLancamentos,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
   // Salva na hora ao trocar de aba/minimizar, em vez de esperar o debounce (evita perder o ultimo lancamento).
   useEffect(()=>{
-    const flush=()=>{if(stRef.current){clearTimeout(stRef.current);stRef.current=null;salvarRef.current();}};
+    const flush=()=>{if(stRef.current){clearTimeout(stRef.current);stRef.current=null;salvarRef.current();}lancFlushRegistry.current.forEach(fn=>fn());};
     const onVis=()=>{if(document.visibilityState==="hidden")flush();};
     document.addEventListener("visibilitychange",onVis);
     window.addEventListener("pagehide",flush);
@@ -747,8 +816,8 @@ export default function App(){
     if(data?.error){setGalaxErr(data.error);setGalaxSyncing(false);return;}
     addNotif("🔄",(data?.added||0)+" lançamento(s) importado(s) do GalaxPay!");
     if(data?.added>0){
-      const{data:row}=await supabase.from("org_data").select("data").eq("org_id",orgId).single();
-      if(row?.data?.pote)setPote(row.data.pote);
+      const{data:rows}=await supabase.from("org_lancamentos").select("payload").eq("org_id",orgId).eq("tipo","pote").order("criado_em",{ascending:false});
+      if(rows)setPote(rows.map(r=>r.payload));
     }
     await refreshGalaxStatus();setGalaxSyncing(false);
   }
