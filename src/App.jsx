@@ -397,7 +397,7 @@ export default function App(){
       if(org){setOrgNome(org.nome);setOrgLogoUrl(org.logo_url||null);}
     }
     setLoadAuth(false);
-  })();},[session,profileTick]);
+  })();},[session?.user?.id,profileTick]);
   const user=profile?{id:profile.id,nome:profile.nome,role:profile.role,bId:profile.barbeiro_id?+profile.barbeiro_id:null}:null;
   const logout=async()=>{await supabase.auth.signOut();};
   const isDono=user?.role==="dono";const isBarb=user?.role==="barb";
