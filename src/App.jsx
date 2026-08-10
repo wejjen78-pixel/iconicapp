@@ -539,11 +539,12 @@ export default function App(){
 
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
+  const[saveErrMsg,setSaveErrMsg]=useState("");const[saveRetryTick,setSaveRetryTick]=useState(0);
   useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(async()=>{
     const payload={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
-    if(error){setSs("err");}else{setSv(payload._at);setSs("saved");setTimeout(()=>setSs("idle"),2500);}
-  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError]);
+    if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
+  },1200);},[barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
 
   // ── CÁLCULOS ────────────────────────────────────────────────────────────────
   const dim=new Date(ano,mes+1,0).getDate();
@@ -857,6 +858,7 @@ export default function App(){
     {editModal&&<EditModal item={editModal.item} fields={editModal.fields} barbs={barbs} onSave={tmp=>{editModal.onSave(tmp);setEditModal(null);}} onClose={()=>setEditModal(null)}/>}
     {ss==="saving"&&<div className="toast" style={{color:"#d97706"}}>Salvando...</div>}
     {ss==="saved"&&<div className="toast">Salvo{sv?" às "+sv:""}</div>}
+    {ss==="err"&&<div className="toast" style={{background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",display:"flex",alignItems:"center",gap:10,maxWidth:340}}><span>⚠️ Não salvou: {saveErrMsg}</span><button className="btn bsm" style={{background:"#dc2626",flexShrink:0}} onClick={()=>setSaveRetryTick(t=>t+1)}>Tentar de novo</button></div>}
     {notifs.length>0&&<div style={{position:"fixed",bottom:20,right:20,zIndex:998,maxWidth:280}}>{notifs.map(n=><div key={n.id} style={{background:"linear-gradient(135deg,#1a1a2e,#2d2d4e)",border:"1px solid #7c3aed40",color:"#fff",borderRadius:10,padding:"9px 14px",marginTop:7,fontSize:13,fontWeight:600}}>{n.icon} {n.msg}</div>)}</div>}
 
     <aside className="sb">
