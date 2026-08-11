@@ -567,10 +567,19 @@ export default function App(){
   useEffect(()=>{(async()=>{
     if(!orgId)return;
     setLoadError(null);
-    const[{data:row,error},{data:lancRows,error:lancErr}]=await Promise.all([
-      supabase.from("org_data").select("data").eq("org_id",orgId).single(),
-      supabase.from("org_lancamentos").select("tipo,payload,criado_em").eq("org_id",orgId).order("criado_em",{ascending:false})
-    ]);
+    // A API do Supabase corta a resposta em 1000 linhas por requisição, então
+    // buscamos em blocos até acabar. Sem isso, quem tem muitos lançamentos
+    // carregava só uma fatia arbitrária deles (e os totais vinham errados).
+    // A ordenação é por id porque criado_em empata em massa (migração/importação
+    // gravam tudo no mesmo instante) e empate torna a paginação instável.
+    const PAG=1000;let lancRows=[];let lancErr=null;
+    for(let from=0;;from+=PAG){
+      const{data:parte,error:errParte}=await supabase.from("org_lancamentos").select("tipo,payload").eq("org_id",orgId).order("id",{ascending:true}).range(from,from+PAG-1);
+      if(errParte){lancErr=errParte;break;}
+      lancRows=lancRows.concat(parte||[]);
+      if(!parte||parte.length<PAG)break;
+    }
+    const{data:row,error}=await supabase.from("org_data").select("data").eq("org_id",orgId).single();
     // Se a busca falhar, NÃO marcamos como carregado — isso evita que o
     // salvamento automático grave dados vazios por cima dos dados reais.
     if(error){setLoadError(error.message);return;}
