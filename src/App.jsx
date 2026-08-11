@@ -517,18 +517,33 @@ export default function App(){
   }
   function importarBackup(e){
     const file=e.target.files[0];if(!file)return;
+    if(!window.confirm("Restaurar este backup vai SUBSTITUIR os dados atuais pelo conteúdo do arquivo \""+file.name+"\". Tudo que não estiver no arquivo será apagado. Confirma?")){e.target.value="";return;}
     const reader=new FileReader();
     reader.onload=ev=>{try{
       const d=JSON.parse(ev.target.result);
-      if(d.barbs)setBarbs(d.barbs);if(d.svcs)setSvcs(d.svcs);if(d.avul)setAvul(d.avul);
-      if(d.ext)setExt(d.ext);if(d.extAv)setExtAv(d.extAv);if(d.prod)setProd(d.prod);
-      if(d.pote)setPote(d.pote);if(d.lote)setLote(d.lote);if(d.assinD)setAssinD(d.assinD);
-      if(d.assinV)setAssinV(d.assinV);if(d.vales)setVales(d.vales);if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
+      // Restaurar backup substitui de verdade (como sempre foi) — por isso apaga
+      // explicitamente, no banco, o que não estiver no arquivo restaurado.
+      const delDiff=(curr,novo)=>{const keep=new Set((novo||[]).map(x=>x.id));return(curr||[]).filter(x=>!keep.has(x.id)).map(x=>x.id);};
+      if(d.barbs)setBarbs(d.barbs);
+      if(d.svcs){excluirRemoto("svcs",delDiff(svcs,d.svcs));setSvcs(d.svcs);}
+      if(d.avul){excluirRemoto("avul",delDiff(avul,d.avul));setAvul(d.avul);}
+      if(d.ext){excluirRemoto("ext",delDiff(ext,d.ext));setExt(d.ext);}
+      if(d.extAv){excluirRemoto("extAv",delDiff(extAv,d.extAv));setExtAv(d.extAv);}
+      if(d.prod){excluirRemoto("prod",delDiff(prod,d.prod));setProd(d.prod);}
+      if(d.pote){excluirRemoto("pote",delDiff(pote,d.pote));setPote(d.pote);}
+      if(d.lote){excluirRemoto("lote",delDiff(lote,d.lote));setLote(d.lote);}
+      if(d.assinD)setAssinD(d.assinD);
+      if(d.assinV){excluirRemoto("assinV",delDiff(assinV,d.assinV));setAssinV(d.assinV);}
+      if(d.vales){excluirRemoto("vales",delDiff(vales,d.vales));setVales(d.vales);}
+      if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
-      if(d.coaching)setCoaching(d.coaching);if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
-      if(d.instaMeta)setInstaMeta(d.instaMeta);if(d.instaLancamentos)setInstaLancamentos(d.instaLancamentos);if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
+      if(d.coaching){excluirRemoto("coaching",delDiff(coaching,d.coaching));setCoaching(d.coaching);}
+      if(d.metaHist)setMetaHist(d.metaHist);if(d.horasTrab)setHorasTrab(d.horasTrab);if(d.auditLog)setAuditLog(d.auditLog);
+      if(d.instaMeta)setInstaMeta(d.instaMeta);
+      if(d.instaLancamentos){excluirRemoto("instaLancamentos",delDiff(instaLancamentos,d.instaLancamentos));setInstaLancamentos(d.instaLancamentos);}
+      if(d.desafioPessoal)setDesafioPessoal(d.desafioPessoal);
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
