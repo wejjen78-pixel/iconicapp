@@ -367,28 +367,25 @@ td:last-child{text-align:right;font-weight:600}
 
 // ── SINCRONIZAÇÃO DE LANÇAMENTOS (linha por linha, não mais em bloco único) ────
 // Em vez de reescrever o array inteiro no banco a cada mudança, calcula só o
-// que foi adicionado/editado/removido desde a última sincronização e envia
-// apenas essa diferença. Evita reescrever anos de histórico numa alteração só.
+// que foi adicionado/editado desde a última sincronização e envia apenas essa
+// diferença. Evita reescrever anos de histórico numa alteração só.
+// IMPORTANTE: isto NUNCA infere exclusão a partir do array ter "diminuído" —
+// um item sumir daqui pode ser só porque esta aba está com uma foto antiga em
+// memória (ex: outra aba/sessão adicionou algo que esta ainda não carregou).
+// Exclusão só acontece de forma explícita, chamando excluirRemoto() no exato
+// momento em que o usuário clica em excluir.
 function useLancamentoSync(tipo,arr,orgId,ready,retryTick,flushRegistry,onSaved,onError){
   const lastRef=useRef(null);const wasReady=useRef(false);const timerRef=useRef(null);const runRef=useRef(null);
   runRef.current=async()=>{
     const prev=lastRef.current||[];
     const prevMap=new Map(prev.map(x=>[x.id,x]));
-    const currMap=new Map(arr.map(x=>[x.id,x]));
     const toUpsert=[];
-    currMap.forEach((item,id)=>{const old=prevMap.get(id);if(!old||JSON.stringify(old)!==JSON.stringify(item))toUpsert.push(item);});
-    const toDelete=[...prevMap.keys()].filter(id=>!currMap.has(id));
-    if(!toUpsert.length&&!toDelete.length){lastRef.current=arr;return;}
+    arr.forEach(item=>{const old=prevMap.get(item.id);if(!old||JSON.stringify(old)!==JSON.stringify(item))toUpsert.push(item);});
+    if(!toUpsert.length){lastRef.current=arr;return;}
     try{
-      if(toUpsert.length){
-        const rows=toUpsert.map(item=>({org_id:orgId,tipo,app_id:String(item.id),dt:item.dt||null,payload:item,atualizado_em:new Date().toISOString()}));
-        const{error}=await supabase.from("org_lancamentos").upsert(rows,{onConflict:"org_id,tipo,app_id"});
-        if(error)throw error;
-      }
-      if(toDelete.length){
-        const{error}=await supabase.from("org_lancamentos").delete().eq("org_id",orgId).eq("tipo",tipo).in("app_id",toDelete.map(String));
-        if(error)throw error;
-      }
+      const rows=toUpsert.map(item=>({org_id:orgId,tipo,app_id:String(item.id),dt:item.dt||null,payload:item,atualizado_em:new Date().toISOString()}));
+      const{error}=await supabase.from("org_lancamentos").upsert(rows,{onConflict:"org_id,tipo,app_id"});
+      if(error)throw error;
       lastRef.current=arr;
       onSaved();
     }catch(err){onError(err.message||err.code||"Erro desconhecido ao salvar");}
@@ -771,7 +768,13 @@ export default function App(){
     setBarbs(bs=>bs.filter(b=>b.id!==id));
     setNmsT(n=>n.filter((_,j)=>j!==idx));setMetT(m=>m.filter((_,j)=>j!==idx));
   }
-  function delExtra(id){setExt(v=>v.filter(x=>x.id!==id));setExtAv(v=>v.filter(x=>x.id!==id));}
+  // Exclusão remota explícita — nunca inferida por diferença de array (evita apagar
+  // por engano algo que outra aba/sessão adicionou e esta ainda não carregou).
+  async function excluirRemoto(tipo,ids){
+    if(!ids||!ids.length||!orgId)return;
+    await supabase.from("org_lancamentos").delete().eq("org_id",orgId).eq("tipo",tipo).in("app_id",ids.map(String));
+  }
+  function delExtra(id){setExt(v=>v.filter(x=>x.id!==id));setExtAv(v=>v.filter(x=>x.id!==id));excluirRemoto("ext",[id]);excluirRemoto("extAv",[id]);}
   function updExtra(item){setExt(v=>v.map(x=>x.id===item.id?item:x));setExtAv(v=>v.map(x=>x.id===item.id?item:x));}
   function uploadFoto(bId,e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>setBarbs(bs=>bs.map(b=>b.id===bId?{...b,foto:ev.target.result}:b));reader.readAsDataURL(file);}
 
@@ -821,12 +824,29 @@ export default function App(){
     }
     await refreshGalaxStatus();setGalaxSyncing(false);
   }
-  function limparTudoBarbeiro(bId){if(!window.confirm("Excluir TODOS os lançamentos?"))return;setSvcs(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));setAvul(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));setExt(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));setExtAv(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));setProd(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));setLote(v=>v.filter(s=>!(s.bId===bId&&noM(s.dt))));addNotif("🗑","Lançamentos apagados!");}
-  function limparTudoPdf(){if(!window.confirm("Excluir TUDO importado via Excel?"))return;setSvcs(v=>v.filter(s=>!noM(s.dt)||s.src!=="pdf"));setAvul(v=>v.filter(s=>!noM(s.dt)||s.src!=="pdf"));setExt(v=>v.filter(s=>!noM(s.dt)||s.src!=="pdf"));setExtAv(v=>v.filter(s=>!noM(s.dt)||s.src!=="pdf"));setProd(v=>v.filter(s=>!noM(s.dt)||s.src!=="pdf"));addNotif("🗑","Importação removida!");}
+  function limparTudoBarbeiro(bId){
+    if(!window.confirm("Excluir TODOS os lançamentos?"))return;
+    const match=s=>s.bId===bId&&noM(s.dt);
+    excluirRemoto("svcs",svcs.filter(match).map(x=>x.id));excluirRemoto("avul",avul.filter(match).map(x=>x.id));
+    excluirRemoto("ext",ext.filter(match).map(x=>x.id));excluirRemoto("extAv",extAv.filter(match).map(x=>x.id));
+    excluirRemoto("prod",prod.filter(match).map(x=>x.id));excluirRemoto("lote",lote.filter(match).map(x=>x.id));
+    setSvcs(v=>v.filter(s=>!match(s)));setAvul(v=>v.filter(s=>!match(s)));setExt(v=>v.filter(s=>!match(s)));setExtAv(v=>v.filter(s=>!match(s)));setProd(v=>v.filter(s=>!match(s)));setLote(v=>v.filter(s=>!match(s)));
+    addNotif("🗑","Lançamentos apagados!");
+  }
+  function limparTudoPdf(){
+    if(!window.confirm("Excluir TUDO importado via Excel?"))return;
+    const match=s=>noM(s.dt)&&s.src==="pdf";
+    excluirRemoto("svcs",svcs.filter(match).map(x=>x.id));excluirRemoto("avul",avul.filter(match).map(x=>x.id));
+    excluirRemoto("ext",ext.filter(match).map(x=>x.id));excluirRemoto("extAv",extAv.filter(match).map(x=>x.id));
+    excluirRemoto("prod",prod.filter(match).map(x=>x.id));
+    setSvcs(v=>v.filter(s=>!match(s)));setAvul(v=>v.filter(s=>!match(s)));setExt(v=>v.filter(s=>!match(s)));setExtAv(v=>v.filter(s=>!match(s)));setProd(v=>v.filter(s=>!match(s)));
+    addNotif("🗑","Importação removida!");
+  }
   function hasPdfMes(){return sM.some(s=>s.src==="pdf")||aM.some(s=>s.src==="pdf")||[...eM,...eAM].some(s=>s.src==="pdf")||pM.some(p=>p.src==="pdf");}
   function excluirUltimoImport(){
     if(!lastImportIds||(!lastImportIds.svcs.length&&!lastImportIds.avul.length&&!lastImportIds.extras.length&&!lastImportIds.prod.length)){addNotif("ℹ️","Nenhum lançamento recente para excluir.");return;}
     if(!window.confirm("Excluir apenas o último lançamento aplicado?"))return;
+    excluirRemoto("svcs",lastImportIds.svcs);excluirRemoto("avul",lastImportIds.avul);excluirRemoto("extAv",lastImportIds.extras);excluirRemoto("prod",lastImportIds.prod);
     setSvcs(v=>v.filter(x=>!lastImportIds.svcs.includes(x.id)));
     setAvul(v=>v.filter(x=>!lastImportIds.avul.includes(x.id)));
     setExtAv(v=>v.filter(x=>!lastImportIds.extras.includes(x.id)));
@@ -898,6 +918,7 @@ export default function App(){
     const item=importHistory.find(h=>h.id===histId);if(!item)return;
     const totalItem=item.fichas+item.avulsos+item.extras+item.produtos;
     if(!window.confirm("Excluir os "+totalItem+" registros importados em "+item.dt+"?"))return;
+    excluirRemoto("svcs",item.ids.svcs);excluirRemoto("avul",item.ids.avul);excluirRemoto("extAv",item.ids.extras);excluirRemoto("prod",item.ids.prod);
     setSvcs(v=>v.filter(x=>!item.ids.svcs.includes(x.id)));
     setAvul(v=>v.filter(x=>!item.ids.avul.includes(x.id)));
     setExtAv(v=>v.filter(x=>!item.ids.extras.includes(x.id)));
@@ -906,7 +927,7 @@ export default function App(){
     addNotif("🗑","Importação de "+item.dt+" removida!");
   }
 
-  function ERow({item,fields,setter,onDel,children}){return <div className="row"><div style={{display:"contents"}}>{children}</div><button onClick={()=>setEditModal({item,fields,setter,onSave:(tmp)=>{if(setter)setter(arr=>Array.isArray(arr)?arr.map(x=>x.id===tmp.id?tmp:x):arr);setEditModal(null);}})} style={{background:"none",border:"none",cursor:"pointer",color:"#bbb",flexShrink:0,fontSize:12}}>✏️</button><button className="bdel" onClick={()=>{if(onDel)onDel(item.id);else if(setter)setter(arr=>Array.isArray(arr)?arr.filter(x=>x.id!==item.id):arr);}}>×</button></div>;}
+  function ERow({item,fields,setter,onDel,tipo,children}){return <div className="row"><div style={{display:"contents"}}>{children}</div><button onClick={()=>setEditModal({item,fields,setter,onSave:(tmp)=>{if(setter)setter(arr=>Array.isArray(arr)?arr.map(x=>x.id===tmp.id?tmp:x):arr);setEditModal(null);}})} style={{background:"none",border:"none",cursor:"pointer",color:"#bbb",flexShrink:0,fontSize:12}}>✏️</button><button className="bdel" onClick={()=>{if(onDel)onDel(item.id);else{if(setter)setter(arr=>Array.isArray(arr)?arr.filter(x=>x.id!==item.id):arr);if(tipo)excluirRemoto(tipo,[item.id]);}}}>×</button></div>;}
 
   if(passwordRecovery)return <ResetPassword/>;
   if(loadAuth)return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}><style>{CSS}</style><span style={{color:"#aaa"}}>Carregando...</span></div>;
@@ -1508,7 +1529,7 @@ export default function App(){
         <div><span className="lbl">Data</span><input type="date" className="inp" value={coachDt} onChange={e=>setCoachDt(e.target.value)}/></div>
       </div>
       <button className="btn bsm" onClick={addCoaching}>+ Adicionar observação</button>
-      <div style={{marginTop:10}}>{coaching.filter(c=>c.bId===bAtSel.id).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma observação registrada.</div>:coaching.filter(c=>c.bId===bAtSel.id).sort((a,b2)=>b2.dt.localeCompare(a.dt)).map(c=><div key={c.id} className="row"><div style={{flex:1}}><div style={{fontSize:12}}>{c.texto}</div><div style={{fontSize:10,color:"#aaa",marginTop:2}}>{new Date(c.dt+"T12:00:00").toLocaleDateString("pt-BR")}</div></div><button className="bdel" onClick={()=>setCoaching(cs=>cs.filter(x=>x.id!==c.id))}>×</button></div>)}</div>
+      <div style={{marginTop:10}}>{coaching.filter(c=>c.bId===bAtSel.id).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma observação registrada.</div>:coaching.filter(c=>c.bId===bAtSel.id).sort((a,b2)=>b2.dt.localeCompare(a.dt)).map(c=><div key={c.id} className="row"><div style={{flex:1}}><div style={{fontSize:12}}>{c.texto}</div><div style={{fontSize:10,color:"#aaa",marginTop:2}}>{new Date(c.dt+"T12:00:00").toLocaleDateString("pt-BR")}</div></div><button className="bdel" onClick={()=>{setCoaching(cs=>cs.filter(x=>x.id!==c.id));excluirRemoto("coaching",[c.id]);}}>×</button></div>)}</div>
     </div>
     {(()=>{
       const grpClub=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,qt:0};a[k].qt+=(s.qt||1);return a;},{});
@@ -1540,16 +1561,16 @@ export default function App(){
       </div>;
     })()}
     <div className="card"><div className="st">Fichas ({bAtSel.ftot}pts)</div>
-      {(()=>{const grp=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],pts:0};a[k].items.push(s);a[k].pts+=getFichasPorTipo(s.svc)*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#d97706" qt={g.items.length} total={g.pts} isPts acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?"))setSvcs(v=>v.filter(x=>!(x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc)));}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"dt",label:"Data",type:"date"}]} setter={setSvcs}><div style={{flex:2,fontSize:11}}>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div><span style={{color:"#d97706",fontWeight:600}}>{getFichasPorTipo(s.svc)}pts</span></ERow>)}</GrupoColapsavel>);})()}
+      {(()=>{const grp=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],pts:0};a[k].items.push(s);a[k].pts+=getFichasPorTipo(s.svc)*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#d97706" qt={g.items.length} total={g.pts} isPts acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=svcs.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("svcs",ids);setSvcs(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"dt",label:"Data",type:"date"}]} setter={setSvcs} tipo="svcs"><div style={{flex:2,fontSize:11}}>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div><span style={{color:"#d97706",fontWeight:600}}>{getFichasPorTipo(s.svc)}pts</span></ERow>)}</GrupoColapsavel>);})()}
     </div>
     <div className="card"><div className="st">Avulsos</div>
-      {(()=>{const grp=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(s);a[k].total+=s.val*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#7c3aed" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?"))setAvul(v=>v.filter(x=>!(x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc)));}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"svc",label:"Serviço",type:"select",options:SVC_DEF.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setAvul}><div style={{flex:1,fontSize:11}}><b>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{s.qt}{s.nota?" ⭐"+s.nota:""}</div><span style={{fontWeight:600,color:"#7c3aed"}}>{R(s.val*s.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
+      {(()=>{const grp=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(s);a[k].total+=s.val*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#7c3aed" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=avul.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("avul",ids);setAvul(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"svc",label:"Serviço",type:"select",options:SVC_DEF.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setAvul} tipo="avul"><div style={{flex:1,fontSize:11}}><b>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{s.qt}{s.nota?" ⭐"+s.nota:""}</div><span style={{fontWeight:600,color:"#7c3aed"}}>{R(s.val*s.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
     </div>
     <div className="card"><div className="st">Extras</div>
-      {(()=>{const grp=bAtSel.exB.reduce((a,e)=>{const k=e.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(e);a[k].total+=e.val;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0891b2" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{setExt(v=>v.filter(x=>!(x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc)));setExtAv(v=>v.filter(x=>!(x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc)));}}>🗑</button>}>{g.items.map(e=><ERow key={e.id} item={e} fields={[{key:"svc",label:"Extra",type:"select",options:EXT_DEF},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={updExtra} onDel={delExtra}><div style={{flex:1,fontSize:11}}><b>{new Date(e.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b></div><span style={{fontWeight:600,color:"#0891b2"}}>{R(e.val)}</span></ERow>)}</GrupoColapsavel>);})()}
+      {(()=>{const grp=bAtSel.exB.reduce((a,e)=>{const k=e.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(e);a[k].total+=e.val;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0891b2" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{const match=x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc;const idsE=ext.filter(match).map(x=>x.id);const idsEA=extAv.filter(match).map(x=>x.id);excluirRemoto("ext",idsE);excluirRemoto("extAv",idsEA);setExt(v=>v.filter(x=>!match(x)));setExtAv(v=>v.filter(x=>!match(x)));}}>🗑</button>}>{g.items.map(e=><ERow key={e.id} item={e} fields={[{key:"svc",label:"Extra",type:"select",options:EXT_DEF},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={updExtra} onDel={delExtra}><div style={{flex:1,fontSize:11}}><b>{new Date(e.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b></div><span style={{fontWeight:600,color:"#0891b2"}}>{R(e.val)}</span></ERow>)}</GrupoColapsavel>);})()}
     </div>
     <div className="card"><div className="st">Produtos</div>
-      {(()=>{const grp=bAtSel.prB.reduce((a,p)=>{const k=p.prod;if(!a[k])a[k]={prod:k,items:[],total:0};a[k].items.push(p);a[k].total+=p.val*p.qt;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.prod} titulo={g.prod} cor="#059669" qt={g.items.reduce((a,p)=>a+p.qt,0)} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?"))setProd(v=>v.filter(x=>!(x.bId===bAtSel.id&&noM(x.dt)&&x.prod===g.prod)));}}>🗑</button>}>{g.items.map(p=><ERow key={p.id} item={p} fields={[{key:"prod",label:"Produto",type:"select",options:prodLst.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setProd}><div style={{flex:1,fontSize:11}}><b>{new Date(p.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{p.qt}</div><span style={{fontWeight:600,color:"#059669"}}>{R(p.val*p.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
+      {(()=>{const grp=bAtSel.prB.reduce((a,p)=>{const k=p.prod;if(!a[k])a[k]={prod:k,items:[],total:0};a[k].items.push(p);a[k].total+=p.val*p.qt;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.prod} titulo={g.prod} cor="#059669" qt={g.items.reduce((a,p)=>a+p.qt,0)} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=prod.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.prod===g.prod).map(x=>x.id);excluirRemoto("prod",ids);setProd(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(p=><ERow key={p.id} item={p} fields={[{key:"prod",label:"Produto",type:"select",options:prodLst.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setProd} tipo="prod"><div style={{flex:1,fontSize:11}}><b>{new Date(p.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{p.qt}</div><span style={{fontWeight:600,color:"#059669"}}>{R(p.val*p.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
     </div>
     {bAtSel.lotB.length>0&&<div className="card"><div className="st">Lotes</div>{bAtSel.lotB.map(l=><ERow key={l.id} item={l} fields={[{key:"vb",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setLote}><div style={{flex:1,fontSize:12}}>Lote <span style={{color:"#aaa",fontSize:11}}>{new Date(l.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div><span style={{fontWeight:600,color:"#d97706"}}>{R(l.vb)}</span></ERow>)}</div>}
   </>}
@@ -1916,7 +1937,13 @@ export default function App(){
   <div className="card" style={{borderLeft:"3px solid #059669"}}><div className="st">🛍️ Produtos</div><div style={{maxHeight:300,overflowY:"auto"}}>{prodLst.map((p,i)=><div key={i} style={{display:"flex",gap:6,marginBottom:6,alignItems:"center",flexWrap:"wrap"}}><input className="inp" style={{flex:3,fontSize:11,padding:"4px 7px"}} value={p.nome} onChange={e=>setProdLst(l=>l.map((x,j)=>j===i?{...x,nome:e.target.value}:x))}/><input type="number" className="inp" style={{flex:1,fontSize:11,padding:"4px 7px"}} value={p.v} onChange={e=>setProdLst(l=>l.map((x,j)=>j===i?{...x,v:+e.target.value||0}:x))}/><span style={{fontSize:11,color:"#888"}}>Com%</span><input type="number" className="inp" style={{flex:1,fontSize:11,padding:"4px 7px"}} value={Math.round(p.comissao*100)} onChange={e=>setProdLst(l=>l.map((x,j)=>j===i?{...x,comissao:(+e.target.value||0)/100}:x))}/><button className="bdel" onClick={()=>setProdLst(l=>l.filter((_,j)=>j!==i))}>×</button></div>)}</div><button className="bg bsm" style={{marginTop:8}} onClick={()=>setProdLst(l=>[...l,{nome:"Novo Produto",v:0,comissao:0.20}])}>+ Adicionar produto</button></div>
   <div className="card" style={{borderLeft:"3px solid #6b7280"}}><div className="st">🧾 Log de auditoria (últimas ações)</div><div style={{maxHeight:260,overflowY:"auto"}}>{auditLog.length===0?<div style={{color:"#ccc",fontSize:12}}>Nenhuma ação registrada ainda.</div>:auditLog.slice(0,50).map(a=><div key={a.id} className="row"><span style={{width:20}}>{a.icon}</span><span style={{flex:1,fontSize:12}}>{a.msg}</span><span style={{fontSize:11,color:"#aaa"}}>{a.dt}</span></div>)}</div></div>
   <div className="card" style={{borderLeft:"3px solid #059669",background:"#f0fdf4"}}><div className="st" style={{color:"#059669"}}>💾 Backup & Restaurar</div><div style={{fontSize:12,color:"#555",marginBottom:10}}>Salve um arquivo JSON com todos os dados. Se perder tudo, restaure aqui.</div><div style={{display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}><button className="btn" style={{background:"#059669"}} onClick={exportarBackup}>⬇️ Exportar Backup</button><label className="btn" style={{background:"#0891b2",cursor:"pointer"}}>⬆️ Restaurar Backup<input type="file" accept=".json" style={{display:"none"}} onChange={importarBackup}/></label></div></div>
-  <div className="card" style={{borderLeft:"3px solid #dc2626",background:"#fef2f2"}}><div className="st" style={{color:"#dc2626"}}>⚠️ Zona de risco</div><div className="g3"><button className="btn bsm" style={{background:"#dc2626"}} onClick={()=>{if(window.confirm("Zerar TUDO?")){setSvcs([]);setAvul([]);setExt([]);setExtAv([]);setProd([]);setPote([]);setLote([]);setAssinV([]);setVales([]);addNotif("🗑","Dados apagados!");}}}>🗑 Zerar tudo</button><button className="btn bsm" style={{background:"#dc2626"}} onClick={()=>{if(window.confirm("Zerar mês de "+MESES[mes]+"?")){setSvcs(v=>v.filter(s=>!noM(s.dt)));setAvul(v=>v.filter(s=>!noM(s.dt)));setExt(v=>v.filter(s=>!noM(s.dt)));setExtAv(v=>v.filter(s=>!noM(s.dt)));setProd(v=>v.filter(s=>!noM(s.dt)));setPote(v=>v.filter(s=>!noM(s.dt)));setLote(v=>v.filter(s=>!noM(s.dt)));setAssinV(v=>v.filter(s=>!noM(s.dt)));setVales(v=>v.filter(s=>!noM(s.dt)));addNotif("🗑","Mês apagado!");}}}>🗑 Zerar {MESES[mes]}</button><button className="btn bsm" style={{background:"#d97706"}} onClick={()=>{if(window.confirm("Resetar config?")){setNiveis(niveis);setMetasBon(metasBon);setTxB(45);setTxBar(55);addNotif("🔄","Config resetada!");}}}>🔄 Reset taxas</button></div></div>
+  <div className="card" style={{borderLeft:"3px solid #dc2626",background:"#fef2f2"}}><div className="st" style={{color:"#dc2626"}}>⚠️ Zona de risco</div><div className="g3"><button className="btn bsm" style={{background:"#dc2626"}} onClick={()=>{if(window.confirm("Zerar TUDO?")){
+    excluirRemoto("svcs",svcs.map(x=>x.id));excluirRemoto("avul",avul.map(x=>x.id));excluirRemoto("ext",ext.map(x=>x.id));excluirRemoto("extAv",extAv.map(x=>x.id));excluirRemoto("prod",prod.map(x=>x.id));excluirRemoto("pote",pote.map(x=>x.id));excluirRemoto("lote",lote.map(x=>x.id));excluirRemoto("assinV",assinV.map(x=>x.id));excluirRemoto("vales",vales.map(x=>x.id));
+    setSvcs([]);setAvul([]);setExt([]);setExtAv([]);setProd([]);setPote([]);setLote([]);setAssinV([]);setVales([]);addNotif("🗑","Dados apagados!");
+  }}}>🗑 Zerar tudo</button><button className="btn bsm" style={{background:"#dc2626"}} onClick={()=>{if(window.confirm("Zerar mês de "+MESES[mes]+"?")){
+    excluirRemoto("svcs",svcs.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("avul",avul.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("ext",ext.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("extAv",extAv.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("prod",prod.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("pote",pote.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("lote",lote.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("assinV",assinV.filter(s=>noM(s.dt)).map(x=>x.id));excluirRemoto("vales",vales.filter(s=>noM(s.dt)).map(x=>x.id));
+    setSvcs(v=>v.filter(s=>!noM(s.dt)));setAvul(v=>v.filter(s=>!noM(s.dt)));setExt(v=>v.filter(s=>!noM(s.dt)));setExtAv(v=>v.filter(s=>!noM(s.dt)));setProd(v=>v.filter(s=>!noM(s.dt)));setPote(v=>v.filter(s=>!noM(s.dt)));setLote(v=>v.filter(s=>!noM(s.dt)));setAssinV(v=>v.filter(s=>!noM(s.dt)));setVales(v=>v.filter(s=>!noM(s.dt)));addNotif("🗑","Mês apagado!");
+  }}}>🗑 Zerar {MESES[mes]}</button><button className="btn bsm" style={{background:"#d97706"}} onClick={()=>{if(window.confirm("Resetar config?")){setNiveis(niveis);setMetasBon(metasBon);setTxB(45);setTxBar(55);addNotif("🔄","Config resetada!");}}}>🔄 Reset taxas</button></div></div>
 </div>}
 
       </div>
