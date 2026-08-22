@@ -87,7 +87,7 @@ const CSS=`
 @media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr}}
 `;
 
-const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>};
+const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>,profit:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>};
 
 // ── SMALL COMPONENTS ─────────────────────────────────────────────────────────
 function CT({active,payload,label}){if(!active||!payload?.length)return null;return <div style={{background:"#fff",border:"1px solid #e8e8f0",borderRadius:7,padding:"8px 12px",fontSize:12}}><div style={{color:"#888",marginBottom:4}}>{label}</div>{payload.map((p,i)=><div key={i} style={{color:p.color||"#7c3aed"}}>{p.name}: {p.value>200?R(p.value):p.value}</div>)}</div>;}
@@ -461,6 +461,9 @@ export default function App(){
   const[saldoAtual,setSaldoAtual]=useState(0);
   const[diaPagAssin,setDiaPagAssin]=useState(15);const[diaPagAvulso,setDiaPagAvulso]=useState(30);
   const[comisExcl,setComisExcl]=useState([]);
+  const[profitAba,setProfitAba]=useState("itens");const[profitCatSel,setProfitCatSel]=useState(null);
+  const[profitPrem,setProfitPrem]=useState({cartao:3.5,taxaFixa:0.2,imposto:5,gerente:0});
+  const[profitItens,setProfitItens]=useState({});
   const[ss,setSs]=useState("idle");const[sv,setSv]=useState(null);const[loaded,setLoaded]=useState(false);
   const[onboardingSkipped,setOnboardingSkipped]=useState(false);
   const stRef=useRef(null);
@@ -508,7 +511,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+new Date().toISOString().slice(0,10)+".json";
@@ -547,6 +550,7 @@ export default function App(){
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
+      if(d.profitPrem)setProfitPrem(d.profitPrem);if(d.profitItens)setProfitItens(d.profitItens);
       addNotif("✅","Backup restaurado com sucesso!");
     }catch(err){alert("Arquivo inválido!");}};
     reader.readAsText(file);e.target.value="";
@@ -555,12 +559,12 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["insta","Instagram"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["insta","Instagram"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["insta","Instagram"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
-  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,insta:ICO.insta}[k]||ICO.dash);
-  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",insta:"📸 Instagram",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
+  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,insta:ICO.insta}[k]||ICO.dash);
+  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",insta:"📸 Instagram",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
 
   // ── CARREGAR DADOS (Supabase) ────────────────────────────────────────────
   const[loadError,setLoadError]=useState(null);const[loadTick,setLoadTick]=useState(0);
@@ -598,6 +602,7 @@ export default function App(){
       if(d.clt)setClt(d.clt);if(d.custos)setCustos(d.custos);if(d.saldoAtual!=null)setSaldoAtual(d.saldoAtual);
       if(d.diaPagAssin!=null)setDiaPagAssin(d.diaPagAssin);if(d.diaPagAvulso!=null)setDiaPagAvulso(d.diaPagAvulso);
       if(d.comisExcl)setComisExcl(d.comisExcl);if(d.importHistory)setImportHistory(d.importHistory);
+      if(d.profitPrem)setProfitPrem(d.profitPrem);if(d.profitItens)setProfitItens(d.profitItens);
       setSv(d._at||null);
     }
     const grupos={svcs:[],avul:[],ext:[],extAv:[],prod:[],pote:[],lote:[],assinV:[],vales:[],coaching:[],instaLancamentos:[]};
@@ -617,11 +622,11 @@ export default function App(){
     // Os arrays de lançamentos (svcs/avul/ext/extAv/prod/pote/lote/assinV/vales/coaching/instaLancamentos)
     // NÃO entram mais aqui — cada um sincroniza linha a linha via useLancamentoSync, para não reescrever
     // o histórico inteiro a cada mudança (era isso que estourava o tempo limite do banco).
-    const payload={barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
   };
-  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,loaded,isDono,orgId,loadError,saveRetryTick]);
+  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,loaded,isDono,orgId,loadError,saveRetryTick]);
   // Sincroniza cada tipo de lançamento linha a linha (só a diferença desde a última vez, nunca o histórico inteiro).
   const lancFlushRegistry=useRef(new Set());
   const lancReady=loaded&&isDono&&!!orgId&&!loadError;
@@ -1849,6 +1854,164 @@ export default function App(){
       <div style={{fontSize:32,fontWeight:900,color:"#1a1a2e"}}>{R(totalGeral)}</div>
       <div style={{fontSize:12,color:"#888",marginTop:4}}>{R(totalComissoes)} comissões + {R(totalCLT)} CLT + {R(totalSaidas)} custos</div>
     </div>
+  </div>;
+})()}
+
+{/* ─── PROFIT ─── */}
+{aba==="profit"&&isDono&&(()=>{
+  const keyOf=(cat,nome)=>cat+"|"+nome;
+  const setOv=(cat,nome,campo,val)=>setProfitItens(p=>({...p,[keyOf(cat,nome)]:{...(p[keyOf(cat,nome)]||{}),[campo]:val}}));
+
+  // Monta os itens a partir das vendas reais do mês (nada é digitado à mão).
+  const grupos={};
+  const add=(cat,nome,qt,valor)=>{const k=keyOf(cat,nome);if(!grupos[k])grupos[k]={cat,nome,qtd:0,receita:0};grupos[k].qtd+=qt;grupos[k].receita+=valor;};
+  aM.forEach(s=>add("Barbearia",s.svc,s.qt||1,s.val*(s.qt||1)));
+  lM.forEach(l=>add("Barbearia","Lote / Pacote",1,l.vb));
+  [...eM,...eAM].forEach(e=>add("Serviços Extras",e.svc,1,e.val));
+  pM.forEach(p=>add("Produtos",p.prod,p.qt||1,p.val*(p.qt||1)));
+
+  const itens=Object.values(grupos).map(g=>{
+    const o=profitItens[keyOf(g.cat,g.nome)]||{};
+    const preco=g.qtd>0?g.receita/g.qtd:0;
+    const comPadrao=g.cat==="Produtos"?((prodLst.find(x=>x.nome===g.nome)?.comissao??0.2)*100):txB;
+    const comissao=o.comissao!=null?o.comissao:comPadrao;
+    const cartao=o.cartao!=null?o.cartao:profitPrem.cartao;
+    const taxaFixa=o.taxaFixa!=null?o.taxaFixa:profitPrem.taxaFixa;
+    const imposto=o.imposto!=null?o.imposto:profitPrem.imposto;
+    const insumos=o.insumos!=null?o.insumos:0;
+    const custoUnit=preco*((comissao+cartao+imposto+(profitPrem.gerente||0))/100)+taxaFixa+insumos;
+    const contribUnit=preco-custoUnit;
+    return{...g,preco,comissao,cartao,taxaFixa,imposto,insumos,contribUnit,mc:preco>0?(contribUnit/preco)*100:0,contribTotal:contribUnit*g.qtd};
+  }).sort((a,b2)=>b2.contribTotal-a.contribTotal);
+
+  const servicos=itens.filter(i=>i.cat!=="Produtos");
+  const recServ=servicos.reduce((a,i)=>a+i.receita,0);const contServ=servicos.reduce((a,i)=>a+i.contribTotal,0);
+  const qtServ=servicos.reduce((a,i)=>a+i.qtd,0);
+  const mcServ=recServ>0?(contServ/recServ)*100:0;
+
+  const cats={};
+  itens.forEach(i=>{if(!cats[i.cat])cats[i.cat]={cat:i.cat,receita:0,contrib:0,qtd:0};cats[i.cat].receita+=i.receita;cats[i.cat].contrib+=i.contribTotal;cats[i.cat].qtd+=i.qtd;});
+  const catList=Object.values(cats).map(c=>({...c,mc:c.receita>0?(c.contrib/c.receita)*100:0})).sort((a,b2)=>a.mc-b2.mc);
+  const maxMc=Math.max(...catList.map(c=>c.mc),1);
+  const itensFiltrados=profitCatSel?itens.filter(i=>i.cat===profitCatSel):itens;
+  const corMc=m=>m>=50?"#059669":m>=30?"#d97706":"#dc2626";
+
+  // Ponto de equilíbrio — assinatura entra pelo real: receita do pote menos a comissão paga sobre ela.
+  const contribAssin=tPote-tCP;
+  const contribMensal=itens.reduce((a,i)=>a+i.contribTotal,0)+contribAssin;
+  const custoVarTotal=fat-contribMensal;
+  const mcGeral=fat>0?(contribMensal/fat)*100:0;
+  const custosFixosAba=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
+  const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
+  const fixosTotal=custosFixosAba+totalCLT;
+  const resultado=contribMensal-fixosTotal;
+  const pontoEquilibrio=mcGeral>0?fixosTotal/(mcGeral/100):0;
+  const distPct=pontoEquilibrio>0?((fat-pontoEquilibrio)/pontoEquilibrio)*100:0;
+  const inpMini={width:62,fontSize:11,padding:"3px 5px",border:"1px solid #e0e0e8",borderRadius:5};
+
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div className="card" style={{borderLeft:"4px solid #7c3aed"}}>
+      <div style={{fontWeight:700,fontSize:15}}>Profit</div>
+      <div style={{fontSize:12,color:"#555",marginTop:2}}>Descubra quanto realmente sobra em cada serviço e produto — calculado sobre as vendas de {MESES[mes]}.</div>
+      <div style={{display:"flex",gap:16,marginTop:12,borderBottom:"1px solid #f0f0f5"}}>
+        {[["itens","Itens (precificar)"],["equil","Ponto de equilíbrio"]].map(([k,v])=><div key={k} onClick={()=>setProfitAba(k)} style={{cursor:"pointer",paddingBottom:8,fontSize:13,fontWeight:profitAba===k?700:500,color:profitAba===k?"#7c3aed":"#888",borderBottom:profitAba===k?"2px solid #7c3aed":"2px solid transparent",marginBottom:-1}}>{v}</div>)}
+      </div>
+    </div>
+
+    {profitAba==="itens"&&<>
+      <div className="g2">
+        <div className="card" style={{borderLeft:"4px solid "+corMc(mcServ)}}>
+          <div style={{fontSize:11,color:"#888",fontWeight:600}}>✂️ MARGEM DE CONTRIB. · SERVIÇOS</div>
+          <div style={{fontSize:30,fontWeight:900,color:corMc(mcServ)}}>{mcServ.toFixed(1)}%</div>
+          <div style={{fontSize:11,color:"#aaa"}}>ponderada pela venda · {R(contServ)} de {R(recServ)}</div>
+        </div>
+        <div className="card" style={{borderLeft:"4px solid #0891b2"}}>
+          <div style={{fontSize:11,color:"#888",fontWeight:600}}>💵 CONTRIBUIÇÃO / VENDA · SERVIÇOS</div>
+          <div style={{fontSize:30,fontWeight:900,color:"#0891b2"}}>{R(qtServ>0?contServ/qtServ:0)}</div>
+          <div style={{fontSize:11,color:"#aaa"}}>média por serviço · {qtServ} atendimento{qtServ!==1?"s":""}</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="st">Margem por categoria</div>
+        <div style={{fontSize:11,color:"#aaa",marginTop:-8,marginBottom:10}}>Da menor margem para a maior — clique numa categoria para filtrar a tabela abaixo.</div>
+        {catList.length===0?<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhuma venda lançada em {MESES[mes]}.</div>:catList.map((c,i)=><div key={c.cat} onClick={()=>setProfitCatSel(profitCatSel===c.cat?null:c.cat)} style={{cursor:"pointer",marginBottom:10,padding:"8px 10px",borderRadius:8,background:profitCatSel===c.cat?"#f5f3ff":"transparent",border:"1px solid "+(profitCatSel===c.cat?"#c4b5fd":"transparent")}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,gap:8,flexWrap:"wrap"}}>
+            <div style={{display:"flex",alignItems:"center",gap:7}}>
+              <span style={{fontSize:13,fontWeight:600}}>{c.cat}</span>
+              <span style={{fontSize:11,color:"#aaa"}}>{c.qtd}x</span>
+              {i===0&&catList.length>1&&<span style={{background:"#fee2e2",color:"#dc2626",borderRadius:20,padding:"1px 8px",fontSize:10,fontWeight:700}}>MENOR</span>}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:13,fontWeight:800,color:corMc(c.mc)}}>{c.mc.toFixed(1)}%</span><span style={{fontSize:12,color:"#888"}}>{R(c.contrib)}</span></div>
+          </div>
+          <div style={{background:"#f0f0f5",borderRadius:4,height:7}}><div style={{height:7,borderRadius:4,width:Math.max(2,(c.mc/maxMc)*100)+"%",background:corMc(c.mc)}}/></div>
+        </div>)}
+      </div>
+
+      <div className="card">
+        <div className="st">Premissas do cálculo</div>
+        <div style={{fontSize:11,color:"#aaa",marginTop:-8,marginBottom:10}}>Valem como padrão para todos os itens — dá pra ajustar linha a linha na tabela abaixo. A comissão já vem da taxa do barbeiro ({txB}%) e, nos produtos, da comissão cadastrada.</div>
+        <div className="g4">
+          {[["cartao","Cartão %"],["imposto","Imposto %"],["gerente","Comissão gerente %"],["taxaFixa","Taxa fixa R$"]].map(([k,l])=><div key={k}><span className="lbl">{l}</span><input type="number" step="0.01" className="inp" value={profitPrem[k]} onChange={e=>setProfitPrem(p=>({...p,[k]:+e.target.value||0}))}/></div>)}
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:10}}>
+          <div className="st" style={{marginBottom:0}}>Itens vendidos em {MESES[mes]}{profitCatSel?" · "+profitCatSel:""}</div>
+          {profitCatSel&&<button className="bg bsm" onClick={()=>setProfitCatSel(null)}>Limpar filtro</button>}
+        </div>
+        {itensFiltrados.length===0?<div style={{color:"#ccc",textAlign:"center",padding:14,fontSize:12}}>Nenhuma venda lançada.</div>:
+        <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:900}}>
+          <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Item","Qtd","Preço médio","Comissão %","Cartão %","Taxa fixa R$","Insumos R$","Imposto %","MC %","Contribuição R$"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 7px",fontSize:10,color:"#aaa",fontWeight:600,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <tbody>{itensFiltrados.map(i=><tr key={keyOf(i.cat,i.nome)} style={{borderBottom:"1px solid #f0f0f5"}}>
+            <td style={{padding:"6px 7px"}}><div style={{fontWeight:600}}>{i.nome}</div><div style={{fontSize:10,color:"#aaa"}}>{i.cat}</div></td>
+            <td style={{padding:"6px 7px",color:"#888"}}>{i.qtd}</td>
+            <td style={{padding:"6px 7px",fontWeight:600}}>{R(i.preco)}</td>
+            {[["comissao",1],["cartao",0.1],["taxaFixa",0.01],["insumos",0.01],["imposto",0.1]].map(([campo,step])=><td key={campo} style={{padding:"6px 7px"}}><input type="number" step={step} style={inpMini} value={i[campo]} onChange={e=>setOv(i.cat,i.nome,campo,+e.target.value||0)}/></td>)}
+            <td style={{padding:"6px 7px"}}><span style={{fontWeight:800,color:corMc(i.mc),background:corMc(i.mc)+"15",padding:"2px 7px",borderRadius:20}}>{i.mc.toFixed(1)}%</span></td>
+            <td style={{padding:"6px 7px",fontWeight:700,color:i.contribTotal>=0?"#059669":"#dc2626"}}>{R(i.contribTotal)}</td>
+          </tr>)}
+          <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
+            <td style={{padding:"7px",fontWeight:700}}>TOTAL</td>
+            <td style={{padding:"7px",fontWeight:700}}>{itensFiltrados.reduce((a,i)=>a+i.qtd,0)}</td>
+            <td colSpan={7}/>
+            <td style={{padding:"7px",fontWeight:800}}>{R(itensFiltrados.reduce((a,i)=>a+i.contribTotal,0))}</td>
+          </tr></tbody></table></div>}
+        <div style={{fontSize:11,color:"#aaa",marginTop:10}}>💡 Insumos = quanto você gasta de material em cada atendimento/produto (lâmina, toalha, custo de compra). É o único campo que o app não tem como saber sozinho.</div>
+      </div>
+    </>}
+
+    {profitAba==="equil"&&<>
+      <div className="card" style={{borderLeft:"5px solid "+(resultado>=0?"#059669":"#dc2626"),background:resultado>=0?"linear-gradient(135deg,#f0fdf4,#fff)":"linear-gradient(135deg,#fef2f2,#fff)"}}>
+        <div style={{fontSize:11,color:"#888",fontWeight:700,textTransform:"uppercase",letterSpacing:".04em"}}>Resultado mensal · {MESES[mes]}</div>
+        <div style={{fontSize:13,color:"#666",marginTop:4}}>Hoje sua contribuição mensal é <b>{R(contribMensal)}</b></div>
+        <div style={{fontSize:34,fontWeight:900,color:resultado>=0?"#059669":"#dc2626",lineHeight:1.15,marginTop:4}}>{resultado>=0?"+":"−"} {R(Math.abs(resultado))}</div>
+        <div style={{fontSize:12,color:"#888",marginTop:4}}>{resultado>=0?"Sobrou depois de pagar todos os custos fixos.":"Estão faltando "+R(Math.abs(resultado))+" para cobrir os custos fixos do mês."}</div>
+      </div>
+
+      <div className="card">
+        <div className="st">Detalhamento dos resultados</div>
+        {[{l:"+ Receita total mensal",v:R(fat),c:"#7c3aed"},{l:"− Custos variáveis (comissões, cartão, imposto, insumos)",v:"-"+R(custoVarTotal),c:"#dc2626"},{l:"= Contribuição mensal",v:R(contribMensal),c:"#0891b2",forte:true},{l:"− Custos fixos (aluguel, contas, CLT…)",v:"-"+R(fixosTotal),c:"#dc2626"},{l:"= Resultado mensal",v:R(resultado),c:resultado>=0?"#059669":"#dc2626",forte:true}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"9px 12px",borderBottom:"1px solid #f8f8f8",background:k.forte?"#fafafe":"transparent",borderRadius:k.forte?6:0,gap:10}}><span style={{fontSize:12,color:k.forte?"#333":"#666",fontWeight:k.forte?700:400}}>{k.l}</span><span style={{fontSize:13,fontWeight:k.forte?800:600,color:k.c,whiteSpace:"nowrap"}}>{k.v}</span></div>)}
+      </div>
+
+      <div className="card" style={{borderLeft:"5px solid #1a1a2e"}}>
+        <div style={{fontSize:11,color:"#888",fontWeight:700,textTransform:"uppercase",letterSpacing:".04em"}}>Ponto de equilíbrio</div>
+        <div style={{fontSize:32,fontWeight:900,color:"#1a1a2e",marginTop:4}}>{R(pontoEquilibrio)}</div>
+        <div style={{fontSize:12,color:"#888",marginTop:4}}>É quanto a barbearia precisa faturar no mês só para empatar (margem de {mcGeral.toFixed(1)}%).</div>
+        <div style={{fontSize:12,fontWeight:700,color:distPct>=0?"#059669":"#dc2626",marginTop:8}}>{distPct>=0?"✓ Você está "+distPct.toFixed(1)+"% acima do ponto de equilíbrio.":"Você está "+Math.abs(distPct).toFixed(1)+"% abaixo desse ponto — faltam "+R(pontoEquilibrio-fat)+" de faturamento."}</div>
+        <div style={{marginTop:10}}><PB val={fat} max={pontoEquilibrio||1} cor={distPct>=0?"#059669":"#d97706"} lbl={"Faturado "+R(fat)} pct/></div>
+      </div>
+
+      <div className="card">
+        <div className="st">Custos fixos considerados</div>
+        <div style={{fontSize:11,color:"#aaa",marginTop:-8,marginBottom:10}}>Vêm da aba <b>Custos</b> e do <b>CLT</b> cadastrado em Comissões — edite por lá.</div>
+        {custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").map(c=><div key={c.id} style={{display:"flex",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12}}>{c.desc}{c.categoria?" · "+c.categoria:""}</span><span style={{fontSize:12,fontWeight:600,color:"#dc2626"}}>{R(c.valor)}</span></div>)}
+        {totalCLT>0&&<div style={{display:"flex",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12}}>Folha CLT ({clt.length} funcionário{clt.length!==1?"s":""})</span><span style={{fontSize:12,fontWeight:600,color:"#dc2626"}}>{R(totalCLT)}</span></div>}
+        {fixosTotal===0&&<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhum custo fixo cadastrado ainda — cadastre na aba Custos para o ponto de equilíbrio ficar real.</div>}
+        <div style={{display:"flex",justifyContent:"space-between",padding:"10px 12px",marginTop:6,background:"#fef2f2",borderRadius:7}}><span style={{fontWeight:700,fontSize:13,color:"#dc2626"}}>Total de fixos / mês</span><span style={{fontWeight:800,fontSize:16,color:"#dc2626"}}>{R(fixosTotal)}</span></div>
+      </div>
+    </>}
   </div>;
 })()}
 
