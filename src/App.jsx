@@ -861,7 +861,65 @@ export default function App(){
   }
   function delExtra(id){setExt(v=>v.filter(x=>x.id!==id));setExtAv(v=>v.filter(x=>x.id!==id));excluirRemoto("ext",[id]);excluirRemoto("extAv",[id]);}
   function updExtra(item){setExt(v=>v.map(x=>x.id===item.id?item:x));setExtAv(v=>v.map(x=>x.id===item.id?item:x));}
-  function uploadFoto(bId,e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>setBarbs(bs=>bs.map(b=>b.id===bId?{...b,foto:ev.target.result}:b));reader.readAsDataURL(file);}
+  // ── FOTOS DOS BARBEIROS ────────────────────────────────────────────────────
+  // As fotos vão para o armazenamento (como o logo) e guardamos só o link.
+  // Antes eram gravadas embutidas em base64 dentro do bloco de configuração:
+  // uma foto de celular virava megabytes de texto que precisavam ser reescritos
+  // a cada alteração de meta, taxa ou custo — foi o que travou o salvamento.
+  function redimensionarImagem(origem,max=320){
+    return new Promise((ok,falha)=>{
+      const img=new Image();const url=URL.createObjectURL(origem);
+      img.onload=()=>{
+        const esc=Math.min(1,max/Math.max(img.width,img.height));
+        const c=document.createElement("canvas");
+        c.width=Math.max(1,Math.round(img.width*esc));c.height=Math.max(1,Math.round(img.height*esc));
+        c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(b=>b?ok(b):falha(new Error("Falha ao processar a imagem")),"image/jpeg",0.85);
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);falha(new Error("Imagem inválida"));};
+      img.src=url;
+    });
+  }
+  async function enviarFoto(bId,blob){
+    const path=orgId+"/barbeiro-"+bId+".jpg";
+    const{error}=await supabase.storage.from("logos").upload(path,blob,{upsert:true,cacheControl:"3600",contentType:"image/jpeg"});
+    if(error)throw error;
+    const{data:pub}=supabase.storage.from("logos").getPublicUrl(path);
+    return pub.publicUrl+"?t="+Date.now();
+  }
+  const[fotoUp,setFotoUp]=useState(null);
+  async function uploadFoto(bId,e){
+    const file=e.target.files[0];e.target.value="";if(!file||!orgId)return;
+    setFotoUp(bId);
+    try{
+      const url=await enviarFoto(bId,await redimensionarImagem(file));
+      setBarbs(bs=>bs.map(b=>b.id===bId?{...b,foto:url}:b));
+      addNotif("📷","Foto atualizada!");
+    }catch(err){addNotif("⚠️","Não deu para enviar a foto: "+(err.message||""));}
+    setFotoUp(null);
+  }
+  // Converte de uma vez as fotos antigas (base64) que ainda estão no bloco.
+  const migrouFotos=useRef(false);
+  useEffect(()=>{
+    if(!loaded||!isDono||!orgId||loadError||migrouFotos.current)return;
+    const antigas=barbs.filter(b=>typeof b.foto==="string"&&b.foto.startsWith("data:"));
+    if(!antigas.length){migrouFotos.current=true;return;}
+    migrouFotos.current=true;
+    (async()=>{
+      const novas={};
+      for(const b of antigas){
+        try{
+          const blob=await(await fetch(b.foto)).blob();
+          novas[b.id]=await enviarFoto(b.id,await redimensionarImagem(blob));
+        }catch(err){/* se falhar, mantém a foto atual */}
+      }
+      if(Object.keys(novas).length){
+        setBarbs(bs=>bs.map(b=>novas[b.id]?{...b,foto:novas[b.id]}:b));
+        addNotif("🗜️","Fotos otimizadas — o salvamento volta a ficar rápido.");
+      }
+    })();
+  },[loaded,isDono,orgId,loadError,barbs,addNotif]);
 
   const[logoUploading,setLogoUploading]=useState(false);const[logoErr,setLogoErr]=useState("");
   async function uploadLogo(e){
@@ -1538,7 +1596,7 @@ export default function App(){
   {bAtSel&&<>
     <div className="card" style={{borderLeft:"4px solid "+bAtSel.cor}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,flexWrap:"wrap"}}>
-        <div style={{position:"relative",flexShrink:0}}><BAv b={getB(bAtSel.id)} size={60} fs={24}/><label style={{position:"absolute",bottom:0,right:0,background:"#0e7490",color:"#fff",borderRadius:"50%",width:20,height:20,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:10,border:"2px solid #fff"}}>📷<input type="file" accept="image/*" style={{display:"none"}} onChange={e=>uploadFoto(bAtSel.id,e)}/></label></div>
+        <div style={{position:"relative",flexShrink:0}}><BAv b={getB(bAtSel.id)} size={60} fs={24}/><label style={{position:"absolute",bottom:0,right:0,background:"#0e7490",color:"#fff",borderRadius:"50%",width:20,height:20,display:"flex",alignItems:"center",justifyContent:"center",cursor:fotoUp===bAtSel.id?"wait":"pointer",fontSize:10,border:"2px solid #fff"}}>{fotoUp===bAtSel.id?"⏳":"📷"}<input type="file" accept="image/*" disabled={fotoUp===bAtSel.id} style={{display:"none"}} onChange={e=>uploadFoto(bAtSel.id,e)}/></label></div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:16}}>{bAtSel.nome}</div><div style={{fontSize:12,color:"#aaa"}}>{bAtSel.ftot}pts · 🔥{bAtSel.streak}d{bAtSel.notaMedia!=null?" · ⭐"+bAtSel.notaMedia.toFixed(1)+" nota média":""}</div></div>
         <div style={{textAlign:"right"}}><div style={{fontSize:22,fontWeight:700,color:bAtSel.cor}}>{R(bAtSel.totCBon)}</div></div>
       </div>
