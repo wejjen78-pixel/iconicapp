@@ -403,13 +403,29 @@ function useLancamentoSync(tipo,arr,orgId,ready,retryTick,flushRegistry,onSaved,
     const toUpsert=[];
     arr.forEach(item=>{const old=prevMap.get(item.id);if(!old||JSON.stringify(old)!==JSON.stringify(item))toUpsert.push(item);});
     if(!toUpsert.length){lastRef.current=arr;return;}
+    // Importar planilha gera centenas de lançamentos de uma vez. Mandar tudo numa
+    // requisição só estoura o tempo limite do banco (o lançamento manual, de 1 linha,
+    // passava — por isso só a importação falhava). Enviamos em lotes.
+    const LOTE=200;const gravados=new Set();
     try{
-      const rows=toUpsert.map(item=>({org_id:orgId,tipo,app_id:String(item.id),dt:item.dt||null,payload:item,atualizado_em:new Date().toISOString()}));
-      const{error}=await supabase.from("org_lancamentos").upsert(rows,{onConflict:"org_id,tipo,app_id"});
-      if(error)throw error;
+      for(let i=0;i<toUpsert.length;i+=LOTE){
+        const fatia=toUpsert.slice(i,i+LOTE);
+        const rows=fatia.map(item=>({org_id:orgId,tipo,app_id:String(item.id),dt:item.dt||null,payload:item,atualizado_em:new Date().toISOString()}));
+        const{error}=await supabase.from("org_lancamentos").upsert(rows,{onConflict:"org_id,tipo,app_id"});
+        if(error)throw error;
+        fatia.forEach(x=>gravados.add(x.id));
+      }
       lastRef.current=arr;
       onSaved();
-    }catch(err){onError(err.message||err.code||"Erro desconhecido ao salvar");}
+    }catch(err){
+      // Guarda o que já foi gravado para a próxima tentativa não repetir tudo.
+      if(gravados.size){
+        const map=new Map(prev.map(x=>[x.id,x]));
+        arr.forEach(x=>{if(gravados.has(x.id))map.set(x.id,x);});
+        lastRef.current=[...map.values()];
+      }
+      onError(err.message||err.code||"Erro desconhecido ao salvar");
+    }
   };
   useEffect(()=>{
     if(!flushRegistry)return;
@@ -651,8 +667,11 @@ export default function App(){
   // Sincroniza cada tipo de lançamento linha a linha (só a diferença desde a última vez, nunca o histórico inteiro).
   const lancFlushRegistry=useRef(new Set());
   const lancReady=loaded&&isDono&&!!orgId&&!loadError;
-  const notifyLancSaved=useCallback(()=>{setSv(new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}));setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);},[]);
-  const notifyLancErr=useCallback(msg=>{setSs("err");setSaveErrMsg(msg);},[]);
+  // Uma falha não pode ser apagada da tela por outro tipo de lançamento que salvou
+  // logo depois — senão o erro some antes do usuário ver.
+  const lancErrRef=useRef(false);
+  const notifyLancSaved=useCallback(()=>{if(lancErrRef.current)return;setSv(new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}));setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);},[]);
+  const notifyLancErr=useCallback(msg=>{lancErrRef.current=true;setSs("err");setSaveErrMsg(msg);},[]);
   useLancamentoSync("svcs",svcs,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
   useLancamentoSync("avul",avul,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
   useLancamentoSync("ext",ext,orgId,lancReady,saveRetryTick,lancFlushRegistry,notifyLancSaved,notifyLancErr);
@@ -832,7 +851,13 @@ export default function App(){
   // por engano algo que outra aba/sessão adicionou e esta ainda não carregou).
   async function excluirRemoto(tipo,ids){
     if(!ids||!ids.length||!orgId)return;
-    await supabase.from("org_lancamentos").delete().eq("org_id",orgId).eq("tipo",tipo).in("app_id",ids.map(String));
+    // Em lotes: os ids viajam na URL, e apagar uma importação inteira de uma vez
+    // gerava uma URL grande demais para o servidor aceitar.
+    const LOTE=150;
+    for(let i=0;i<ids.length;i+=LOTE){
+      const{error}=await supabase.from("org_lancamentos").delete().eq("org_id",orgId).eq("tipo",tipo).in("app_id",ids.slice(i,i+LOTE).map(String));
+      if(error){setSs("err");setSaveErrMsg(error.message||"Erro ao excluir");return;}
+    }
   }
   function delExtra(id){setExt(v=>v.filter(x=>x.id!==id));setExtAv(v=>v.filter(x=>x.id!==id));excluirRemoto("ext",[id]);excluirRemoto("extAv",[id]);}
   function updExtra(item){setExt(v=>v.map(x=>x.id===item.id?item:x));setExtAv(v=>v.map(x=>x.id===item.id?item:x));}
@@ -1019,7 +1044,7 @@ export default function App(){
     {editModal&&<EditModal item={editModal.item} fields={editModal.fields} barbs={barbs} onSave={tmp=>{editModal.onSave(tmp);setEditModal(null);}} onClose={()=>setEditModal(null)}/>}
     {ss==="saving"&&<div className="toast" style={{color:"#d97706"}}>Salvando...</div>}
     {ss==="saved"&&<div className="toast">Salvo{sv?" às "+sv:""}</div>}
-    {ss==="err"&&<div className="toast" style={{background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",display:"flex",alignItems:"center",gap:10,maxWidth:340}}><span>⚠️ Não salvou: {saveErrMsg}</span><button className="btn bsm" style={{background:"#dc2626",flexShrink:0}} onClick={()=>setSaveRetryTick(t=>t+1)}>Tentar de novo</button></div>}
+    {ss==="err"&&<div className="toast" style={{background:"#fef2f2",border:"1px solid #fecaca",color:"#dc2626",display:"flex",alignItems:"center",gap:10,maxWidth:340}}><span>⚠️ Não salvou: {saveErrMsg}</span><button className="btn bsm" style={{background:"#dc2626",flexShrink:0}} onClick={()=>{lancErrRef.current=false;setSs("saving");setSaveRetryTick(t=>t+1);}}>Tentar de novo</button></div>}
     {notifs.length>0&&<div style={{position:"fixed",bottom:20,right:20,zIndex:998,maxWidth:280}}>{notifs.map(n=><div key={n.id} style={{background:"linear-gradient(135deg,#1a1a2e,#2d2d4e)",border:"1px solid #0e749040",color:"#fff",borderRadius:10,padding:"9px 14px",marginTop:7,fontSize:13,fontWeight:600}}>{n.icon} {n.msg}</div>)}</div>}
 
     <aside className="sb">
