@@ -718,6 +718,11 @@ export default function App(){
   const tAtS=aM.reduce((a,s)=>a+s.qt,0)+lM.length;const ticketM=tAtS>0?tSvcU/tAtS:0;
   const fatHjVal=poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)+aM.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+lM.filter(l=>l.dt===hjS).reduce((a,l)=>a+l.vb,0)+[...eM,...eAM].filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)+pM.filter(p=>p.dt===hjS).reduce((a,p)=>a+p.val*p.qt,0);
   const gDia=Array.from({length:dim},(_,i)=>{const d=i+1;const dS=ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");return{dia:String(d),pote:poM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),svc:aM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lM.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0),ext:[...eM,...eAM].filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),prod:pM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)};}).map(d=>({...d,tot:d.pote+d.svc+d.ext+d.prod}));
+  // Faturamento por dia do mês anterior, para comparar o mesmo período.
+  const dimA=new Date(aA2,mA2+1,0).getDate();
+  const gDiaAnt=Array.from({length:dimA},(_,i)=>{const dS=aA2+"-"+String(mA2+1).padStart(2,"0")+"-"+String(i+1).padStart(2,"0");
+    return poMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0)+aMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lMA.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0)+eMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0)+pMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0);});
+  const fatAntMesmoPeriodo=gDiaAnt.slice(0,dAt).reduce((a,v)=>a+v,0);
 
   const fbMap=barbs.map(b=>{const ss2=sM.filter(s=>s.bId===b.id);const ftot=ss2.reduce((acc,s)=>acc+(getFichasPorTipo(s.svc)*(s.qt||1)),0);return{...b,ss2,ftot};});
   const tFich=fbMap.reduce((a,b)=>a+b.ftot,0);const vPt=tFich>0?tPote/tFich:0;
@@ -767,8 +772,6 @@ export default function App(){
   const meuB=isBarb?calcB.find(b=>b.id===user.bId):null;
   const meuRk=isBarb?calcB.findIndex(b=>b.id===user.bId)+1:null;
 
-  const dinhPerdido=metasBon.filter(m=>m.tipo==="extra"||m.tipo==="prod").map(m=>{let realizado=0;if(m.id==="sob")realizado=[...eM,...eAM].filter(e=>isExtraSob(e.svc)).length;else if(m.id==="hid")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("hidrat")).length;else if(m.id==="dep")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("depil")).length;else if(m.id==="sel")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("selagem")).length;else if(m.id==="lim")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("limpeza")).length;else if(m.id==="pig")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("pigmenta")).length;else if(m.id==="cam")realizado=[...eM,...eAM].filter(e=>e.svc.toLowerCase().includes("camufla")).length;else if(m.id==="prod")realizado=pM.reduce((a,p)=>a+p.qt,0);const faltam=Math.max(0,m.meta-realizado);return{...m,realizado,faltam,vPerdido:faltam*(m.vUnit||20)};}).filter(m=>m.faltam>0);
-  const totalPerdido=dinhPerdido.reduce((a,m)=>a+m.vPerdido,0);
 
   // ── HISTÓRICO (para aba Inteligência) ─────────────────────────────────────
   function computeMonthTotals(m2,a2){
@@ -1128,79 +1131,119 @@ export default function App(){
 
 {/* ─── DASHBOARD ─── */}
 {aba==="dash"&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card" style={{borderLeft:"4px solid #0e7490"}}>
-    <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:10,marginBottom:12}}>
-      <div><div style={{fontSize:11,color:"#aaa",fontWeight:600}}>{MESES[mes].toUpperCase()+" "+ano+" · DIA "+dAt+"/"+dim}</div><DB v={cresc}/></div>
-      {isDono&&<div style={{display:"flex",gap:6}}><input className="inp" type="number" style={{width:95,fontSize:12}} value={metaI} onChange={e=>setMetaI(e.target.value)}/><button className="btn bsm" onClick={()=>setMeta(parseFloat(metaI)||meta)}>OK</button></div>}
+
+  {/* ── RESUMO DO MÊS ── */}
+  <div className="card">
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
+      <div>
+        <div style={{fontSize:10.5,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}}>{MESES[mes]+" "+ano+" · dia "+dAt+" de "+dim}</div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginTop:6,flexWrap:"wrap"}}>
+          <span style={{fontSize:34,fontWeight:800,color:"#101828",letterSpacing:"-.025em",lineHeight:1}}>{R(fat)}</span>
+          <DB v={cresc}/>
+        </div>
+        <div style={{fontSize:12,color:"#667085",marginTop:5}}>de {R(meta)} de meta</div>
+      </div>
+      {isDono&&<div style={{display:"flex",gap:6,alignItems:"flex-start"}}>
+        <div><span className="lbl">Meta do mês</span><input className="inp" type="number" style={{width:120,fontSize:13}} value={metaI} onChange={e=>setMetaI(e.target.value)}/></div>
+        <button className="btn bsm" style={{marginTop:20}} onClick={()=>setMeta(parseFloat(metaI)||meta)}>Salvar</button>
+      </div>}
     </div>
-    <div className="g4" style={{marginBottom:12}}>{[{l:"Realizado",v:R(fat),c:"#0e7490"},{l:"Meta",v:R(meta)},{l:"Falta",v:falta===0?"✓":R(falta),c:falta===0?"#059669":"#dc2626"},{l:"Projeção",v:R(proj),c:proj>=meta?"#059669":"#d97706"}].map((k,i)=><div key={i}><div style={{fontSize:10,color:"#aaa",marginBottom:2,fontWeight:600}}>{k.l}</div><div style={{fontSize:20,fontWeight:800,color:k.c||"#1a1a2e"}}>{k.v}</div></div>)}</div>
-    <PB val={fat} max={meta} cor="#0e7490" pct lg/>
-  </div>
-  <div className="card" style={{borderLeft:"4px solid "+(ritmo>=0?"#059669":"#dc2626")}}>
-    <div className="g4">
-      <div style={{textAlign:"center",padding:"9px 10px",background:ritmo>=0?"#dcfce7":"#fee2e2",borderRadius:8}}><div style={{fontSize:10,color:"#888",fontWeight:600,marginBottom:2}}>RITMO</div><div style={{fontSize:20,fontWeight:800,color:ritmo>=0?"#059669":"#dc2626"}}>{(ritmo>=0?"+":"-")+Math.abs(ritmo).toFixed(1)+"%"}</div></div>
-      <div style={{textAlign:"center",padding:"9px 10px",background:"#ecfeff",borderRadius:8}}><div style={{fontSize:10,color:"#aaa",fontWeight:600,marginBottom:2}}>META DIA</div><div style={{fontSize:18,fontWeight:700,color:"#0e7490"}}>{R(metaDia)}</div></div>
-      <div style={{textAlign:"center",padding:"9px 10px",background:"#fffbeb",borderRadius:8}}><div style={{fontSize:10,color:"#aaa",fontWeight:600,marginBottom:2}}>HOJE</div><div style={{fontSize:18,fontWeight:700,color:"#0284c7"}}>{R(fatHjVal)}</div></div>
-      <div style={{textAlign:"center",padding:"9px 10px",background:"#f0f9ff",borderRadius:8}}><div style={{fontSize:10,color:"#aaa",fontWeight:600,marginBottom:2}}>PROJEÇÃO</div><div style={{fontSize:18,fontWeight:700,color:proj>=meta?"#059669":"#d97706"}}>{R(proj)}</div></div>
+    <div style={{marginTop:14}}><PB val={fat} max={meta} cor="#0e7490" pct lg/></div>
+    <div className="g4" style={{marginTop:16}}>
+      {[{l:"Falta para a meta",v:falta===0?"✓ Meta batida":R(falta),c:falta===0?"#059669":"#dc2626"},
+        {l:"Projeção do mês",v:R(proj),c:proj>=meta?"#059669":"#d97706"},
+        {l:"Ritmo",v:(ritmo>=0?"+":"−")+Math.abs(ritmo).toFixed(1)+"%",c:ritmo>=0?"#059669":"#dc2626"},
+        {l:"Meta por dia",v:R(metaDia),c:"#101828"}].map((k,i)=>
+        <div key={i} style={{padding:"11px 13px",background:"#fafbfc",border:"1px solid var(--bd)",borderRadius:11}}>
+          <div style={{fontSize:10,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{k.l}</div>
+          <div style={{fontSize:17,fontWeight:800,color:k.c,marginTop:4}}>{k.v}</div>
+        </div>)}
     </div>
   </div>
+
+  {/* ── COMPOSIÇÃO DO FATURAMENTO ── */}
+  <div className="g4">
+    <KPI lbl="💳 Assinatura" val={R(tPote)} cor="#d97706" glow sub={fat>0?((tPote/fat)*100).toFixed(0)+"% do faturamento":null}/>
+    <KPI lbl="✂️ Avulso + Extras" val={R(tSvcU+tExt)} cor="#0e7490" glow sub={fat>0?((tSvcU+tExt)/fat*100).toFixed(0)+"% do faturamento":null}/>
+    <KPI lbl="🛍️ Produtos" val={R(tProdBruto)} cor="#059669" glow sub={fat>0?((tProdBruto/fat)*100).toFixed(0)+"% do faturamento":null}/>
+    <KPI lbl="🚀 Sem assinatura" val={R(tSvcU+tExt+tProdBruto)} cor="#0284c7" glow sub="avulso + extras + produtos"/>
+  </div>
+  <div className="g4">
+    <KPI lbl="Faturado hoje" val={R(fatHjVal)} cor="#0284c7"/>
+    <KPI lbl="Ticket médio" val={R(ticketM)}/>
+    <KPI lbl="Atendimentos" val={aM.reduce((a,s)=>a+s.qt,0)+[...eM,...eAM].length+lM.length}/>
+    <KPI lbl="🎁 Bônus da equipe" val={R(tBon)} cor="#d97706"/>
+  </div>
+
+  {/* ── COMPARATIVO COM O MÊS PASSADO (MESMO PERÍODO) ── */}
+  {(()=>{
+    const dados=Array.from({length:dAt},(_,i)=>({
+      dia:String(i+1),
+      [MESES[mes]]:Math.round(gDia.slice(0,i+1).reduce((a,x)=>a+x.tot,0)),
+      [MESES[mA2]]:Math.round(gDiaAnt.slice(0,i+1).reduce((a,v)=>a+v,0))
+    }));
+    const dif=fat-fatAntMesmoPeriodo;
+    const difPct=fatAntMesmoPeriodo>0?(dif/fatAntMesmoPeriodo)*100:0;
+    return <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10,marginBottom:14}}>
+        <div>
+          <div className="st" style={{marginBottom:2}}>Comparativo com o mês passado</div>
+          <div style={{fontSize:11.5,color:"#98a2b3"}}>Mesmo período: do dia 1 até o dia {dAt}</div>
+        </div>
+        {fatAntMesmoPeriodo>0&&<div style={{textAlign:"right"}}>
+          <div style={{fontSize:20,fontWeight:800,color:dif>=0?"#059669":"#dc2626",letterSpacing:"-.02em"}}>{dif>=0?"+":"−"}{R(Math.abs(dif))}</div>
+          <div style={{fontSize:11.5,color:"#98a2b3"}}>{difPct>=0?"+":"−"}{Math.abs(difPct).toFixed(1)}% vs {MESES[mA2]}</div>
+        </div>}
+      </div>
+      <div className="g2" style={{marginBottom:14}}>
+        <div style={{padding:"12px 14px",background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:11}}>
+          <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#0e7490"}}/><span style={{fontSize:11,color:"#0e7490",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mes]} (até dia {dAt})</span></div>
+          <div style={{fontSize:22,fontWeight:800,color:"#0e7490",marginTop:5}}>{R(fat)}</div>
+        </div>
+        <div style={{padding:"12px 14px",background:"#fafbfc",border:"1px solid var(--bd)",borderRadius:11}}>
+          <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#98a2b3"}}/><span style={{fontSize:11,color:"#667085",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mA2]} (mesmo período)</span></div>
+          <div style={{fontSize:22,fontWeight:800,color:"#667085",marginTop:5}}>{R(fatAntMesmoPeriodo)}</div>
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={230}>
+        <AreaChart data={dados} margin={{top:6,right:12,left:-14,bottom:0}}>
+          <defs><linearGradient id="gCmp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.24}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs>
+          <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false}/>
+          <XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={Math.max(0,Math.floor(dAt/10))}/>
+          <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
+          <Tooltip content={<CT/>} cursor={{stroke:"#cbd5e1",strokeDasharray:"4 4"}}/>
+          <Area type="monotone" dataKey={MESES[mA2]} stroke="#98a2b3" strokeWidth={2} strokeDasharray="5 4" fill="none" dot={false}/>
+          <Area type="monotone" dataKey={MESES[mes]} stroke="#0e7490" strokeWidth={2.6} fill="url(#gCmp)" dot={false} activeDot={{r:5,strokeWidth:2,stroke:"#fff"}}/>
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>;
+  })()}
+
+  {/* ── META QUINZENAL ── */}
   {(()=>{
     const metaQuinz=meta*0.6;
     const realizadoAte15=gDia.slice(0,15).reduce((a,d)=>a+d.tot,0);
     const bateu=realizadoAte15>=metaQuinz;
     const faltaQuinz=Math.max(0,metaQuinz-realizadoAte15);
     return <div className="card" style={{borderLeft:"4px solid "+(bateu?"#059669":dAt>15?"#dc2626":"#d97706")}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:12}}>
         <div className="st" style={{marginBottom:0}}>📆 Meta quinzenal (dia 15) — 60% da meta mensal</div>
-        <span style={{fontSize:11,color:"#aaa"}}>{dAt<15?`Faltam ${15-dAt} dia(s) até o corte`:dAt===15?"Hoje é o corte":"Corte já passou"}</span>
+        <span style={{fontSize:11,color:"#98a2b3"}}>{dAt<15?"Faltam "+(15-dAt)+" dia(s) até o corte":dAt===15?"Hoje é o corte":"Corte já passou"}</span>
       </div>
-      <div className="g3" style={{marginBottom:10}}>
-        <div style={{textAlign:"center",padding:"9px 10px",background:"#ecfeff",borderRadius:8}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>META (60%)</div><div style={{fontSize:18,fontWeight:800,color:"#0e7490"}}>{R(metaQuinz)}</div></div>
-        <div style={{textAlign:"center",padding:"9px 10px",background:bateu?"#f0fdf4":"#fffbeb",borderRadius:8}}><div style={{fontSize:10,color:bateu?"#059669":"#d97706",fontWeight:700}}>REALIZADO ATÉ DIA 15</div><div style={{fontSize:18,fontWeight:800,color:bateu?"#059669":"#d97706"}}>{R(realizadoAte15)}</div></div>
-        <div style={{textAlign:"center",padding:"9px 10px",background:bateu?"#f0fdf4":"#fef2f2",borderRadius:8}}><div style={{fontSize:10,color:bateu?"#059669":"#dc2626",fontWeight:700}}>FALTA</div><div style={{fontSize:18,fontWeight:800,color:bateu?"#059669":"#dc2626"}}>{bateu?"✓":R(faltaQuinz)}</div></div>
+      <div className="g3" style={{marginBottom:12}}>
+        {[{l:"Meta (60%)",v:R(metaQuinz),c:"#0e7490",bg:"#ecfeff"},
+          {l:"Realizado até dia 15",v:R(realizadoAte15),c:bateu?"#059669":"#d97706",bg:bateu?"#f0fdf4":"#fffbeb"},
+          {l:"Falta",v:bateu?"✓":R(faltaQuinz),c:bateu?"#059669":"#dc2626",bg:bateu?"#f0fdf4":"#fef2f2"}].map((k,i)=>
+          <div key={i} style={{padding:"11px 13px",background:k.bg,borderRadius:11}}>
+            <div style={{fontSize:10,color:k.c,fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{k.l}</div>
+            <div style={{fontSize:18,fontWeight:800,color:k.c,marginTop:4}}>{k.v}</div>
+          </div>)}
       </div>
       <PB val={realizadoAte15} max={metaQuinz} cor={bateu?"#059669":"#0e7490"} pct lg/>
     </div>;
   })()}
-  <div className="g4">
-    <KPI lbl="💳 Assinatura" val={R(tPote)} cor="#d97706" glow/>
-    <KPI lbl="✂️ Avulso+Extras" val={R(tSvcU+tExt)} cor="#0e7490" glow/>
-    <KPI lbl="🛍️ Produtos" val={R(tProdBruto)} cor="#059669" glow/>
-    <KPI lbl="🎁 Bônus" val={R(tBon)} cor="#0284c7"/>
-  </div>
-  <KPI lbl="✂️🛍️ Avulso + Extras + Produtos (sem assinatura)" val={R(tSvcU+tExt+tProdBruto)} cor="#0284c7" glow/>
-  <div className="g4">
-    <KPI lbl="Total faturamento" val={R(fat)} cor="#0e7490"/>
-    <KPI lbl="Ticket médio" val={R(ticketM)} cor="#0284c7"/>
-    <KPI lbl="Atendimentos" val={aM.reduce((a,s)=>a+s.qt,0)+[...eM,...eAM].length+lM.length}/>
-    <KPI lbl="vs mês ant." val={(cresc>=0?"+":"")+cresc.toFixed(1)+"%"} cor={cresc>=0?"#059669":"#dc2626"}/>
-  </div>
-  {isDono&&(()=>{
-    const inRange=dt=>dt>=filtDe&&dt<=filtAte;
-    const pP=pote.filter(e=>inRange(e.dt)).reduce((a,e)=>a+e.val,0);
-    const aP=avul.filter(s=>inRange(s.dt)).reduce((a,s)=>a+s.val*s.qt,0)+lote.filter(l=>inRange(l.dt)).reduce((a,l)=>a+l.vb,0);
-    const eP=[...ext,...extAv].filter(e=>inRange(e.dt)).reduce((a,e)=>a+e.val,0);
-    const prP=prod.filter(p=>inRange(p.dt)).reduce((a,p)=>a+p.val*p.qt,0);
-    const totP=pP+aP+eP+prP;
-    return <div className="card" style={{borderLeft:"4px solid #0284c7"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:12}}>
-        <div className="st" style={{marginBottom:0}}>📅 Faturamento por período (livre, dia ou intervalo)</div>
-        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
-          <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"5px 8px"}} value={filtDe} onChange={e=>setFiltDe(e.target.value)}/>
-          <span style={{fontSize:11,color:"#aaa"}}>até</span>
-          <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"5px 8px"}} value={filtAte} onChange={e=>setFiltAte(e.target.value)}/>
-        </div>
-      </div>
-      <div className="g4">
-        <div style={{textAlign:"center",padding:"9px 10px",background:"#fffbeb",borderRadius:8}}><div style={{fontSize:10,color:"#d97706",fontWeight:700}}>💳 ASSINATURA</div><div style={{fontSize:16,fontWeight:800,color:"#d97706"}}>{R(pP)}</div></div>
-        <div style={{textAlign:"center",padding:"9px 10px",background:"#ecfeff",borderRadius:8}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>✂️ AVULSO</div><div style={{fontSize:16,fontWeight:800,color:"#0e7490"}}>{R(aP)}</div></div>
-        <div style={{textAlign:"center",padding:"9px 10px",background:"#f0f9ff",borderRadius:8}}><div style={{fontSize:10,color:"#0284c7",fontWeight:700}}>⭐ EXTRAS</div><div style={{fontSize:16,fontWeight:800,color:"#0284c7"}}>{R(eP)}</div></div>
-        <div style={{textAlign:"center",padding:"9px 10px",background:"#f0fdf4",borderRadius:8}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>🛍️ PRODUTOS</div><div style={{fontSize:16,fontWeight:800,color:"#059669"}}>{R(prP)}</div></div>
-      </div>
-      <div style={{marginTop:10,padding:"9px 12px",background:"#1a1a2e",borderRadius:7,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:12,color:"#ffffffcc",fontWeight:600}}>TOTAL NO PERÍODO</span><span style={{fontSize:15,fontWeight:800,color:"#fff"}}>{R(totP)}</span></div>
-    </div>;
-  })()}
-  {dinhPerdido.length>0&&<div className="card" style={{borderLeft:"4px solid #dc2626",background:"#fef2f2"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="st" style={{marginBottom:0,color:"#dc2626"}}>💸 Oportunidades perdidas</div><div style={{fontWeight:800,color:"#dc2626"}}>{R(totalPerdido)}</div></div><div className="g3">{dinhPerdido.map((m,i)=><div key={i} style={{background:"#fff",border:"1px solid #fecaca",borderRadius:8,padding:"9px 11px"}}><div style={{fontSize:11,fontWeight:700,color:"#dc2626",marginBottom:2}}>{m.nome}</div><div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontSize:17,fontWeight:700,color:"#dc2626"}}>-{m.faltam}</span><span style={{fontSize:11,color:"#888"}}>{m.realizado}/{m.meta}</span></div><PB val={m.realizado} max={m.meta} cor="#dc2626" pct={false}/><div style={{fontSize:11,color:"#dc2626",fontWeight:600,marginTop:3}}>{R(m.vPerdido)}</div></div>)}</div></div>}
+
+  {/* ── EVOLUÇÃO ── */}
   {(()=>{
     const ult=fat6[fat6.length-1]?.Total||0;const pen=fat6[fat6.length-2]?.Total||0;
     const varPct=pen>0?((ult-pen)/pen)*100:0;
@@ -1214,9 +1257,7 @@ export default function App(){
       </div>
       <ResponsiveContainer width="100%" height={215}>
         <AreaChart data={fat6} margin={{top:18,right:12,left:-14,bottom:0}}>
-          <defs>
-            <linearGradient id="gFat" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.26}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient>
-          </defs>
+          <defs><linearGradient id="gFat" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.26}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false}/>
           <XAxis dataKey="label" tick={{fill:"#98a2b3",fontSize:11}} tickLine={false} axisLine={false} dy={4}/>
           <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
@@ -1226,14 +1267,90 @@ export default function App(){
       </ResponsiveContainer>
     </div>;
   })()}
-  <div className="card"><div className="st">Faturamento diário</div><ResponsiveContainer width="100%" height={150}><BarChart data={gDia} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="22%"><CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false}/><XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/><YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><ReferenceLine y={metaDia} stroke="#dc2626" strokeDasharray="4 2" strokeWidth={1.5}/><Bar dataKey="pote" name="Assinatura" stackId="a" fill="#d97706"/><Bar dataKey="svc" name="Serviços" stackId="a" fill="#0e7490"/><Bar dataKey="ext" name="Extras" stackId="a" fill="#0284c7"/><Bar dataKey="prod" name="Produtos" stackId="a" fill="#059669" radius={[4,4,0,0]}/></BarChart></ResponsiveContainer></div>
-  <div className="card"><div className="st">Ranking</div>{calcB.map((b,i)=><div key={b.id} style={{marginBottom:12}}><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}><span style={{width:20,height:20,borderRadius:"50%",background:i===0?"#d97706":i===1?"#888":i===2?"#b45309":"#f0f0f5",color:i<3?"#fff":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><BAv b={getB(b.id)} size={32} fs={13}/><div style={{flex:1}}><div style={{fontWeight:600,fontSize:13}}>{b.nome.split(" ")[0]}</div><div style={{fontSize:11,color:"#aaa"}}>{b.ftot}pts · {b.atend} atend</div></div><div style={{textAlign:"right"}}><div style={{fontSize:15,fontWeight:700,color:b.cor}}>{R(b.totCBon)}</div><DB v={b.crescB}/></div></div><PB val={b.totCBon} max={maxC} cor={b.cor} pct={false}/></div>)}</div>
+
+  <div className="card">
+    <div className="st">Faturamento diário de {MESES[mes]}</div>
+    <ResponsiveContainer width="100%" height={175}>
+      <BarChart data={gDia} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="22%">
+        <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false}/>
+        <XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/>
+        <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
+        <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
+        <ReferenceLine y={metaDia} stroke="#dc2626" strokeDasharray="4 2" strokeWidth={1.5}/>
+        <Bar dataKey="pote" name="Assinatura" stackId="a" fill="#d97706"/>
+        <Bar dataKey="svc" name="Serviços" stackId="a" fill="#0e7490"/>
+        <Bar dataKey="ext" name="Extras" stackId="a" fill="#0284c7"/>
+        <Bar dataKey="prod" name="Produtos" stackId="a" fill="#059669" radius={[4,4,0,0]}/>
+      </BarChart>
+    </ResponsiveContainer>
+    <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:8,justifyContent:"center"}}>
+      {[["Assinatura","#d97706"],["Serviços","#0e7490"],["Extras","#0284c7"],["Produtos","#059669"],["Meta do dia","#dc2626"]].map(([l,c])=>
+        <div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#667085"}}><span style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>)}
+    </div>
+  </div>
+
+  {/* ── FILTRO POR PERÍODO ── */}
   {isDono&&(()=>{
-    const partic=calcB.map(b=>{const bruto=tPote*b.pct+b.fAv+b.fEx+b.fPrBruto;return{...b,bruto,pctFat:fat>0?(bruto/fat)*100:0};}).sort((a,b2)=>b2.bruto-a.bruto);
-    return <div className="card"><div className="st">📊 Participação no faturamento total — {R(fat)}</div>
-      {partic.map(b=><div key={b.id} style={{marginBottom:10}}><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}><BAv b={getB(b.id)} size={28} fs={12}/><span style={{flex:1,fontSize:13,fontWeight:600}}>{b.nome.split(" ")[0]}</span><span style={{fontSize:11,color:"#888"}}>{R(b.bruto)}</span><span style={{fontSize:15,fontWeight:800,color:b.cor,minWidth:52,textAlign:"right"}}>{b.pctFat.toFixed(1)}%</span></div><PB val={b.pctFat} max={100} cor={b.cor} pct={false}/></div>)}
+    const inRange=dt=>dt>=filtDe&&dt<=filtAte;
+    const pP=pote.filter(e=>inRange(e.dt)).reduce((a,e)=>a+e.val,0);
+    const aP=avul.filter(s=>inRange(s.dt)).reduce((a,s)=>a+s.val*s.qt,0)+lote.filter(l=>inRange(l.dt)).reduce((a,l)=>a+l.vb,0);
+    const eP=[...ext,...extAv].filter(e=>inRange(e.dt)).reduce((a,e)=>a+e.val,0);
+    const prP=prod.filter(p=>inRange(p.dt)).reduce((a,p)=>a+p.val*p.qt,0);
+    const totP=pP+aP+eP+prP;
+    return <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10,marginBottom:14}}>
+        <div className="st" style={{marginBottom:0}}>📅 Faturamento por período</div>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+          <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"6px 9px"}} value={filtDe} onChange={e=>setFiltDe(e.target.value)}/>
+          <span style={{fontSize:11,color:"#98a2b3"}}>até</span>
+          <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"6px 9px"}} value={filtAte} onChange={e=>setFiltAte(e.target.value)}/>
+        </div>
+      </div>
+      <div className="g4">
+        {[{l:"💳 Assinatura",v:pP,c:"#d97706",bg:"#fffbeb"},{l:"✂️ Avulso",v:aP,c:"#0e7490",bg:"#ecfeff"},
+          {l:"⭐ Extras",v:eP,c:"#0284c7",bg:"#f0f9ff"},{l:"🛍️ Produtos",v:prP,c:"#059669",bg:"#f0fdf4"}].map((k,i)=>
+          <div key={i} style={{padding:"11px 13px",background:k.bg,borderRadius:11}}>
+            <div style={{fontSize:10,color:k.c,fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{k.l}</div>
+            <div style={{fontSize:17,fontWeight:800,color:k.c,marginTop:4}}>{R(k.v)}</div>
+          </div>)}
+      </div>
+      <div style={{marginTop:12,padding:"12px 14px",background:"#101828",borderRadius:11,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:11,color:"#98a2b3",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Total no período</span>
+        <span style={{fontSize:20,fontWeight:800,color:"#fff"}}>{R(totP)}</span>
+      </div>
     </div>;
   })()}
+
+  {/* ── EQUIPE ── */}
+  <div className="g2">
+    <div className="card">
+      <div className="st">🏆 Ranking da equipe</div>
+      {calcB.map((b,i)=><div key={b.id} style={{marginBottom:13}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+          <span style={{width:22,height:22,borderRadius:"50%",background:i===0?"#d97706":i===1?"#98a2b3":i===2?"#b45309":"#f2f4f7",color:i<3?"#fff":"#98a2b3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,flexShrink:0}}>{i+1}</span>
+          <BAv b={getB(b.id)} size={32} fs={13}/>
+          <div style={{flex:1,minWidth:0}}><div style={{fontWeight:600,fontSize:13}}>{b.nome.split(" ")[0]}</div><div style={{fontSize:11,color:"#98a2b3"}}>{b.ftot}pts · {b.atend} atend</div></div>
+          <div style={{textAlign:"right"}}><div style={{fontSize:15,fontWeight:700,color:b.cor}}>{R(b.totCBon)}</div><DB v={b.crescB}/></div>
+        </div>
+        <PB val={b.totCBon} max={maxC} cor={b.cor} pct={false}/>
+      </div>)}
+    </div>
+    {isDono&&(()=>{
+      const partic=calcB.map(b=>{const bruto=tPote*b.pct+b.fAv+b.fEx+b.fPrBruto;return{...b,bruto,pctFat:fat>0?(bruto/fat)*100:0};}).sort((a,b2)=>b2.bruto-a.bruto);
+      return <div className="card">
+        <div className="st">📊 Participação no faturamento</div>
+        {partic.map(b=><div key={b.id} style={{marginBottom:13}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+            <BAv b={getB(b.id)} size={30} fs={12}/>
+            <span style={{flex:1,fontSize:13,fontWeight:600,minWidth:0}}>{b.nome.split(" ")[0]}</span>
+            <span style={{fontSize:11,color:"#98a2b3"}}>{R(b.bruto)}</span>
+            <span style={{fontSize:15,fontWeight:800,color:b.cor,minWidth:54,textAlign:"right"}}>{b.pctFat.toFixed(1)}%</span>
+          </div>
+          <PB val={b.pctFat} max={100} cor={b.cor} pct={false}/>
+        </div>)}
+      </div>;
+    })()}
+  </div>
 </div>}
 
 {/* ─── PUMP ─── */}
