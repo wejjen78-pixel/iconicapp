@@ -726,7 +726,9 @@ export default function App(){
   function calcBon(exB,prB,assinB){let bonTotal=0;const bonDet=[];metasBon.forEach(mb=>{let qt=0;if(mb.tipo==="extra"){if(mb.id==="sob")qt=exB.filter(e=>isExtraSob(e.svc)).length;else if(mb.id==="hid")qt=exB.filter(e=>e.svc.toLowerCase().includes("hidrat")).length;else if(mb.id==="dep")qt=exB.filter(e=>e.svc.toLowerCase().includes("depila")).length;else if(mb.id==="sel")qt=exB.filter(e=>e.svc.toLowerCase().includes("selagem")).length;else if(mb.id==="lim")qt=exB.filter(e=>e.svc.toLowerCase().includes("limpeza")).length;else if(mb.id==="pig")qt=exB.filter(e=>e.svc.toLowerCase().includes("pigmenta")).length;else if(mb.id==="cam")qt=exB.filter(e=>e.svc.toLowerCase().includes("camufla")).length;}else if(mb.tipo==="prod")qt=prB.reduce((a,p)=>a+p.qt,0);else if(mb.tipo==="assin")qt=assinB;const bateu=qt>=mb.meta;if(bateu)bonTotal+=mb.bon;bonDet.push({...mb,qt,bateu});});return{bonTotal,bonDet};}
 
   const calcB=fbMap.map(b=>{
-    const tx=txB/100;const pct=tFich>0?b.ftot/tFich:0;const cPote=tPote*pct*tx;
+    // Taxa individual do barbeiro; sem taxa própria, usa a taxa geral da barbearia.
+    const txPct=b.com!=null?b.com:txB;
+    const tx=txPct/100;const pct=tFich>0?b.ftot/tFich:0;const cPote=tPote*pct*tx;
     const avB=aM.filter(s=>s.bId===b.id);const lotB=lM.filter(l=>l.bId===b.id);
     const fAv=avB.reduce((a,s)=>a+s.val*s.qt,0)+lotB.reduce((a,l)=>a+l.vb,0);
     const exB=[...eM,...eAM].filter(e=>e.bId===b.id);const fEx=exB.reduce((a,e)=>a+e.val,0);
@@ -755,7 +757,7 @@ export default function App(){
     let streak=0;const dts2=[...dtsU].sort().reverse();let prev=new Date(hjS);
     for(const ds of dts2){const dd=new Date(ds+"T12:00:00");if(Math.round((prev-dd)/86400000)<=1){streak++;prev=dd;}else break;}
     const notaMedia=avB.length?avB.reduce((a,s)=>a+(s.nota||5),0)/avB.length:null;
-    return{...b,pct,cPote,cAv,fAv,fEx,fPr,fPrBruto,totC,totCBon,bonTotal,bonDet,tVale,cLiq,atend,ticket,metaB,pctM,crescB,streak,assinB:assinB2,qExt,qProd,notaMedia,clU:dtsU.size,upsell:dtsU.size>0?Math.min(100,([...exB,...prB,...avVM.filter(v=>v.bId===b.id)].length/dtsU.size)*100):0,faltaB,vPD,projB,nvAt,avB,exB,prB,lotB,ss2:b.ss2,ftot:b.ftot};
+    return{...b,txPct,pct,cPote,cAv,fAv,fEx,fPr,fPrBruto,totC,totCBon,bonTotal,bonDet,tVale,cLiq,atend,ticket,metaB,pctM,crescB,streak,assinB:assinB2,qExt,qProd,notaMedia,clU:dtsU.size,upsell:dtsU.size>0?Math.min(100,([...exB,...prB,...avVM.filter(v=>v.bId===b.id)].length/dtsU.size)*100):0,faltaB,vPD,projB,nvAt,avB,exB,prB,lotB,ss2:b.ss2,ftot:b.ftot};
   }).sort((a,b2)=>b2.totCBon-a.totCBon);
 
   const tCP=calcB.reduce((a,b)=>a+b.cPote,0);const tCA=calcB.reduce((a,b)=>a+b.cAv,0);
@@ -775,8 +777,9 @@ export default function App(){
     const eM2=[...ext,...extAv].filter(e=>inM(e.dt));const pM2=prod.filter(p=>inM(p.dt));const poM2=pote.filter(e=>inM(e.dt));
     const tPote2=poM2.reduce((a,e)=>a+e.val,0);
     const fb2=barbs.map(b=>{const ss=sM2.filter(s=>s.bId===b.id);const ftot=ss.reduce((a,s)=>a+(getFichasPorTipo(s.svc)*(s.qt||1)),0);return{...b,ftot};});
-    const tFich2=fb2.reduce((a,b)=>a+b.ftot,0);const tx=txB/100;
+    const tFich2=fb2.reduce((a,b)=>a+b.ftot,0);
     const perBarber=fb2.map(b=>{
+      const tx=(b.com!=null?b.com:txB)/100;
       const pct=tFich2>0?b.ftot/tFich2:0;const cPote=tPote2*pct*tx;
       const avB=aM2.filter(s=>s.bId===b.id);const lotB=lM2.filter(l=>l.bId===b.id);
       const fAv=avB.reduce((a,s)=>a+s.val*s.qt,0)+lotB.reduce((a,l)=>a+l.vb,0);
@@ -1000,7 +1003,7 @@ export default function App(){
   function addCoaching(){if(!coachTxt.trim())return;setCoaching(c=>[{id:uid(),bId:barbSel,texto:coachTxt.trim(),dt:coachDt},...c]);addNotif("📝","Observação adicionada: "+(getB(barbSel)?.nome.split(" ")[0]||""));setCoachTxt("");}
 
   function exportarRecibo(bS){
-    const html=gerarRecibo(bS,barbs,mes,ano,tPote,txB,cnpj,MESES,orgNome);
+    const html=gerarRecibo(bS,barbs,mes,ano,tPote,bS.txPct,cnpj,MESES,orgNome);
     const blob=new Blob([html],{type:"text/html"});
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a");
@@ -1265,7 +1268,7 @@ export default function App(){
   const b=isBarb?meuB:calcB.find(x=>x.id===barbSel)||calcB[0];if(!b)return null;
   const _isCurMes=now.getMonth()===mes&&now.getFullYear()===ano;
   const hjFatD=_isCurMes?hjS:ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(dAt).padStart(2,"0");
-  const hjFat=b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>a+p.val*p.qt,0)+b.lotB.filter(l=>l.dt===hjFatD).reduce((a,l)=>a+l.vb,0)+(poM.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)*b.pct*(txB/100));
+  const hjFat=b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>a+p.val*p.qt,0)+b.lotB.filter(l=>l.dt===hjFatD).reduce((a,l)=>a+l.vb,0)+(poM.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)*b.pct*(b.txPct/100));
   const metaDiaB=b.metaB/dim;const faltaHj=Math.max(0,metaDiaB-hjFat);const pctHj=metaDiaB>0?Math.min(100,(hjFat/metaDiaB)*100):0;
   const ritmoFech=dAt>0?(b.totC/dAt)*dim:0;const pctMes=b.metaB>0?Math.min(100,(b.totC/b.metaB)*100):0;
   const diasRestantes=Math.max(1,dim-dAt);const faltaMes=Math.max(0,b.metaB-b.totC);const diasParaMeta=b.totC>0&&dAt>0?Math.ceil(b.metaB/(b.totC/dAt))-dAt:diasRestantes;
@@ -1291,7 +1294,7 @@ export default function App(){
   const potPerdido=clientesSemExtra*(ticketB*0.3||20);
   const velPct=Math.min(150,b.metaB>0?(ritmoFech/b.metaB)*100:0);
   const velColor=velPct>=100?"#059669":velPct>=80?"#d97706":"#dc2626";
-  const txL=txB/100;
+  const txL=b.txPct/100;
   const comHoje=(b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0))*txL+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)*b.pct*txL);
   const semAvExt=b.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
   const semProd=b.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
@@ -1407,7 +1410,7 @@ export default function App(){
       {(()=>{
         const avgExtraVal=b.qExt>0?b.fEx/b.qExt:30;
         const avgProdVal=b.qProd>0?b.fPrBruto/b.qProd:(prodLst.reduce((a,p)=>a+p.v,0)/Math.max(prodLst.length,1));
-        const simGanhoExtra=simExtra*avgExtraVal*(txB/100);
+        const simGanhoExtra=simExtra*avgExtraVal*(b.txPct/100);
         const simGanhoProd=simProd*avgProdVal*0.20;
         const simTotal=simGanhoExtra+simGanhoProd;
         return <>
@@ -1600,6 +1603,22 @@ export default function App(){
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:16}}>{bAtSel.nome}</div><div style={{fontSize:12,color:"#aaa"}}>{bAtSel.ftot}pts · 🔥{bAtSel.streak}d{bAtSel.notaMedia!=null?" · ⭐"+bAtSel.notaMedia.toFixed(1)+" nota média":""}</div></div>
         <div style={{textAlign:"right"}}><div style={{fontSize:22,fontWeight:700,color:bAtSel.cor}}>{R(bAtSel.totCBon)}</div></div>
       </div>
+      {(()=>{
+        const proprio=getB(bAtSel.id)?.com!=null;
+        return <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",padding:"10px 12px",marginBottom:12,background:proprio?"#ecfeff":"#fafbfc",border:"1px solid "+(proprio?"#a5f3fc":"var(--bd)"),borderRadius:10}}>
+          <span className="lbl" style={{margin:0}}>Comissão de {bAtSel.nome.split(" ")[0]}</span>
+          <div style={{display:"flex",alignItems:"center",gap:5}}>
+            <input type="number" min="0" max="100" step="0.5" className="inp" style={{width:82,textAlign:"center",fontWeight:700,fontSize:15,padding:"6px 8px"}}
+              value={bAtSel.txPct}
+              onChange={e=>{const v=e.target.value===""?null:Math.max(0,Math.min(100,+e.target.value||0));setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:v}:x));}}/>
+            <span style={{fontWeight:700,color:"#475467"}}>%</span>
+          </div>
+          {proprio
+            ? <button className="bg bsm" onClick={()=>setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:null}:x))}>Usar a taxa geral ({txB}%)</button>
+            : <span style={{fontSize:11,color:"#98a2b3"}}>usando a taxa geral da barbearia · altere para definir uma só para ele</span>}
+          <span style={{fontSize:11,color:"#98a2b3",marginLeft:"auto"}}>Vale para assinatura, avulso e extras. Produto segue a comissão de cada item.</span>
+        </div>;
+      })()}
       <div className="g3" style={{marginBottom:12}}>
         <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:"#d97706",fontWeight:700}}>💳 ASSINATURA</div><div style={{fontSize:18,fontWeight:800,color:"#d97706"}}>{R(bAtSel.cPote)}</div><div style={{fontSize:11,color:"#888"}}>{bAtSel.ftot}pts · {(bAtSel.pct*100).toFixed(1)}%</div></div>
         <div style={{background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>✂️ AVULSO+EXTRAS</div><div style={{fontSize:18,fontWeight:800,color:"#0e7490"}}>{R(bAtSel.cAv)}</div></div>
@@ -1633,7 +1652,7 @@ export default function App(){
     })()}
     {(()=>{
       const hoje=new Date(hjS);const d7=new Date(hoje);d7.setDate(hoje.getDate()-7);
-      const txL=txB/100;
+      const txL=bAtSel.txPct/100;
       const comHojeB=(bAtSel.avB.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>p.dt===hjS).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL);
       const semAvExtB=bAtSel.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
       const semProdB=bAtSel.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
@@ -1776,7 +1795,7 @@ export default function App(){
   <div className="card" style={{borderLeft:"3px solid #d97706"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="st" style={{marginBottom:0}}>Taxas</div>{editTx?<div style={{display:"flex",gap:8}}><button className="btn bsm" onClick={()=>{setTxB(txTmp.b);setTxBar(txTmp.r);setEditTx(false);}}>Salvar</button><button className="bg bsm" onClick={()=>setEditTx(false)}>Cancelar</button></div>:<button className="bg" onClick={()=>{setTxTmp({b:txB,r:txBar});setEditTx(true);}}>Editar</button>}</div>{editTx?<div style={{display:"flex",gap:12}}><div style={{flex:1}}><span className="lbl">Barbeiro (%)</span><input type="number" className="inp" value={txTmp.b} onChange={e=>{const v=+e.target.value||0;setTxTmp({b:v,r:100-v});}}/></div><div style={{flex:1}}><span className="lbl">Barbearia (%)</span><input type="number" className="inp" value={txTmp.r} onChange={e=>{const v=+e.target.value||0;setTxTmp({r:v,b:100-v});}}/></div></div>:<div style={{display:"flex",gap:12}}><div style={{padding:"12px 18px",background:"#ecfeff",borderRadius:8,textAlign:"center",flex:1}}><div style={{fontSize:11,color:"#0e7490",fontWeight:600}}>Barbeiro</div><div style={{fontSize:24,fontWeight:700,color:"#0e7490"}}>{txB}%</div></div><div style={{padding:"12px 18px",background:"#dcfce7",borderRadius:8,textAlign:"center",flex:1}}><div style={{fontSize:11,color:"#059669",fontWeight:600}}>Barbearia</div><div style={{fontSize:24,fontWeight:700,color:"#059669"}}>{txBar}%</div></div></div>}</div>
   <div className="card"><div className="st">Entrada do pote</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Valor</span><input type="number" className="inp" value={fpo.val} onChange={e=>setFpo(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fpo.qt} min="1" onChange={e=>setFpo(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fpo.dt} onChange={e=>setFpo(f=>({...f,dt:e.target.value}))}/></div></div><div><span className="lbl">Obs</span><input type="text" className="inp" value={fpo.obs} onChange={e=>setFpo(f=>({...f,obs:e.target.value}))}/></div></div><button className="btn" onClick={lanPote}>+ Adicionar</button></div>
   <div className="g3"><KPI lbl="Pote" val={R(tPote)} cor="#d97706" glow/><KPI lbl="Total fichas" val={tFich+"pts"} cor="#0e7490"/><KPI lbl="Valor ponto" val={R(vPt)} cor="#059669"/></div>
-  <div className="card"><div className="st">Distribuição</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:380}}><thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro","Fichas","% Pote","Bruto","Comissão"].map(h=><th key={h} style={{textAlign:"left",padding:"5px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead><tbody>{fbMap.map(b=>{const pct2=tFich>0?b.ftot/tFich:0;return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5"}}><td style={{padding:"6px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{b.nome.split(" ")[0]}</span></div></td><td style={{padding:"6px 8px",color:"#d97706",fontWeight:700}}>{b.ftot}pts</td><td style={{padding:"6px 8px"}}>{(pct2*100).toFixed(2)}%</td><td style={{padding:"6px 8px"}}>{R(tPote*pct2)}</td><td style={{padding:"6px 8px",fontWeight:600,color:"#0e7490"}}>{R(tPote*pct2*txB/100)}</td></tr>;})} <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}><td colSpan={2} style={{padding:"6px 8px",fontWeight:700}}>TOTAL</td><td style={{padding:"6px 8px",fontWeight:700}}>100%</td><td style={{padding:"6px 8px",fontWeight:700}}>{R(tPote)}</td><td style={{padding:"6px 8px",fontWeight:700,color:"#0e7490"}}>{R(tCP)}</td></tr></tbody></table></div></div>
+  <div className="card"><div className="st">Distribuição</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:380}}><thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro","Fichas","% Pote","Bruto","Comissão"].map(h=><th key={h} style={{textAlign:"left",padding:"5px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead><tbody>{fbMap.map(b=>{const pct2=tFich>0?b.ftot/tFich:0;return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5"}}><td style={{padding:"6px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{b.nome.split(" ")[0]}</span></div></td><td style={{padding:"6px 8px",color:"#d97706",fontWeight:700}}>{b.ftot}pts</td><td style={{padding:"6px 8px"}}>{(pct2*100).toFixed(2)}%</td><td style={{padding:"6px 8px"}}>{R(tPote*pct2)}</td><td style={{padding:"6px 8px",fontWeight:600,color:"#0e7490"}}>{R(tPote*pct2*(b.com!=null?b.com:txB)/100)}</td></tr>;})} <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}><td colSpan={2} style={{padding:"6px 8px",fontWeight:700}}>TOTAL</td><td style={{padding:"6px 8px",fontWeight:700}}>100%</td><td style={{padding:"6px 8px",fontWeight:700}}>{R(tPote)}</td><td style={{padding:"6px 8px",fontWeight:700,color:"#0e7490"}}>{R(tCP)}</td></tr></tbody></table></div></div>
   <div className="card"><div className="st">Histórico</div>{poM.map(e=><ERow key={e.id} item={e} fields={[{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"},{key:"obs",label:"Obs",type:"text"}]} setter={setPote} tipo="pote"><div style={{flex:1,fontSize:12}}>{e.obs||"Galaxy Pay"} <span style={{fontSize:11,color:"#aaa"}}>{new Date(e.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div><span style={{fontWeight:600,color:"#d97706"}}>{R(e.val)}</span></ERow>)}</div>
 </div>}
 
@@ -1848,7 +1867,7 @@ export default function App(){
     <div className="card" style={{padding:"22px 26px"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,borderBottom:"2px solid #f0f0f5",paddingBottom:12}}><div><div style={{fontWeight:700,fontSize:18}}>{orgNome}</div><div style={{fontSize:12,color:"#aaa"}}>Fechamento · {MESES[mes]} {ano}</div></div><div style={{display:"flex",alignItems:"center",gap:10}}><BAv b={getB(bS.id)} size={42} fs={16}/><div style={{fontWeight:600,fontSize:15,color:bS.cor}}>{bS.nome}</div></div></div>
       {[{l:"Fichas",v:bS.ftot+"pts",c:"#d97706",bg:"#fffbeb"},{l:"Assinatura (bruto)",v:R(tPote*bS.pct),c:"#d97706",bg:"#fffbeb"},{l:"Avulsos",v:R(bS.fAv),c:"#0e7490",bg:"#ecfeff"},{l:"Extras",v:R(bS.fEx),c:"#0284c7",bg:"#f0f9ff"},{l:"Produtos (bruto)",v:R(bS.fPrBruto),c:"#059669",bg:"#f0fdf4"}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"8px 12px",background:k.bg,borderRadius:6,marginBottom:3}}><span style={{fontSize:13}}>{k.l}</span><span style={{fontSize:13,fontWeight:600,color:k.c}}>{k.v}</span></div>)}
-      <div style={{margin:"12px 0"}}>{[{l:"Comissão assinatura ("+txB+"%)",v:R(bS.cPote),c:"#d97706"},{l:"Comissão avulso+extras ("+txB+"%)",v:R(bS.cAv),c:"#0e7490"},{l:"Comissão produtos",v:R(bS.fPr),c:"#059669"},{l:"Bônus metas",v:R(bS.bonTotal),c:"#d97706"},{l:"Vales",v:"-"+R(bS.tVale),c:"#dc2626"}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12,color:"#666"}}>{k.l}</span><span style={{fontSize:13,fontWeight:600,color:k.c}}>{k.v}</span></div>)}
+      <div style={{margin:"12px 0"}}>{[{l:"Comissão assinatura ("+bS.txPct+"%)",v:R(bS.cPote),c:"#d97706"},{l:"Comissão avulso+extras ("+bS.txPct+"%)",v:R(bS.cAv),c:"#0e7490"},{l:"Comissão produtos",v:R(bS.fPr),c:"#059669"},{l:"Bônus metas",v:R(bS.bonTotal),c:"#d97706"},{l:"Vales",v:"-"+R(bS.tVale),c:"#dc2626"}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12,color:"#666"}}>{k.l}</span><span style={{fontSize:13,fontWeight:600,color:k.c}}>{k.v}</span></div>)}
         <div style={{display:"flex",justifyContent:"space-between",padding:"11px 12px",background:"#f0fdf4",border:"2px solid #bbf7d0",borderRadius:7,marginTop:8}}><span style={{fontSize:14,fontWeight:700,color:"#059669"}}>TOTAL A RECEBER</span><span style={{fontSize:18,fontWeight:800,color:"#059669"}}>{R(bS.cLiq)}</span></div>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:7,paddingTop:12,borderTop:"2px solid #f0f0f5"}}>
@@ -1865,8 +1884,8 @@ export default function App(){
   const calcBInc=calcB.filter(b=>!comisExcl.includes(b.id));
   const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
   const totalComAssin=calcBInc.reduce((a,b)=>a+b.cPote,0);
-  const totalComAvulso=calcBInc.reduce((a,b)=>a+b.fAv*(txB/100),0);
-  const totalComExtras=calcBInc.reduce((a,b)=>a+b.fEx*(txB/100),0);
+  const totalComAvulso=calcBInc.reduce((a,b)=>a+b.fAv*(b.txPct/100),0);
+  const totalComExtras=calcBInc.reduce((a,b)=>a+b.fEx*(b.txPct/100),0);
   const totalComProd=calcBInc.reduce((a,b)=>a+b.fPr,0);
   const totalBon=calcBInc.reduce((a,b)=>a+b.bonTotal,0);
   const totalComissoes=calcBInc.reduce((a,b)=>a+b.totCBon,0);
@@ -1875,11 +1894,11 @@ export default function App(){
     <div className="card"><div className="st">💰 Comissões por barbeiro</div><div style={{fontSize:11,color:"#aaa",marginTop:-8,marginBottom:8}}>Clique no ✕ para excluir a comissão de um barbeiro da soma total.</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:660}}>
       <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["","Barbeiro","Assinatura","Avulso","Extras","Produtos","Bônus","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
       <tbody>{calcB.map(b=>{
-        const comAvulso=b.fAv*(txB/100);const comExtras=b.fEx*(txB/100);
+        const comAvulso=b.fAv*(b.txPct/100);const comExtras=b.fEx*(b.txPct/100);
         const excl=comisExcl.includes(b.id);
         return <tr key={b.id} style={{borderBottom:"1px solid #f0f0f5",opacity:excl?0.4:1}}>
           <td style={{padding:"7px 8px"}}><button title={excl?"Incluir na soma":"Excluir da soma"} onClick={()=>setComisExcl(l=>excl?l.filter(x=>x!==b.id):[...l,b.id])} style={{width:22,height:22,borderRadius:"50%",border:"1px solid "+(excl?"#dc2626":"#e0e0e8"),background:excl?"#fee2e2":"#fff",color:excl?"#dc2626":"#aaa",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",lineHeight:1}}>✕</button></td>
-          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600,textDecoration:excl?"line-through":"none"}}>{b.nome.split(" ")[0]}</span></div></td>
+          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600,textDecoration:excl?"line-through":"none"}}>{b.nome.split(" ")[0]}</span>{b.com!=null&&<span style={{fontSize:10,fontWeight:700,color:"#0e7490",background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:20,padding:"1px 6px"}}>{b.txPct}%</span>}</div></td>
           <td style={{padding:"7px 8px",color:"#d97706"}}>{R(b.cPote)}</td>
           <td style={{padding:"7px 8px",color:"#0e7490"}}>{R(comAvulso)}</td>
           <td style={{padding:"7px 8px",color:"#0284c7"}}>{R(comExtras)}</td>
@@ -1902,7 +1921,7 @@ export default function App(){
     {calcBInc.length>0&&<div className="card">
       <div className="st">Composição da comissão por barbeiro</div>
       <ResponsiveContainer width="100%" height={230}>
-        <BarChart data={calcBInc.map(b=>({nome:b.nome.split(" ")[0],Assinatura:b.cPote,Avulso:b.fAv*(txB/100),Extras:b.fEx*(txB/100),Produtos:b.fPr,Bônus:b.bonTotal}))} margin={{top:8,right:4,left:-14,bottom:0}} barCategoryGap="26%">
+        <BarChart data={calcBInc.map(b=>({nome:b.nome.split(" ")[0],Assinatura:b.cPote,Avulso:b.fAv*(b.txPct/100),Extras:b.fEx*(b.txPct/100),Produtos:b.fPr,Bônus:b.bonTotal}))} margin={{top:8,right:4,left:-14,bottom:0}} barCategoryGap="26%">
           <CartesianGrid strokeDasharray="4 4" stroke="#eef1f5" vertical={false}/>
           <XAxis dataKey="nome" tick={{fill:"#98a2b3",fontSize:11}} tickLine={false} axisLine={false}/>
           <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
