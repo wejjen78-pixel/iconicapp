@@ -1678,40 +1678,6 @@ export default function App(){
 
 {/* ─── BARBEIRO ─── */}
 {aba==="barb"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  {(()=>{
-    const CATS=[["corte","Corte"],["barba","Barba"],["cortebarba","Corte+Barba"],["acabbarba","Acab. Barba"],["pezinho","Pézinho"]];
-    const linhas=barbs.map(b=>{
-      const cont={corte:0,barba:0,cortebarba:0,acabbarba:0,pezinho:0,outros:0};
-      const outrosNomes={};
-      sM.filter(s=>s.bId===b.id).forEach(s=>{const t=getTipoFicha(s.svc);const qt=s.qt||1;if(t){cont[t]+=qt;}else{cont.outros+=qt;outrosNomes[s.svc]=(outrosNomes[s.svc]||0)+qt;}});
-      const totalB=CATS.reduce((a,[k])=>a+cont[k],0)+cont.outros;
-      return{b,cont,outrosNomes,totalB};
-    });
-    const totCat=k=>linhas.reduce((a,l)=>a+l.cont[k],0);
-    const totOutros=linhas.reduce((a,l)=>a+l.cont.outros,0);
-    const totGeral=linhas.reduce((a,l)=>a+l.totalB,0);
-    const outrosTodos={};linhas.forEach(l=>Object.entries(l.outrosNomes).forEach(([nome,qt])=>{outrosTodos[nome]=(outrosTodos[nome]||0)+qt;}));
-    return <div className="card"><div className="st">✂️ Fichas por categoria (mês) — conferência</div>
-      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:600}}>
-        <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro",...CATS.map(c=>c[1]),"Não classif.","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
-        <tbody>{linhas.map(l=><tr key={l.b.id} style={{borderBottom:"1px solid #f0f0f5"}}>
-          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(l.b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{l.b.nome.split(" ")[0]}</span></div></td>
-          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px"}}>{l.cont[c[0]]||"—"}</td>)}
-          <td style={{padding:"7px 8px",color:l.cont.outros>0?"#dc2626":"#ccc",fontWeight:l.cont.outros>0?700:400}}>{l.cont.outros||"—"}</td>
-          <td style={{padding:"7px 8px",fontWeight:700}}>{l.totalB}</td>
-        </tr>)}
-        <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
-          <td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td>
-          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px",fontWeight:700}}>{totCat(c[0])}</td>)}
-          <td style={{padding:"7px 8px",fontWeight:700,color:totOutros>0?"#dc2626":"#888"}}>{totOutros}</td>
-          <td style={{padding:"7px 8px",fontWeight:700}}>{totGeral}</td>
-        </tr></tbody></table></div>
-      {totOutros>0&&<div style={{marginTop:10,padding:"10px 12px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8}}>
-        <div style={{fontSize:12,fontWeight:700,color:"#dc2626",marginBottom:6}}>⚠️ {totOutros} lançamento{totOutros!==1?"s":""} não entrou em nenhuma categoria — provável causa da diferença com sua planilha:</div>
-        {Object.entries(outrosTodos).map(([nome,qt])=><div key={nome} style={{fontSize:12,color:"#7f1d1d",padding:"2px 0"}}>{qt}× "{nome}"</div>)}
-      </div>}
-    </div>;
-  })()}
   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{barbs.map(b=><button key={b.id} className={"bg"+(barbSel===b.id?" on":"")} style={{borderColor:barbSel===b.id?b.cor:"#e0e0e8",color:barbSel===b.id?b.cor:"#555",display:"flex",alignItems:"center",gap:6}} onClick={()=>setBarbSel(b.id)}><BAv b={b} size={22} fs={10}/>{b.nome.split(" ")[0]}</button>)}</div>
   {bAtSel&&<>
     <div className="card" style={{borderLeft:"4px solid "+bAtSel.cor}}>
@@ -1746,6 +1712,29 @@ export default function App(){
       <div style={{padding:"8px 12px",background:"#1a1a2e",borderRadius:7,display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:13,fontWeight:700,color:"#fff"}}>LÍQUIDO A RECEBER</span><span style={{fontSize:18,fontWeight:800,color:"#67e8f9"}}>{R(bAtSel.cLiq)}</span></div>
       <button className="btn bsm" style={{background:"#dc2626",marginTop:10}} onClick={()=>limparTudoBarbeiro(bAtSel.id)}>🗑 Excluir tudo de {bAtSel.nome.split(" ")[0]}</button>
     </div>
+    <div className="g2">
+    {(()=>{
+      const hoje=new Date(hjS);const d7=new Date(hoje);d7.setDate(hoje.getDate()-7);
+      const txL=bAtSel.txPct/100;
+      const comHojeB=(bAtSel.avB.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>p.dt===hjS).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL);
+      const semAvExtB=bAtSel.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
+      const semProdB=bAtSel.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
+      const semPoteB=poM.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL;
+      const comSemanaB=semAvExtB*txL+semProdB+semPoteB;
+      return <div className="card"><div className="st">💰 Comissão do dia e da semana</div><div className="g2"><div style={{background:"#f0fdf4",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>HOJE</div><div style={{fontSize:20,fontWeight:800,color:"#059669"}}>{R(comHojeB)}</div></div><div style={{background:"#ecfeff",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>SEMANA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(comSemanaB)}</div></div></div></div>;
+    })()}
+    {(()=>{
+      const horasKey=bAtSel.id+"-"+ano+"-"+mes;
+      const horas=+horasTrab[horasKey]||0;
+      const rHora=horas>0?bAtSel.totC/horas:0;
+      return <div className="card"><div className="st">⏱️ Produtividade por hora</div>
+        <div className="g2">
+          <div><span className="lbl">Horas trabalhadas no mês</span><input type="number" className="inp" min="0" value={horasTrab[horasKey]||""} onChange={e=>setHorasTrab(h=>({...h,[horasKey]:e.target.value}))}/></div>
+          <div style={{background:"#ecfeff",borderRadius:8,padding:"10px 12px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>R$/HORA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{horas>0?R(rHora):"—"}</div></div>
+        </div>
+      </div>;
+    })()}
+    </div>
     {(()=>{
       const inRange=dt=>dt>=barbFiltDe&&dt<=barbFiltAte;
       const porDia={};
@@ -1768,15 +1757,35 @@ export default function App(){
       </div>;
     })()}
     {(()=>{
-      const hoje=new Date(hjS);const d7=new Date(hoje);d7.setDate(hoje.getDate()-7);
-      const txL=bAtSel.txPct/100;
-      const comHojeB=(bAtSel.avB.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>p.dt===hjS).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL);
-      const semAvExtB=bAtSel.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
-      const semProdB=bAtSel.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
-      const semPoteB=poM.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL;
-      const comSemanaB=semAvExtB*txL+semProdB+semPoteB;
-      return <div className="card"><div className="st">💰 Comissão do dia e da semana</div><div className="g2"><div style={{background:"#f0fdf4",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>HOJE</div><div style={{fontSize:20,fontWeight:800,color:"#059669"}}>{R(comHojeB)}</div></div><div style={{background:"#ecfeff",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>SEMANA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(comSemanaB)}</div></div></div></div>;
+      const grpClub=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,qt:0};a[k].qt+=(s.qt||1);return a;},{});
+      const clubList=Object.values(grpClub).sort((a,b2)=>b2.qt-a.qt);
+      const totalClub=clubList.reduce((a,g)=>a+g.qt,0);
+      const grpAvulso=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,qt:0};a[k].qt+=(s.qt||1);return a;},{});
+      const avulsoList=Object.values(grpAvulso).sort((a,b2)=>b2.qt-a.qt);
+      const totalAvulso=avulsoList.reduce((a,g)=>a+g.qt,0);
+      const totalProdutos=bAtSel.prB.reduce((a,p)=>a+(p.qt||1),0);
+      const totalServicos=totalClub+totalAvulso;
+      return <div className="card">
+        <div className="st">📋 Resumo de serviços realizados</div>
+        <div className="g2">
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:"#d97706",textTransform:"uppercase",marginBottom:6}}>Club ({totalClub})</div>
+            {clubList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"6px 0"}}>Nenhum</div>:clubList.map((g,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 8px",background:i%2===0?"#fafafa":"transparent",borderRadius:5,fontSize:12}}><span>{g.svc}</span><span style={{fontWeight:700,color:"#d97706"}}>{g.qt}x</span></div>)}
+            <div style={{display:"flex",justifyContent:"space-between",padding:"7px 8px",marginTop:6,borderTop:"2px solid #fde68a",fontWeight:800}}><span style={{fontSize:12,color:"#d97706"}}>TOTAL CLUB</span><span style={{color:"#d97706"}}>{totalClub}</span></div>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:"#0e7490",textTransform:"uppercase",marginBottom:6}}>Avulso ({totalAvulso})</div>
+            {avulsoList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"6px 0"}}>Nenhum</div>:avulsoList.map((g,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 8px",background:i%2===0?"#fafafa":"transparent",borderRadius:5,fontSize:12}}><span>{g.svc}</span><span style={{fontWeight:700,color:"#0e7490"}}>{g.qt}x</span></div>)}
+            <div style={{display:"flex",justifyContent:"space-between",padding:"7px 8px",marginTop:6,borderTop:"2px solid #a5f3fc",fontWeight:800}}><span style={{fontSize:12,color:"#0e7490"}}>TOTAL AVULSO</span><span style={{color:"#0e7490"}}>{totalAvulso}</span></div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:140,padding:"10px 14px",background:"#1a1a2e",borderRadius:8,textAlign:"center"}}><div style={{fontSize:10,color:"#ffffff80",fontWeight:600}}>TOTAL DE SERVIÇOS</div><div style={{fontSize:22,fontWeight:800,color:"#fff"}}>{totalServicos}</div></div>
+          <div style={{flex:1,minWidth:140,padding:"10px 14px",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:600}}>PRODUTOS VENDIDOS</div><div style={{fontSize:22,fontWeight:800,color:"#059669"}}>{totalProdutos}</div></div>
+        </div>
+      </div>;
     })()}
+    <div className="g2">
     {(()=>{
       const porDia={};
       bAtSel.exB.forEach(e=>{(porDia[e.dt]=porDia[e.dt]||{extras:[],produtos:[]}).extras.push(e);});
@@ -1816,17 +1825,25 @@ export default function App(){
         {prodNaoVendidos.length>0&&<div><div style={{fontSize:11,fontWeight:700,color:"#dc2626",textTransform:"uppercase",marginBottom:5}}>Sem vendas esse mês</div><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{prodNaoVendidos.slice(0,10).map((p,i)=><span key={i} style={{fontSize:11,background:"#fef2f2",color:"#dc2626",padding:"3px 8px",borderRadius:12}}>{p.nome}</span>)}{prodNaoVendidos.length>10&&<span style={{fontSize:11,color:"#888"}}>+{prodNaoVendidos.length-10} outros</span>}</div></div>}
       </div>;
     })()}
-    {(()=>{
-      const horasKey=bAtSel.id+"-"+ano+"-"+mes;
-      const horas=+horasTrab[horasKey]||0;
-      const rHora=horas>0?bAtSel.totC/horas:0;
-      return <div className="card"><div className="st">⏱️ Produtividade por hora</div>
-        <div className="g2">
-          <div><span className="lbl">Horas trabalhadas no mês</span><input type="number" className="inp" min="0" value={horasTrab[horasKey]||""} onChange={e=>setHorasTrab(h=>({...h,[horasKey]:e.target.value}))}/></div>
-          <div style={{background:"#ecfeff",borderRadius:8,padding:"10px 12px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>R$/HORA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{horas>0?R(rHora):"—"}</div></div>
-        </div>
-      </div>;
-    })()}
+    </div>
+    <div className="st" style={{marginTop:6,marginBottom:-6}}>Lançamentos do mês</div>
+    <div className="g2">
+    <div className="card"><div className="st">Fichas ({bAtSel.ftot}pts)</div>
+      {(()=>{const grp=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],pts:0};a[k].items.push(s);a[k].pts+=getFichasPorTipo(s.svc)*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#d97706" qt={g.items.length} total={g.pts} isPts acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=svcs.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("svcs",ids);setSvcs(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"dt",label:"Data",type:"date"}]} setter={setSvcs} tipo="svcs"><div style={{flex:2,fontSize:11}}>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div><span style={{color:"#d97706",fontWeight:600}}>{getFichasPorTipo(s.svc)}pts</span></ERow>)}</GrupoColapsavel>);})()}
+    </div>
+    <div className="card"><div className="st">Avulsos</div>
+      {(()=>{const grp=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(s);a[k].total+=s.val*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0e7490" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=avul.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("avul",ids);setAvul(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"svc",label:"Serviço",type:"select",options:SVC_DEF.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setAvul} tipo="avul"><div style={{flex:1,fontSize:11}}><b>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{s.qt}{s.nota?" ⭐"+s.nota:""}</div><span style={{fontWeight:600,color:"#0e7490"}}>{R(s.val*s.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
+    </div>
+    </div>
+    <div className="g2">
+    <div className="card"><div className="st">Extras</div>
+      {(()=>{const grp=bAtSel.exB.reduce((a,e)=>{const k=e.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(e);a[k].total+=e.val;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0284c7" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{const match=x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc;const idsE=ext.filter(match).map(x=>x.id);const idsEA=extAv.filter(match).map(x=>x.id);excluirRemoto("ext",idsE);excluirRemoto("extAv",idsEA);setExt(v=>v.filter(x=>!match(x)));setExtAv(v=>v.filter(x=>!match(x)));}}>🗑</button>}>{g.items.map(e=><ERow key={e.id} item={e} fields={[{key:"svc",label:"Extra",type:"select",options:EXT_DEF},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={updExtra} onDel={delExtra}><div style={{flex:1,fontSize:11}}><b>{new Date(e.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b></div><span style={{fontWeight:600,color:"#0284c7"}}>{R(e.val)}</span></ERow>)}</GrupoColapsavel>);})()}
+    </div>
+    <div className="card"><div className="st">Produtos</div>
+      {(()=>{const grp=bAtSel.prB.reduce((a,p)=>{const k=p.prod;if(!a[k])a[k]={prod:k,items:[],total:0};a[k].items.push(p);a[k].total+=p.val*p.qt;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.prod} titulo={g.prod} cor="#059669" qt={g.items.reduce((a,p)=>a+p.qt,0)} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=prod.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.prod===g.prod).map(x=>x.id);excluirRemoto("prod",ids);setProd(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(p=><ERow key={p.id} item={p} fields={[{key:"prod",label:"Produto",type:"select",options:prodLst.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setProd} tipo="prod"><div style={{flex:1,fontSize:11}}><b>{new Date(p.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{p.qt}</div><span style={{fontWeight:600,color:"#059669"}}>{R(p.val*p.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
+    </div>
+    </div>
+    {bAtSel.lotB.length>0&&<div className="card"><div className="st">Lotes</div>{bAtSel.lotB.map(l=><ERow key={l.id} item={l} fields={[{key:"vb",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setLote} tipo="lote"><div style={{flex:1,fontSize:12}}>Lote <span style={{color:"#aaa",fontSize:11}}>{new Date(l.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div><span style={{fontWeight:600,color:"#d97706"}}>{R(l.vb)}</span></ERow>)}</div>}
     <div className="card"><div className="st">📝 Observações / Coaching</div>
       <div className="g3" style={{marginBottom:10}}>
         <div style={{gridColumn:"1/3"}}><span className="lbl">Observação</span><input className="inp" value={coachTxt} onChange={e=>setCoachTxt(e.target.value)} placeholder="Ex: conversamos sobre pontualidade..."/></div>
@@ -1835,49 +1852,41 @@ export default function App(){
       <button className="btn bsm" onClick={addCoaching}>+ Adicionar observação</button>
       <div style={{marginTop:10}}>{coaching.filter(c=>c.bId===bAtSel.id).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma observação registrada.</div>:coaching.filter(c=>c.bId===bAtSel.id).sort((a,b2)=>b2.dt.localeCompare(a.dt)).map(c=><div key={c.id} className="row"><div style={{flex:1}}><div style={{fontSize:12}}>{c.texto}</div><div style={{fontSize:10,color:"#aaa",marginTop:2}}>{new Date(c.dt+"T12:00:00").toLocaleDateString("pt-BR")}</div></div><button className="bdel" onClick={()=>{setCoaching(cs=>cs.filter(x=>x.id!==c.id));excluirRemoto("coaching",[c.id]);}}>×</button></div>)}</div>
     </div>
-    {(()=>{
-      const grpClub=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,qt:0};a[k].qt+=(s.qt||1);return a;},{});
-      const clubList=Object.values(grpClub).sort((a,b2)=>b2.qt-a.qt);
-      const totalClub=clubList.reduce((a,g)=>a+g.qt,0);
-      const grpAvulso=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,qt:0};a[k].qt+=(s.qt||1);return a;},{});
-      const avulsoList=Object.values(grpAvulso).sort((a,b2)=>b2.qt-a.qt);
-      const totalAvulso=avulsoList.reduce((a,g)=>a+g.qt,0);
-      const totalProdutos=bAtSel.prB.reduce((a,p)=>a+(p.qt||1),0);
-      const totalServicos=totalClub+totalAvulso;
-      return <div className="card">
-        <div className="st">📋 Resumo de serviços realizados</div>
-        <div className="g2">
-          <div>
-            <div style={{fontSize:11,fontWeight:700,color:"#d97706",textTransform:"uppercase",marginBottom:6}}>Club ({totalClub})</div>
-            {clubList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"6px 0"}}>Nenhum</div>:clubList.map((g,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 8px",background:i%2===0?"#fafafa":"transparent",borderRadius:5,fontSize:12}}><span>{g.svc}</span><span style={{fontWeight:700,color:"#d97706"}}>{g.qt}x</span></div>)}
-            <div style={{display:"flex",justifyContent:"space-between",padding:"7px 8px",marginTop:6,borderTop:"2px solid #fde68a",fontWeight:800}}><span style={{fontSize:12,color:"#d97706"}}>TOTAL CLUB</span><span style={{color:"#d97706"}}>{totalClub}</span></div>
-          </div>
-          <div>
-            <div style={{fontSize:11,fontWeight:700,color:"#0e7490",textTransform:"uppercase",marginBottom:6}}>Avulso ({totalAvulso})</div>
-            {avulsoList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"6px 0"}}>Nenhum</div>:avulsoList.map((g,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 8px",background:i%2===0?"#fafafa":"transparent",borderRadius:5,fontSize:12}}><span>{g.svc}</span><span style={{fontWeight:700,color:"#0e7490"}}>{g.qt}x</span></div>)}
-            <div style={{display:"flex",justifyContent:"space-between",padding:"7px 8px",marginTop:6,borderTop:"2px solid #a5f3fc",fontWeight:800}}><span style={{fontSize:12,color:"#0e7490"}}>TOTAL AVULSO</span><span style={{color:"#0e7490"}}>{totalAvulso}</span></div>
-          </div>
-        </div>
-        <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap"}}>
-          <div style={{flex:1,minWidth:140,padding:"10px 14px",background:"#1a1a2e",borderRadius:8,textAlign:"center"}}><div style={{fontSize:10,color:"#ffffff80",fontWeight:600}}>TOTAL DE SERVIÇOS</div><div style={{fontSize:22,fontWeight:800,color:"#fff"}}>{totalServicos}</div></div>
-          <div style={{flex:1,minWidth:140,padding:"10px 14px",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:600}}>PRODUTOS VENDIDOS</div><div style={{fontSize:22,fontWeight:800,color:"#059669"}}>{totalProdutos}</div></div>
-        </div>
-      </div>;
-    })()}
-    <div className="card"><div className="st">Fichas ({bAtSel.ftot}pts)</div>
-      {(()=>{const grp=bAtSel.ss2.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],pts:0};a[k].items.push(s);a[k].pts+=getFichasPorTipo(s.svc)*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhuma.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#d97706" qt={g.items.length} total={g.pts} isPts acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=svcs.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("svcs",ids);setSvcs(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"dt",label:"Data",type:"date"}]} setter={setSvcs} tipo="svcs"><div style={{flex:2,fontSize:11}}>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div><span style={{color:"#d97706",fontWeight:600}}>{getFichasPorTipo(s.svc)}pts</span></ERow>)}</GrupoColapsavel>);})()}
-    </div>
-    <div className="card"><div className="st">Avulsos</div>
-      {(()=>{const grp=bAtSel.avB.reduce((a,s)=>{const k=s.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(s);a[k].total+=s.val*(s.qt||1);return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0e7490" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=avul.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc).map(x=>x.id);excluirRemoto("avul",ids);setAvul(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(s=><ERow key={s.id} item={s} fields={[{key:"svc",label:"Serviço",type:"select",options:SVC_DEF.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setAvul} tipo="avul"><div style={{flex:1,fontSize:11}}><b>{new Date(s.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{s.qt}{s.nota?" ⭐"+s.nota:""}</div><span style={{fontWeight:600,color:"#0e7490"}}>{R(s.val*s.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
-    </div>
-    <div className="card"><div className="st">Extras</div>
-      {(()=>{const grp=bAtSel.exB.reduce((a,e)=>{const k=e.svc;if(!a[k])a[k]={svc:k,items:[],total:0};a[k].items.push(e);a[k].total+=e.val;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.svc} titulo={g.svc} cor="#0284c7" qt={g.items.length} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{const match=x=>x.bId===bAtSel.id&&noM(x.dt)&&x.svc===g.svc;const idsE=ext.filter(match).map(x=>x.id);const idsEA=extAv.filter(match).map(x=>x.id);excluirRemoto("ext",idsE);excluirRemoto("extAv",idsEA);setExt(v=>v.filter(x=>!match(x)));setExtAv(v=>v.filter(x=>!match(x)));}}>🗑</button>}>{g.items.map(e=><ERow key={e.id} item={e} fields={[{key:"svc",label:"Extra",type:"select",options:EXT_DEF},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={updExtra} onDel={delExtra}><div style={{flex:1,fontSize:11}}><b>{new Date(e.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b></div><span style={{fontWeight:600,color:"#0284c7"}}>{R(e.val)}</span></ERow>)}</GrupoColapsavel>);})()}
-    </div>
-    <div className="card"><div className="st">Produtos</div>
-      {(()=>{const grp=bAtSel.prB.reduce((a,p)=>{const k=p.prod;if(!a[k])a[k]={prod:k,items:[],total:0};a[k].items.push(p);a[k].total+=p.val*p.qt;return a;},{});return Object.values(grp).length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum.</div>:Object.values(grp).map(g=><GrupoColapsavel key={g.prod} titulo={g.prod} cor="#059669" qt={g.items.reduce((a,p)=>a+p.qt,0)} total={g.total} acoes={<button className="bdel" style={{color:"#dc2626",fontSize:12}} onClick={()=>{if(window.confirm("Excluir?")){const ids=prod.filter(x=>x.bId===bAtSel.id&&noM(x.dt)&&x.prod===g.prod).map(x=>x.id);excluirRemoto("prod",ids);setProd(v=>v.filter(x=>!ids.includes(x.id)));}}}>🗑</button>}>{g.items.map(p=><ERow key={p.id} item={p} fields={[{key:"prod",label:"Produto",type:"select",options:prodLst.map(x=>x.nome)},{key:"val",label:"Valor",type:"number"},{key:"qt",label:"Qtd",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setProd} tipo="prod"><div style={{flex:1,fontSize:11}}><b>{new Date(p.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</b> ×{p.qt}</div><span style={{fontWeight:600,color:"#059669"}}>{R(p.val*p.qt)}</span></ERow>)}</GrupoColapsavel>);})()}
-    </div>
-    {bAtSel.lotB.length>0&&<div className="card"><div className="st">Lotes</div>{bAtSel.lotB.map(l=><ERow key={l.id} item={l} fields={[{key:"vb",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"}]} setter={setLote} tipo="lote"><div style={{flex:1,fontSize:12}}>Lote <span style={{color:"#aaa",fontSize:11}}>{new Date(l.dt+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</span></div><span style={{fontWeight:600,color:"#d97706"}}>{R(l.vb)}</span></ERow>)}</div>}
   </>}
+  {(()=>{
+    const CATS=[["corte","Corte"],["barba","Barba"],["cortebarba","Corte+Barba"],["acabbarba","Acab. Barba"],["pezinho","Pézinho"]];
+    const linhas=barbs.map(b=>{
+      const cont={corte:0,barba:0,cortebarba:0,acabbarba:0,pezinho:0,outros:0};
+      const outrosNomes={};
+      sM.filter(s=>s.bId===b.id).forEach(s=>{const t=getTipoFicha(s.svc);const qt=s.qt||1;if(t){cont[t]+=qt;}else{cont.outros+=qt;outrosNomes[s.svc]=(outrosNomes[s.svc]||0)+qt;}});
+      const totalB=CATS.reduce((a,[k])=>a+cont[k],0)+cont.outros;
+      return{b,cont,outrosNomes,totalB};
+    });
+    const totCat=k=>linhas.reduce((a,l)=>a+l.cont[k],0);
+    const totOutros=linhas.reduce((a,l)=>a+l.cont.outros,0);
+    const totGeral=linhas.reduce((a,l)=>a+l.totalB,0);
+    const outrosTodos={};linhas.forEach(l=>Object.entries(l.outrosNomes).forEach(([nome,qt])=>{outrosTodos[nome]=(outrosTodos[nome]||0)+qt;}));
+    return <div className="card"><div className="st">✂️ Conferência da equipe — fichas por categoria em {MESES[mes]}</div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:600}}>
+        <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro",...CATS.map(c=>c[1]),"Não classif.","Total"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
+        <tbody>{linhas.map(l=><tr key={l.b.id} style={{borderBottom:"1px solid #f0f0f5"}}>
+          <td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(l.b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{l.b.nome.split(" ")[0]}</span></div></td>
+          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px"}}>{l.cont[c[0]]||"—"}</td>)}
+          <td style={{padding:"7px 8px",color:l.cont.outros>0?"#dc2626":"#ccc",fontWeight:l.cont.outros>0?700:400}}>{l.cont.outros||"—"}</td>
+          <td style={{padding:"7px 8px",fontWeight:700}}>{l.totalB}</td>
+        </tr>)}
+        <tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}>
+          <td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td>
+          {CATS.map(c=><td key={c[0]} style={{padding:"7px 8px",fontWeight:700}}>{totCat(c[0])}</td>)}
+          <td style={{padding:"7px 8px",fontWeight:700,color:totOutros>0?"#dc2626":"#888"}}>{totOutros}</td>
+          <td style={{padding:"7px 8px",fontWeight:700}}>{totGeral}</td>
+        </tr></tbody></table></div>
+      {totOutros>0&&<div style={{marginTop:10,padding:"10px 12px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8}}>
+        <div style={{fontSize:12,fontWeight:700,color:"#dc2626",marginBottom:6}}>⚠️ {totOutros} lançamento{totOutros!==1?"s":""} não entrou em nenhuma categoria — provável causa da diferença com sua planilha:</div>
+        {Object.entries(outrosTodos).map(([nome,qt])=><div key={nome} style={{fontSize:12,color:"#7f1d1d",padding:"2px 0"}}>{qt}× "{nome}"</div>)}
+      </div>}
+    </div>;
+  })()}
 </div>}
 
 {/* ─── LANÇAMENTO ─── */}
