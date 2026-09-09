@@ -598,12 +598,12 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["insta","Instagram"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
-  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["insta","Instagram"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
-  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,insta:ICO.insta}[k]||ICO.dash);
-  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",insta:"📸 Instagram",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
+  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump}[k]||ICO.dash);
+  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
 
   // ── CARREGAR DADOS (Supabase) ────────────────────────────────────────────
   const[loadError,setLoadError]=useState(null);const[loadTick,setLoadTick]=useState(0);
@@ -1937,46 +1937,6 @@ export default function App(){
 {aba==="extv"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
   <div className="g4"><KPI lbl="Total" val={[...eM,...eAM].length} cor="#0284c7" glow/><KPI lbl="Receita" val={R(tExt)} cor="#0e7490"/><KPI lbl="TM" val={R([...eM,...eAM].length>0?tExt/[...eM,...eAM].length:0)} cor="#059669"/><KPI lbl="% fatur." val={fat>0?(tExt/fat*100).toFixed(1)+"%":"0%"} cor="#d97706"/></div>
   <div className="card"><div className="st">Ranking extras</div>{(()=>{const g=[...eM,...eAM].reduce((a,e)=>{if(!a[e.svc])a[e.svc]={nome:e.svc,qt:0,rec:0};a[e.svc].qt++;a[e.svc].rec+=e.val;return a;},{});return Object.values(g).sort((a,b2)=>b2.rec-a.rec).map((e,i)=><div key={i} className="row"><span style={{width:18,height:18,borderRadius:"50%",background:i===0?"#fef3c7":"#f0f0f5",color:i===0?"#d97706":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><div style={{flex:1,fontSize:13}}>{e.nome}</div><span style={{fontSize:11,color:"#888"}}>{e.qt}x</span><span style={{fontWeight:700,color:"#0e7490"}}>{R(e.rec)}</span></div>);})()}</div>
-</div>}
-
-{/* ─── INSTAGRAM ─── */}
-{aba==="insta"&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div style={{background:"linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)",borderRadius:12,padding:"16px 20px",display:"flex",alignItems:"center",gap:14}}><div style={{fontSize:34}}>📸</div><div><div style={{fontSize:17,fontWeight:800,color:"#fff"}}>Instagram</div><div style={{fontSize:12,color:"#ffffffcc",marginTop:2}}>Metas de conteúdo — bônus à parte da comissão</div></div></div>
-  <div className="card">
-    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-      <div className="st" style={{marginBottom:0}}>🎯 Metas do mês</div>
-      {isDono&&(instaEditMeta?<div style={{display:"flex",gap:8}}><button className="btn bsm" onClick={()=>{setInstaMeta({...instaMetaTmp});setInstaEditMeta(false);addNotif("📸","Metas do Instagram atualizadas");}}>Salvar</button><button className="bg bsm" onClick={()=>setInstaEditMeta(false)}>Cancelar</button></div>:<button className="bg" onClick={()=>{setInstaMetaTmp({...instaMeta});setInstaEditMeta(true);}}>Editar</button>)}
-    </div>
-    {instaEditMeta?<div className="g4">
-      <div><span className="lbl">Stories — qtd</span><input type="number" className="inp" value={instaMetaTmp.storiesQt} onChange={e=>setInstaMetaTmp(t=>({...t,storiesQt:+e.target.value||0}))}/></div>
-      <div><span className="lbl">Stories — bônus R$</span><input type="number" className="inp" value={instaMetaTmp.storiesBon} onChange={e=>setInstaMetaTmp(t=>({...t,storiesBon:+e.target.value||0}))}/></div>
-      <div><span className="lbl">Reels — qtd</span><input type="number" className="inp" value={instaMetaTmp.reelsQt} onChange={e=>setInstaMetaTmp(t=>({...t,reelsQt:+e.target.value||0}))}/></div>
-      <div><span className="lbl">Reels — bônus R$</span><input type="number" className="inp" value={instaMetaTmp.reelsBon} onChange={e=>setInstaMetaTmp(t=>({...t,reelsBon:+e.target.value||0}))}/></div>
-    </div>:<div className="g2">
-      <div style={{background:"#fef2f2",border:"1px solid #fecaca",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:22}}>📸</div><div style={{fontWeight:800,fontSize:18,color:"#dc2626"}}>{instaMeta.storiesQt} Stories</div><div style={{fontSize:12,color:"#888",marginTop:2}}>Bônus: {R(instaMeta.storiesBon)}</div></div>
-      <div style={{background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:22}}>🎬</div><div style={{fontWeight:800,fontSize:18,color:"#0e7490"}}>{instaMeta.reelsQt} Reels</div><div style={{fontSize:12,color:"#888",marginTop:2}}>Bônus: {R(instaMeta.reelsBon)}</div></div>
-    </div>}
-  </div>
-  {isDono&&<div className="card"><div className="st">Lançar postagem</div><div className="g4" style={{marginBottom:10}}>
-    <div><span className="lbl">Barbeiro</span><select className="inp" value={instaForm.bId} onChange={e=>setInstaForm(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div>
-    <div><span className="lbl">Tipo</span><select className="inp" value={instaForm.tipo} onChange={e=>setInstaForm(f=>({...f,tipo:e.target.value}))}><option value="story">Story</option><option value="reel">Reel</option></select></div>
-    <div><span className="lbl">Qtd</span><input type="number" className="inp" min="1" value={instaForm.qt} onChange={e=>setInstaForm(f=>({...f,qt:e.target.value}))}/></div>
-    <div><span className="lbl">Data</span><input type="date" className="inp" value={instaForm.dt} onChange={e=>setInstaForm(f=>({...f,dt:e.target.value}))}/></div>
-  </div><button className="btn" onClick={lanInsta}>+ Lançar</button></div>}
-  {(isBarb?[getB(user.bId)].filter(Boolean):barbs).map(b=>{
-    const lM2=instaLancamentos.filter(l=>l.bId===b.id&&noM(l.dt));
-    const storiesQt=lM2.filter(l=>l.tipo==="story").reduce((a,l)=>a+l.qt,0);
-    const reelsQt=lM2.filter(l=>l.tipo==="reel").reduce((a,l)=>a+l.qt,0);
-    const bateuStories=storiesQt>=instaMeta.storiesQt;const bateuReels=reelsQt>=instaMeta.reelsQt;
-    const bonusInsta=(bateuStories?instaMeta.storiesBon:0)+(bateuReels?instaMeta.reelsBon:0);
-    return <div key={b.id} className="card" style={{borderLeft:"4px solid "+b.cor}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}><BAv b={b} size={32}/><div style={{flex:1}}><div style={{fontWeight:700}}>{b.nome.split(" ")[0]}</div></div>{bonusInsta>0&&<div style={{padding:"4px 10px",background:"#dcfce7",color:"#059669",borderRadius:20,fontWeight:700,fontSize:12}}>+{R(bonusInsta)}</div>}</div>
-      <div className="g2">
-        <div><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,color:"#dc2626",fontWeight:600}}>📸 Stories</span><span style={{fontSize:12,fontWeight:700}}>{storiesQt}/{instaMeta.storiesQt}{bateuStories&&" ✓"}</span></div><PB val={storiesQt} max={instaMeta.storiesQt} cor="#dc2626" pct={false}/></div>
-        <div><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,color:"#0e7490",fontWeight:600}}>🎬 Reels</span><span style={{fontSize:12,fontWeight:700}}>{reelsQt}/{instaMeta.reelsQt}{bateuReels&&" ✓"}</span></div><PB val={reelsQt} max={instaMeta.reelsQt} cor="#0e7490" pct={false}/></div>
-      </div>
-    </div>;
-  })}
 </div>}
 
 {/* ─── RELATÓRIO ─── */}
