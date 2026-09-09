@@ -512,6 +512,8 @@ export default function App(){
   const[editQtdOpen,setEditQtdOpen]=useState(false);const[lastImportIds,setLastImportIds]=useState(null);
   const[importHistory,setImportHistory]=useState([]);
   const[melhoresDiasOpen,setMelhoresDiasOpen]=useState(false);
+  const[editCom,setEditCom]=useState(false);
+  useEffect(()=>{setEditCom(false);},[barbSel]);
   const[meusMelhoresDiasOpen,setMeusMelhoresDiasOpen]=useState(false);
   const[fa,setFa]=useState({bId:1,svc:"Corte",val:40,dt:hj(),obs:"",qt:1,nota:5});
   const[flt,setFlt]=useState({bId:1,vb:"",dt:hj(),obs:""});
@@ -1684,24 +1686,24 @@ export default function App(){
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12,flexWrap:"wrap"}}>
         <div style={{position:"relative",flexShrink:0}}><BAv b={getB(bAtSel.id)} size={60} fs={24}/><label style={{position:"absolute",bottom:0,right:0,background:"#0e7490",color:"#fff",borderRadius:"50%",width:20,height:20,display:"flex",alignItems:"center",justifyContent:"center",cursor:fotoUp===bAtSel.id?"wait":"pointer",fontSize:10,border:"2px solid #fff"}}>{fotoUp===bAtSel.id?"⏳":"📷"}<input type="file" accept="image/*" disabled={fotoUp===bAtSel.id} style={{display:"none"}} onChange={e=>uploadFoto(bAtSel.id,e)}/></label></div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:16}}>{bAtSel.nome}</div><div style={{fontSize:12,color:"#aaa"}}>{bAtSel.ftot}pts · 🔥{bAtSel.streak}d{bAtSel.notaMedia!=null?" · ⭐"+bAtSel.notaMedia.toFixed(1)+" nota média":""}</div></div>
-        <div style={{textAlign:"right"}}><div style={{fontSize:22,fontWeight:700,color:bAtSel.cor}}>{R(bAtSel.totCBon)}</div></div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:22,fontWeight:700,color:bAtSel.cor}}>{R(bAtSel.totCBon)}</div>
+          {(()=>{
+            const proprio=getB(bAtSel.id)?.com!=null;
+            if(!editCom)return <button onClick={()=>setEditCom(true)} title="Alterar a comissão deste barbeiro"
+              style={{background:"none",border:"none",cursor:"pointer",padding:0,marginTop:2,fontSize:11,color:proprio?"#0e7490":"#98a2b3",fontWeight:proprio?700:500}}>
+              {bAtSel.txPct}% de comissão{proprio?"":" (geral)"} ⚙</button>;
+            return <div style={{display:"flex",alignItems:"center",gap:5,marginTop:4,justifyContent:"flex-end"}}>
+              <input type="number" min="0" max="100" step="0.5" autoFocus className="inp" style={{width:66,textAlign:"center",fontWeight:700,fontSize:13,padding:"4px 6px"}}
+                value={bAtSel.txPct}
+                onChange={e=>{const v=e.target.value===""?null:Math.max(0,Math.min(100,+e.target.value||0));setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:v}:x));}}/>
+              <span style={{fontSize:12,fontWeight:700,color:"#475467"}}>%</span>
+              {proprio&&<button className="bdel" title={"Voltar para a taxa geral ("+txB+"%)"} onClick={()=>setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:null}:x))}>↺</button>}
+              <button className="btn bsm" style={{padding:"4px 10px"}} onClick={()=>setEditCom(false)}>ok</button>
+            </div>;
+          })()}
+        </div>
       </div>
-      {(()=>{
-        const proprio=getB(bAtSel.id)?.com!=null;
-        return <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",padding:"10px 12px",marginBottom:12,background:proprio?"#ecfeff":"#fafbfc",border:"1px solid "+(proprio?"#a5f3fc":"var(--bd)"),borderRadius:10}}>
-          <span className="lbl" style={{margin:0}}>Comissão de {bAtSel.nome.split(" ")[0]}</span>
-          <div style={{display:"flex",alignItems:"center",gap:5}}>
-            <input type="number" min="0" max="100" step="0.5" className="inp" style={{width:82,textAlign:"center",fontWeight:700,fontSize:15,padding:"6px 8px"}}
-              value={bAtSel.txPct}
-              onChange={e=>{const v=e.target.value===""?null:Math.max(0,Math.min(100,+e.target.value||0));setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:v}:x));}}/>
-            <span style={{fontWeight:700,color:"#475467"}}>%</span>
-          </div>
-          {proprio
-            ? <button className="bg bsm" onClick={()=>setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:null}:x))}>Usar a taxa geral ({txB}%)</button>
-            : <span style={{fontSize:11,color:"#98a2b3"}}>usando a taxa geral da barbearia · altere para definir uma só para ele</span>}
-          <span style={{fontSize:11,color:"#98a2b3",marginLeft:"auto"}}>Vale para assinatura, avulso e extras. Produto segue a comissão de cada item.</span>
-        </div>;
-      })()}
       <div className="g3" style={{marginBottom:12}}>
         <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:"#d97706",fontWeight:700}}>💳 ASSINATURA</div><div style={{fontSize:18,fontWeight:800,color:"#d97706"}}>{R(bAtSel.cPote)}</div><div style={{fontSize:11,color:"#888"}}>{bAtSel.ftot}pts · {(bAtSel.pct*100).toFixed(1)}%</div></div>
         <div style={{background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>✂️ AVULSO+EXTRAS</div><div style={{fontSize:18,fontWeight:800,color:"#0e7490"}}>{R(bAtSel.cAv)}</div></div>
