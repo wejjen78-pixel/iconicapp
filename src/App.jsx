@@ -15,6 +15,55 @@ const LogoSVG=({height=48,invert=false})=><img src={invert?logoBranco:logoPreto}
 const uid=()=>Math.random().toString(36).substr(2,8);
 const R=v=>(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const hj=()=>new Date().toISOString().split("T")[0];
+const VAPID_PUBLIC_KEY=import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+function urlBase64ToUint8Array(base64String){
+  const padding="=".repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,"+").replace(/_/g,"/");
+  const raw=atob(base64);
+  return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+
+function PushOptIn({orgId,profileId,barbeiroId}){
+  const[status,setStatus]=useState("idle");
+  const[busy,setBusy]=useState(false);
+  useEffect(()=>{
+    if(!("serviceWorker"in navigator)||!("PushManager"in window)||!VAPID_PUBLIC_KEY){setStatus("unsupported");return;}
+    navigator.serviceWorker.ready.then(async reg=>{const sub=await reg.pushManager.getSubscription();setStatus(sub?"on":"idle");}).catch(()=>setStatus("unsupported"));
+  },[]);
+  const ativar=async()=>{
+    setBusy(true);
+    try{
+      const perm=await Notification.requestPermission();
+      if(perm!=="granted"){setStatus("denied");setBusy(false);return;}
+      const reg=await navigator.serviceWorker.ready;
+      const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(VAPID_PUBLIC_KEY)});
+      const json=sub.toJSON();
+      const{error}=await supabase.from("push_subscriptions").upsert({org_id:orgId,profile_id:profileId,barbeiro_id:barbeiroId?String(barbeiroId):null,endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth},{onConflict:"endpoint"});
+      if(error)throw error;
+      setStatus("on");
+    }catch(e){console.error(e);setStatus("error");}
+    setBusy(false);
+  };
+  const desativar=async()=>{
+    setBusy(true);
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      const sub=await reg.pushManager.getSubscription();
+      if(sub){await supabase.from("push_subscriptions").delete().eq("endpoint",sub.endpoint);await sub.unsubscribe();}
+      setStatus("idle");
+    }catch(e){console.error(e);}
+    setBusy(false);
+  };
+  if(status==="unsupported")return null;
+  return <div className="card" style={{borderLeft:"3px solid #7c3aed"}}>
+    <div className="st">🔔 Notificações no celular</div>
+    <div style={{fontSize:12,color:"#888",marginBottom:12}}>Receba um aviso no fim da tarde se o dia estiver muito abaixo da meta. No celular, adicione o Iconic App à tela inicial primeiro (menu do navegador → "Adicionar à tela de início") para as notificações funcionarem melhor.</div>
+    {status==="denied"&&<div style={{fontSize:12,color:"#dc2626",marginBottom:10}}>Permissão negada — ative notificações para este site nas configurações do navegador.</div>}
+    {status==="error"&&<div style={{fontSize:12,color:"#dc2626",marginBottom:10}}>Não foi possível ativar agora. Tente novamente.</div>}
+    {status==="on"?<button className="bg bsm" disabled={busy} onClick={desativar}>🔕 Desativar</button>:<button className="btn bsm" disabled={busy} onClick={ativar}>🔔 Ativar notificações</button>}
+  </div>;
+}
 
 // ── COR DINÂMICA (vermelho → verde conforme % da meta) ────────────────────────
 function interpolateColor(a,b,t){const r=Math.round(a[0]+(b[0]-a[0])*t);const g=Math.round(a[1]+(b[1]-a[1])*t);const bl=Math.round(a[2]+(b[2]-a[2])*t);return`rgb(${r},${g},${bl})`;}
@@ -1183,6 +1232,7 @@ export default function App(){
   const avListMeu=Object.values(grpAvMeu).sort((a,b2)=>b2.qt-a.qt);const totalAvMeu=avListMeu.reduce((a,g)=>a+g.qt,0);
   const evoChart=hist6.map(h=>({label:h.label,total:h.perBarber.find(x=>x.id===b.id)?.total||0}));
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+  <PushOptIn orgId={orgId} profileId={profile.id} barbeiroId={b.id}/>
   <div className="card" style={{borderLeft:"4px solid "+b.cor}}>
     <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:14,flexWrap:"wrap"}}>
       <BAv b={getB(b.id)} size={60} fs={22}/>
@@ -1604,6 +1654,7 @@ export default function App(){
 
 {/* ─── CONFIG ─── */}
 {aba==="cfg"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
+  <PushOptIn orgId={orgId} profileId={profile.id} barbeiroId={null}/>
   <div className="card" style={{borderLeft:"3px solid #7c3aed"}}><div className="st">🏢 Empresa</div><div className="g2"><div><span className="lbl">CNPJ Barbearia</span><input className="inp" value={cnpj} onChange={e=>setCnpj(e.target.value)}/></div><div><span className="lbl">Meta mensal</span><div style={{display:"flex",gap:6}}><input className="inp" type="number" value={metaI} onChange={e=>setMetaI(e.target.value)}/><button className="btn bsm" onClick={()=>setMeta(parseFloat(metaI)||meta)}>OK</button></div></div></div>
   </div>
   <div className="card" style={{borderLeft:"3px solid #7c3aed"}}>
