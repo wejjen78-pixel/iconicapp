@@ -1,7 +1,7 @@
 // Edge Function: galaxpay-sync
-// Busca transações pagas no Cel Cash (antigo GalaxPay) pela API v2 e lança
-// automaticamente no "pote" (Galaxy Pay) da organização, sem expor as
-// credenciais ao navegador.
+// Busca os pagamentos de planos (assinaturas) no Cel Cash (antigo GalaxPay)
+// pela API v2 e lança automaticamente no "pote" (Galaxy Pay) da organização,
+// sem expor as credenciais ao navegador.
 //
 // Body (todos opcionais):
 //   date        "AAAA-MM-DD"  — sincroniza só esse dia (padrão: hoje)
@@ -133,7 +133,17 @@ Deno.serve(async (req) => {
     const liquido = body.valor === "liquido";
 
     const token = await celcashToken(integ.galax_id, integ.galax_hash);
-    const transactions = await celcashTransacoesPagas(token, startDate, endDate);
+    const pagas = await celcashTransacoesPagas(token, startDate, endDate);
+
+    // O pote é só dos planos (assinaturas). Cobranças avulsas — ex.: sobrancelha
+    // que o cliente do clube pagou no cartão — ficam de fora.
+    const ehPlano = (t: any) => Number(t.subscriptionGalaxPayId || t.Subscription?.galaxPayId) > 0;
+    const transactions = pagas.filter(ehPlano);
+    const avulsas = pagas.filter((t) => !ehPlano(t));
+    const foraDoPlano = {
+      qtd: avulsas.length,
+      valor: Math.round(avulsas.reduce((s, t) => s + (Number(t.value) || 0), 0)) / 100,
+    };
 
     // "pote" vive em org_lancamentos (uma linha por lançamento). O extId evita
     // lançar a mesma transação duas vezes se sincronizar o mesmo dia de novo.
@@ -183,6 +193,7 @@ Deno.serve(async (req) => {
       taxas: Math.round(taxas * 100) / 100,
       liquido: Math.round((bruto - taxas) * 100) / 100,
       valorNovas: Math.round(newRows.reduce((s, r) => s + r.payload.val, 0) * 100) / 100,
+      foraDoPlano,
     };
 
     if (dryRun) return json({ success: true, dryRun: true, ...resumo });
