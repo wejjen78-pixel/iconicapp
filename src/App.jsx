@@ -29,8 +29,16 @@ const EXT_KEYS=["sobrancelha","depilação nasal","hidratação barba","hidrata�
 const SVC_COMP_SOB=["corte e sobrancelha","corte + barba e sobrancelha","corte e barba e sobrancelha"];
 const isExtraSob=svc=>{const k=normSvc(svc||"").toLowerCase();if(!k.includes("sobrancelha"))return false;if(SVC_COMP_SOB.some(c=>k.includes(c)))return false;if(k.includes("corte")||k.includes("barba"))return false;return true;};
 const isExtra=svc=>{const k=normSvc(svc||"").toLowerCase();if(k.includes("sobrancelha"))return isExtraSob(svc);return EXT_KEYS.some(e=>k.includes(e));};
-const matchProd=(svc,pl)=>{const k=normSvc(svc||"").toLowerCase();return pl.find(p=>k.includes(normSvc(p.nome).toLowerCase().substring(0,8)))||null;};
-const groupRows=(rows,pl)=>{const fichas=[],avulsos=[],extras=[],produtos=[];rows.forEach(r=>{const sn=normSvc(r.svc);if(isClub(sn))fichas.push({...r,svc:sn,fich:getFichasPorTipo(sn)});else if(isExtra(sn))extras.push({...r,svc:sn});else{const pd=matchProd(sn,pl);if(pd)produtos.push({...r,svc:sn,prod:pd.nome,comissao:pd.comissao});else avulsos.push({...r,svc:sn});}});return{fichas,avulsos,extras,produtos,total:rows.length};};
+// Produto do AppBarber ↔ cadastro do Iconic pelas palavras do nome (os nomes
+// diferem: "B.urb Shampoo" × "Shampoo B.urb", "Minowax" × "Minoxwax", "350 ML" × "350ML").
+const prodTokens=s=>new Set(normSvc(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"")
+  .replace(/red\s*nek/g,"rednek").replace(/minowax/g,"minoxwax").replace(/sugafree/g,"sugarfree").replace(/(\d+)\s*ml\b/g,"$1ml")
+  .replace(/[^a-z0-9% ]+/g," ").split(/\s+/).filter(Boolean));
+const matchProd=(svc,pl)=>{const a=prodTokens(svc);if(!a.size)return null;let best=null,bestSc=0;
+  for(const p of pl){const b=prodTokens(p.nome);let inter=0;a.forEach(t=>{if(b.has(t))inter++;});const sc=inter/(a.size+b.size-inter);if(sc>bestSc){bestSc=sc;best=p;}}
+  return bestSc>=0.5?best:null;};
+// r.ehProd: linha veio do relatório de produtos — nunca vira serviço avulso.
+const groupRows=(rows,pl)=>{const fichas=[],avulsos=[],extras=[],produtos=[];rows.forEach(r=>{const sn=normSvc(r.svc);if(r.ehProd){const pd=matchProd(sn,pl);produtos.push({...r,svc:sn,prod:pd?pd.nome:sn,comissao:pd?pd.comissao:0.20});}else if(isClub(sn))fichas.push({...r,svc:sn,fich:getFichasPorTipo(sn)});else if(isExtra(sn))extras.push({...r,svc:sn});else{const pd=matchProd(sn,pl);if(pd)produtos.push({...r,svc:sn,prod:pd.nome,comissao:pd.comissao});else avulsos.push({...r,svc:sn});}});return{fichas,avulsos,extras,produtos,total:rows.length};};
 const PDF_BARB_MAP_BASE=[["brendo",1],["ithalo",2],["luís vitor",3],["luis vitor",3],["luís",3],["welton",4],["pedro lucas",5],["pedro",5]];
 const findBarbByName=(n,barbs)=>{if(!n)return null;const nl=n.toLowerCase().trim();for(const[palavra,alvo]of PDF_BARB_MAP_BASE){if(nl.includes(palavra)){const b=barbs.find(x=>x.id===alvo);if(b)return b;}}return barbs.find(b=>b.nome.toLowerCase().split(" ").some(p=>p.length>3&&nl.includes(p)))||null;};
 function monthsBetween(de,ate){const arr=[];let m=de.m,a=de.a;let guard=0;while((a<ate.a||(a===ate.a&&m<=ate.m))&&guard<36){arr.push({m,a});m++;if(m>11){m=0;a++;}guard++;}return arr;}
@@ -1044,12 +1052,14 @@ export default function App(){
     const XLSX=window.XLSX;const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:""});onP&&onP(40);
     if(!rows.length)throw new Error("Planilha vazia.");
     const keys=Object.keys(rows[0]);const fc=c=>keys.find(k=>c.some(x=>k.toLowerCase().includes(x.toLowerCase())))||null;
-    const colProf=fc(["Profissional","Prof","Barbeiro"]);const colSvc=fc(["Serviço","Servico","Service","Pacote"]);const colValItem=fc(["Valor Item","ValorItem"]);const colVal=fc(["Valor","Value","Total"]);const colDt=fc(["Data","Date","Dt"]);
+    const colProf=fc(["Profissional","Prof","Barbeiro"]);const colValItem=fc(["Valor Item","ValorItem"]);const colVal=fc(["Valor","Value","Total"]);const colDt=fc(["Data","Date","Dt"]);
+    // Relatório "Profissional x Produtos": coluna Produto e Quantidade; o Valor é o total da linha.
+    const colProdR=fc(["Produto"]);const colSvc=fc(["Serviço","Servico","Service","Pacote"])||colProdR;const ehProd=!!colProdR&&colSvc===colProdR;const colQtd=ehProd?fc(["Quantidade","Qtd"]):null;
     if(!colProf||!colSvc||!colDt)throw new Error("Colunas não reconhecidas.");
     const pv=v=>{if(!v&&v!==0)return 0;return parseFloat(String(v).replace(/[R$\s]/g,"").replace(",","."))||0;};
     const pd=v=>{const s=String(v);const m=s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);if(m){let[,d2,mo,y]=m;if(y.length===2)y="20"+y;return y+"-"+mo.padStart(2,"0")+"-"+d2.padStart(2,"0");}if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);if(!isNaN(v)){const dd=new Date(Math.round((+v-25569)*86400*1000));return dd.toISOString().slice(0,10);}return null;};
     const result=[];
-    for(const r of rows){const prof=String(r[colProf]||"").trim();const svc=normSvc(String(r[colSvc]||"").trim());const dt=pd(r[colDt]);if(!prof||!svc||!dt)continue;const val=colValItem?pv(r[colValItem]):pv(r[colVal]);result.push({id:uid(),prof,svc,val,dt});}
+    for(const r of rows){const prof=String(r[colProf]||"").trim();const svc=normSvc(String(r[colSvc]||"").trim());const dt=pd(r[colDt]);if(!prof||!svc||!dt)continue;const val=colValItem?pv(r[colValItem]):pv(r[colVal]);if(ehProd){const qt=Math.max(1,Math.round(pv(r[colQtd])||1));result.push({id:uid(),prof,svc,val:Math.round(val/qt*100)/100,qt,dt,ehProd:true});}else result.push({id:uid(),prof,svc,val,dt});}
     onP&&onP(90);if(!result.length)throw new Error("Nenhum registro válido.");return result;
   }
 
@@ -1076,7 +1086,7 @@ export default function App(){
     const newFichas=expand(src.fichas,r=>({id:uid(),bId:r.bId||1,svc:r.svc,dt:r.dt,qt:1,fich:getFichasPorTipo(r.svc),src:"pdf"}));
     const newAvulsos=expand(src.avulsos,r=>({id:uid(),bId:r.bId||1,svc:r.svc,val:r.val,dt:r.dt,qt:1,src:"pdf"}));
     const newExtras=expand(src.extras,r=>({id:uid(),bId:r.bId||1,svc:r.svc,val:r.val,dt:r.dt,assi:false,src:"pdf"}));
-    const newProdutos=expand(src.produtos,r=>({id:uid(),bId:r.bId||1,prod:r.prod||r.svc,val:r.val,qt:1,dt:r.dt,comissao:r.comissao||0.20,src:"pdf"}));
+    const newProdutos=expand(src.produtos,r=>({id:uid(),bId:r.bId||1,prod:r.prod||r.svc,val:r.val,qt:r.qt||1,dt:r.dt,comissao:r.comissao||0.20,src:"pdf"}));
     if(newFichas.length)setSvcs(s=>[...newFichas,...s]);
     if(newAvulsos.length)setAvul(s=>[...newAvulsos,...s]);
     if(newExtras.length)setExtAv(s=>[...newExtras,...s]);

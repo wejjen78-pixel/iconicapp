@@ -104,12 +104,19 @@ async function sessaoIconic(page) {
   });
 }
 
+// Relatórios do AppBarber importados no Iconic. Cada um tem seus tipos de
+// lançamento, para a checagem de "dia já importado" ser independente.
+const RELATORIOS = [
+  { nome: "Serviços", tipo: "9", btn: "#btnDetalhesProSer", tabela: "tabelaRanking5", tipos: "svcs,avul,extAv" },
+  { nome: "Produtos", tipo: "11", btn: "#btnDetalhesProPro", tabela: "tabelaRanking6", tipos: "prod" },
+];
+
 // Quantos lançamentos importados de Excel (src "pdf") já existem no dia.
-async function importadosNoDia(page, apikey) {
+async function importadosNoDia(page, apikey, tipos) {
   const token = await sessaoIconic(page);
   const url =
     `${SUPABASE_URL}/rest/v1/org_lancamentos?select=id&dt=eq.${DATA}` +
-    `&tipo=in.(svcs,avul,extAv,prod)&payload->>src=eq.pdf&limit=1`;
+    `&tipo=in.(${tipos})&payload->>src=eq.pdf&limit=1`;
   const r = await page.evaluate(
     async ({ url, token, apikey }) => {
       const res = await fetch(url, { headers: { apikey, Authorization: "Bearer " + token } });
@@ -128,7 +135,7 @@ async function abrirAba(page, nome) {
 
 // ── Parte A: AppBarber → Iconic ────────────────────────────────────────────
 
-async function exportarAppBarber(context) {
+async function entrarAppBarber(context) {
   const page = await context.newPage();
   await page.goto(`${APPBARBER_URL}/login.php`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const rejeitar = page.getByText("Rejeitar não essenciais");
@@ -149,8 +156,12 @@ async function exportarAppBarber(context) {
     throw new Error("AppBarber não completou o login (possível bloqueio do reCAPTCHA ou senha errada). Veja appbarber-login.png.");
   }
   log("AppBarber: login ok");
+  return page;
+}
 
+async function exportarRelatorio(page, rel) {
   await page.goto(`${APPBARBER_URL}/index.php#/relGerencialRankings`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 }); // tela limpa a cada relatório
   await page.locator("#DataIni").waitFor({ timeout: 60_000 });
   // A tela preenche datas padrão quando termina de carregar; espera isso
   // acontecer para não ter as nossas sobrescritas.
@@ -160,108 +171,115 @@ async function exportarAppBarber(context) {
   // Datas e tipo definidos pelo jQuery da página (a tela lê $("#DataIni").val()):
   // clicar nos campos abre um calendário que fica por cima do campo seguinte.
   const definir = () =>
-    page.evaluate((dataBr) => {
-      const $ = window.jQuery;
-      $(".date.divDataIni").datepicker("update", dataBr);
-      $(".date.divDataFim").datepicker("update", dataBr);
-      $("#DataIni").val(dataBr);
-      $("#DataFim").val(dataBr);
-      $(".datepicker").hide();
-      $("#ranTipo").val("9").trigger("change"); // Profissional x Serviços(Quantidade)
-      return { di: $("#DataIni").val(), df: $("#DataFim").val(), tipo: $("#ranTipo").val() };
-    }, DATA_BR);
+    page.evaluate(
+      ({ dataBr, tipo }) => {
+        const $ = window.jQuery;
+        $(".date.divDataIni").datepicker("update", dataBr);
+        $(".date.divDataFim").datepicker("update", dataBr);
+        $("#DataIni").val(dataBr);
+        $("#DataFim").val(dataBr);
+        $(".datepicker").hide();
+        $("#ranTipo").val(tipo).trigger("change");
+        return { di: $("#DataIni").val(), df: $("#DataFim").val(), tipo: $("#ranTipo").val() };
+      },
+      { dataBr: DATA_BR, tipo: rel.tipo }
+    );
   let f = await definir();
   await page.waitForTimeout(1000);
   f = await definir(); // de novo, caso algo tenha mudado os campos no meio
-  if (f.di !== DATA_BR || f.df !== DATA_BR || f.tipo !== "9") {
+  if (f.di !== DATA_BR || f.df !== DATA_BR || f.tipo !== rel.tipo) {
     await print(page, "appbarber-filtros");
-    throw new Error(`não consegui definir os filtros do relatório (datas ${f.di} a ${f.df}, tipo ${f.tipo}).`);
+    throw new Error(`não consegui definir os filtros do relatório de ${rel.nome} (datas ${f.di} a ${f.df}, tipo ${f.tipo}).`);
   }
   const busca = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
   await page.click("#btnPesquisarRanking");
   const rb = await busca;
-  log(`AppBarber: busca ${rb ? "HTTP " + rb.status() : "não respondeu"}`);
+  log(`AppBarber ${rel.nome}: busca ${rb ? "HTTP " + rb.status() : "não respondeu"}`);
 
-  const detalhes = page.locator("#btnDetalhesProSer");
+  // Sem vendas no dia, o AppBarber não mostra o botão Detalhes.
+  const detalhes = page.locator(rel.btn);
   const temDados = await detalhes.waitFor({ state: "visible", timeout: 30_000 }).then(() => true, () => false);
-  if (!temDados) {
-    await print(page, "appbarber-relatorio");
-    const f2 = await page.evaluate(() => [window.jQuery("#DataIni").val(), window.jQuery("#DataFim").val(), window.jQuery("#ranTipo").val()]);
-    registrar(`AppBarber: relatório sem botão Detalhes (filtros na tela: ${f2.join(" / ")}; busca ${rb ? "HTTP " + rb.status() : "sem resposta"}).`);
-    return { arquivo: null, total: 0 };
-  }
+  if (!temDados) return { arquivo: null, total: 0 };
+
   // A tabela de detalhes carrega por AJAX depois de abrir; espera a resposta.
   const detResp = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
   await detalhes.click();
   await detResp;
-  const info = page.locator("#tabelaRanking5_info");
+  const info = page.locator(`#${rel.tabela}_info`);
   await info.waitFor({ timeout: 30_000 });
   await page.waitForTimeout(2000);
   const textoInfo = await info.innerText();
   const total = Number(textoInfo.match(/de\s+(\d+)\s+registros/)?.[1] || 0);
-  if (!total) {
-    await print(page, "appbarber-detalhes");
-    registrar(`AppBarber: tabela de detalhes vazia ("${textoInfo}").`);
-    return { arquivo: null, total: 0 };
-  }
+  if (!total) return { arquivo: null, total: 0 };
 
   const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 60_000 }),
-    page.locator('a.buttons-excel[aria-controls="tabelaRanking5"]').click(),
+    page.locator(`a.buttons-excel[aria-controls="${rel.tabela}"]`).click(),
   ]);
-  const arquivo = path.join(SAIDA, `appbarber-${DIA}${MES}${ANO}.xlsx`);
+  const arquivo = path.join(SAIDA, `appbarber-${rel.nome.toLowerCase()}-${DIA}${MES}${ANO}.xlsx`);
   await download.saveAs(arquivo);
-  log(`AppBarber: Excel baixado (${total} registros)`);
-  await page.close();
+  log(`AppBarber ${rel.nome}: Excel baixado (${total} registros)`);
   return { arquivo, total };
 }
 
-async function importarNoIconic(page, arquivo, total) {
+async function importarNoIconic(page, arquivo, total, rel) {
   await abrirAba(page, "Importar Excel");
+  const outro = page.getByRole("button", { name: "Importar outro" });
+  if (await outro.isVisible().catch(() => false)) await outro.click();
   await page.locator('input[type="file"][accept*=".xlsx"]').setInputFiles(arquivo);
   await page.getByRole("button", { name: "Analisar" }).click();
-  const lidos = page.getByText(/\d+ registros lidos/).last();
+  // O resultado da análise fica no card ("✅ N registros lidos"); o aviso flutuante é ignorado.
+  const lidos = page.getByText(/^✅ \d+ registros lidos/).last();
   await lidos.waitFor({ timeout: 60_000 });
   const n = Number((await lidos.innerText()).match(/(\d+) registros lidos/)[1]);
-  await print(page, "iconic-analise");
-  if (n !== total) throw new Error(`Iconic leu ${n} registros, mas o AppBarber tem ${total}. Nada aplicado.`);
+  await print(page, `iconic-analise-${rel.nome.toLowerCase()}`);
+  if (n !== total) throw new Error(`${rel.nome}: Iconic leu ${n} registros, mas o AppBarber tem ${total}. Nada aplicado.`);
 
   if (PREVIA) {
-    registrar(`AppBarber ${DATA_BR}: ${total} registros (PRÉVIA — não aplicado).`);
+    registrar(`AppBarber ${rel.nome} ${DATA_BR}: ${total} registros (PRÉVIA — não aplicado).`);
     return;
   }
   await page.getByRole("button", { name: /Aplicar todos/ }).click();
-  await page.getByText(/registros aplicados!/).first().waitFor({ timeout: 60_000 });
-  await print(page, "iconic-aplicado");
+  await page.getByText(new RegExp(`${n} registros aplicados!`)).first().waitFor({ timeout: 60_000 });
+  await print(page, `iconic-aplicado-${rel.nome.toLowerCase()}`);
 }
 
 // O app salva sozinho ~1s depois de aplicar; espera os lançamentos aparecerem no banco.
-async function esperarSalvo(iconic) {
+async function esperarSalvo(iconic, rel) {
   for (let i = 0; i < 20; i++) {
     await iconic.page.waitForTimeout(3000);
-    if ((await importadosNoDia(iconic.page, iconic.getApikey())) > 0) return;
+    if ((await importadosNoDia(iconic.page, iconic.getApikey(), rel.tipos)) > 0) return;
   }
-  throw new Error("Importação aplicada, mas os lançamentos não apareceram salvos no banco em 60 s.");
+  throw new Error(`${rel.nome}: importação aplicada, mas os lançamentos não apareceram salvos no banco em 60 s.`);
 }
 
 async function parteAppBarber(context, iconic) {
-  const ja = await importadosNoDia(iconic.page, iconic.getApikey());
-  if (ja > 0 && !PREVIA) {
-    registrar(`AppBarber ${DATA_BR}: dia já tem lançamentos importados — pulado.`);
-    return;
-  }
-  // Na prévia segue até a análise mesmo com o dia já importado (nada é aplicado),
-  // para testar o login e a exportação.
-  if (ja > 0) registrar(`AppBarber ${DATA_BR}: dia já importado — prévia segue só para testar.`);
-  const { arquivo, total } = await exportarAppBarber(context);
-  if (!arquivo) {
-    registrar(`AppBarber ${DATA_BR}: sem atendimentos no relatório.`);
-    return;
-  }
-  await importarNoIconic(iconic.page, arquivo, total);
-  if (!PREVIA) {
-    await esperarSalvo(iconic);
-    registrar(`AppBarber ${DATA_BR}: ${total} registros importados e salvos no Iconic.`);
+  let appbarber = null;
+  for (const rel of RELATORIOS) {
+    try {
+      const ja = await importadosNoDia(iconic.page, iconic.getApikey(), rel.tipos);
+      if (ja > 0 && !PREVIA) {
+        registrar(`AppBarber ${rel.nome} ${DATA_BR}: dia já tem lançamentos importados — pulado.`);
+        continue;
+      }
+      // Na prévia segue até a análise mesmo com o dia já importado (nada é aplicado),
+      // para testar o login e a exportação.
+      if (ja > 0) registrar(`AppBarber ${rel.nome} ${DATA_BR}: dia já importado — prévia segue só para testar.`);
+      appbarber ||= await entrarAppBarber(context);
+      const { arquivo, total } = await exportarRelatorio(appbarber, rel);
+      if (!arquivo) {
+        registrar(`AppBarber ${rel.nome} ${DATA_BR}: nada no relatório do dia.`);
+        continue;
+      }
+      await importarNoIconic(iconic.page, arquivo, total, rel);
+      if (!PREVIA) {
+        await esperarSalvo(iconic, rel);
+        registrar(`AppBarber ${rel.nome} ${DATA_BR}: ${total} registros importados e salvos no Iconic.`);
+      }
+    } catch (e) {
+      if (appbarber) await print(appbarber, `erro-appbarber-${rel.nome.toLowerCase()}`);
+      falhas.push(`AppBarber ${rel.nome}: ${e.message}`);
+    }
   }
 }
 
@@ -315,7 +333,7 @@ if (iconic) {
     try { await parteCelCash(iconic); } catch (e) { falhas.push(e.message); await print(iconic.page, "erro-celcash"); }
   }
   if (PARTES.includes("appbarber")) {
-    try { await parteAppBarber(context, iconic); } catch (e) { falhas.push("AppBarber: " + e.message); await print(iconic.page, "erro-appbarber-iconic"); }
+    await parteAppBarber(context, iconic);
   }
 }
 
