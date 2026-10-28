@@ -51,8 +51,10 @@ function registrar(linha) {
 
 async function print(page, nome) {
   try {
-    await page.screenshot({ path: path.join(SAIDA, nome + ".png"), fullPage: true });
-  } catch {}
+    await page.screenshot({ path: path.join(SAIDA, nome + ".png"), timeout: 15_000 });
+  } catch (e) {
+    log(`print ${nome} falhou: ${e.message}`);
+  }
 }
 
 // ── Iconic ─────────────────────────────────────────────────────────────────
@@ -150,28 +152,42 @@ async function exportarAppBarber(context) {
 
   await page.goto(`${APPBARBER_URL}/index.php#/relGerencialRankings`, { waitUntil: "networkidle" });
   await page.locator("#DataIni").waitFor({ timeout: 60_000 });
-  // Datas e tipo definidos pelo jQuery da página: clicar nos campos abre um
-  // calendário que fica por cima do campo seguinte.
-  await page.evaluate((dataBr) => {
-    const $ = window.jQuery;
-    for (const id of ["#DataIni", "#DataFim"]) {
-      const el = $(id);
-      if (el.data("datepicker")) el.datepicker("update", dataBr);
-      el.val(dataBr).trigger("change");
-    }
-    $(".datepicker").hide();
-    const s = document.getElementById("ranTipo");
-    s.value = "9"; // Profissional x Serviços(Quantidade)
-    $(s).val("9").trigger("change");
-  }, DATA_BR);
-  const datas = await page.evaluate(() => [document.getElementById("DataIni").value, document.getElementById("DataFim").value]);
-  if (datas[0] !== DATA_BR || datas[1] !== DATA_BR) throw new Error(`não consegui definir as datas do relatório (ficou ${datas.join(" a ")}).`);
+  // A tela preenche datas padrão quando termina de carregar; espera isso
+  // acontecer para não ter as nossas sobrescritas.
+  await page.waitForFunction(() => document.getElementById("DataFim")?.value, null, { timeout: 30_000 });
+  await page.waitForTimeout(2000);
+
+  // Datas e tipo definidos pelo jQuery da página (a tela lê $("#DataIni").val()):
+  // clicar nos campos abre um calendário que fica por cima do campo seguinte.
+  const definir = () =>
+    page.evaluate((dataBr) => {
+      const $ = window.jQuery;
+      $(".date.divDataIni").datepicker("update", dataBr);
+      $(".date.divDataFim").datepicker("update", dataBr);
+      $("#DataIni").val(dataBr);
+      $("#DataFim").val(dataBr);
+      $(".datepicker").hide();
+      $("#ranTipo").val("9").trigger("change"); // Profissional x Serviços(Quantidade)
+      return { di: $("#DataIni").val(), df: $("#DataFim").val(), tipo: $("#ranTipo").val() };
+    }, DATA_BR);
+  let f = await definir();
+  await page.waitForTimeout(1000);
+  f = await definir(); // de novo, caso algo tenha mudado os campos no meio
+  if (f.di !== DATA_BR || f.df !== DATA_BR || f.tipo !== "9") {
+    await print(page, "appbarber-filtros");
+    throw new Error(`não consegui definir os filtros do relatório (datas ${f.di} a ${f.df}, tipo ${f.tipo}).`);
+  }
+  const busca = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
   await page.click("#btnPesquisarRanking");
+  const rb = await busca;
+  log(`AppBarber: busca ${rb ? "HTTP " + rb.status() : "não respondeu"}`);
 
   const detalhes = page.locator("#btnDetalhesProSer");
   const temDados = await detalhes.waitFor({ state: "visible", timeout: 30_000 }).then(() => true, () => false);
   if (!temDados) {
     await print(page, "appbarber-relatorio");
+    const f2 = await page.evaluate(() => [window.jQuery("#DataIni").val(), window.jQuery("#DataFim").val(), window.jQuery("#ranTipo").val()]);
+    registrar(`AppBarber: relatório sem botão Detalhes (filtros na tela: ${f2.join(" / ")}; busca ${rb ? "HTTP " + rb.status() : "sem resposta"}).`);
     return { arquivo: null, total: 0 };
   }
   await detalhes.click();
