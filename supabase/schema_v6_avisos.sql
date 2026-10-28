@@ -1,4 +1,5 @@
 -- ICONIC APP — avisos (sininho) e notificações no celular (v6) — rodar no SQL Editor
+-- Pode rodar mais de uma vez: recria as regras (policies) sem erro.
 -- Pré-requisito: schema.sql e schema_v2_saas.sql
 --
 -- avisos: mini relatório diário de cada barbeiro (e o resumo da equipe para o
@@ -29,13 +30,16 @@ language sql stable security definer set search_path = public as $$
 $$;
 
 -- Dono vê os avisos dele (barbeiro_id null) e os da equipe; barbeiro só os próprios.
+drop policy if exists "avisos_select" on avisos;
 create policy "avisos_select" on avisos for select using (
   org_id = auth_org_id() and (auth_role() = 'dono' or barbeiro_id = auth_barbeiro_id())
 );
+drop policy if exists "avisos_insert" on avisos;
 create policy "avisos_insert" on avisos for insert with check (
   org_id = auth_org_id() and auth_role() = 'dono'
 );
 -- Marcar como lido: cada um só nos avisos que pode ver.
+drop policy if exists "avisos_update" on avisos;
 create policy "avisos_update" on avisos for update using (
   org_id = auth_org_id() and (auth_role() = 'dono' or barbeiro_id = auth_barbeiro_id())
 );
@@ -68,12 +72,16 @@ drop trigger if exists push_subs_preenche on push_subs;
 create trigger push_subs_preenche before insert or update on push_subs
   for each row execute function push_subs_preenche();
 
+drop policy if exists "push_subs_insert" on push_subs;
 create policy "push_subs_insert" on push_subs for insert with check (user_id = auth.uid());
+drop policy if exists "push_subs_update" on push_subs;
 create policy "push_subs_update" on push_subs for update using (user_id = auth.uid());
 -- O robô entra como dono para enviar: dono lê todas as inscrições da barbearia.
+drop policy if exists "push_subs_select" on push_subs;
 create policy "push_subs_select" on push_subs for select using (
   user_id = auth.uid() or (org_id = auth_org_id() and auth_role() = 'dono')
 );
+drop policy if exists "push_subs_delete" on push_subs;
 create policy "push_subs_delete" on push_subs for delete using (
   user_id = auth.uid() or (org_id = auth_org_id() and auth_role() = 'dono')
 );
