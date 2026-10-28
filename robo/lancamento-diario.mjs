@@ -190,11 +190,20 @@ async function exportarAppBarber(context) {
     registrar(`AppBarber: relatório sem botão Detalhes (filtros na tela: ${f2.join(" / ")}; busca ${rb ? "HTTP " + rb.status() : "sem resposta"}).`);
     return { arquivo: null, total: 0 };
   }
+  // A tabela de detalhes carrega por AJAX depois de abrir; espera a resposta.
+  const detResp = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
   await detalhes.click();
+  await detResp;
   const info = page.locator("#tabelaRanking5_info");
   await info.waitFor({ timeout: 30_000 });
-  const total = Number((await info.innerText()).match(/de\s+(\d+)\s+registros/)?.[1] || 0);
-  if (!total) return { arquivo: null, total: 0 };
+  await page.waitForTimeout(2000);
+  const textoInfo = await info.innerText();
+  const total = Number(textoInfo.match(/de\s+(\d+)\s+registros/)?.[1] || 0);
+  if (!total) {
+    await print(page, "appbarber-detalhes");
+    registrar(`AppBarber: tabela de detalhes vazia ("${textoInfo}").`);
+    return { arquivo: null, total: 0 };
+  }
 
   const [download] = await Promise.all([
     page.waitForEvent("download", { timeout: 60_000 }),
