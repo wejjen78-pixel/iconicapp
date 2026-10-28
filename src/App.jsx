@@ -546,7 +546,7 @@ export default function App(){
   const[metaHist,setMetaHist]=useState([]);
   const[horasTrab,setHorasTrab]=useState({});
   const[auditLog,setAuditLog]=useState([]);
-  const[simExtra,setSimExtra]=useState(0);const[simProd,setSimProd]=useState(0);
+  const[simExtra,setSimExtra]=useState(0);const[simProd,setSimProd]=useState(0);const[perfDia,setPerfDia]=useState("");
   const[instaMeta,setInstaMeta]=useState({storiesQt:20,storiesBon:50,reelsQt:10,reelsBon:50});
   const[instaMetaTmp,setInstaMetaTmp]=useState({storiesQt:20,storiesBon:50,reelsQt:10,reelsBon:50});
   const[instaEditMeta,setInstaEditMeta]=useState(false);
@@ -608,8 +608,8 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
-  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["intel","Inteligência"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
   const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,taxas:ICO.fech,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump}[k]||ICO.dash);
@@ -1501,13 +1501,19 @@ export default function App(){
 {/* ─── CENTRO DE PERFORMANCE ─── */}
 {aba==="perf"&&(()=>{
   const b=isBarb?meuB:calcB.find(x=>x.id===barbSel)||calcB[0];if(!b)return null;
-  const _isCurMes=now.getMonth()===mes&&now.getFullYear()===ano;
-  const hjFatD=_isCurMes?hjS:ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(dAt).padStart(2,"0");
+  // Meta do dia pelo dia que JÁ foi lançado: o robô lança o dia anterior às 6:00,
+  // então "hoje" fica sempre zerado. Usa o último dia com lançamento no mês
+  // (até hoje) ou o dia escolhido no seletor.
+  const mesPref=ano+"-"+String(mes+1).padStart(2,"0");const hojeLocal=new Date().toLocaleDateString("en-CA");
+  const diasLanc=[...new Set([...svcs,...avul,...extAv,...prod].map(x=>x.dt).filter(d=>d&&d.startsWith(mesPref)&&d<=hojeLocal))].sort();
+  const hjFatD=perfDia&&perfDia.startsWith(mesPref)?perfDia:(diasLanc[diasLanc.length-1]||mesPref+"-01");
   const hjFat=b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>a+p.val*p.qt,0)+b.lotB.filter(l=>l.dt===hjFatD).reduce((a,l)=>a+l.vb,0)+(poM.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)*b.pct*(b.txPct/100));
   const metaDiaB=b.metaB/dim;const faltaHj=Math.max(0,metaDiaB-hjFat);const pctHj=metaDiaB>0?Math.min(100,(hjFat/metaDiaB)*100):0;
   const ritmoFech=dAt>0?(b.totC/dAt)*dim:0;const pctMes=b.metaB>0?Math.min(100,(b.totC/b.metaB)*100):0;
   const diasRestantes=Math.max(1,dim-dAt);const faltaMes=Math.max(0,b.metaB-b.totC);const diasParaMeta=b.totC>0&&dAt>0?Math.ceil(b.metaB/(b.totC/dAt))-dAt:diasRestantes;
-  const atendHj=b.avB.filter(s=>s.dt===hjS).reduce((a,s)=>a+(s.qt||1),0)+b.ss2.filter(s=>s.dt===hjS).length+b.exB.filter(e=>e.dt===hjS).length;
+  // Atendimentos do dia = fichas do clube + avulsos (extra não é um atendimento a mais).
+  const atendHj=b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+(s.qt||1),0)+b.ss2.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+(s.qt||1),0);
+  const vendasHj=b.exB.filter(e=>e.dt===hjFatD).length+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>a+(p.qt||1),0);
   const totalAtend=b.avB.reduce((a,s)=>a+(s.qt||1),0)+b.lotB.length+b.ss2.length;
   const totalExtras=b.exB.length;const convExtra=totalAtend>0?Math.min(100,(totalExtras/totalAtend)*100):0;
   const sobQt=b.exB.filter(e=>isExtraSob(e.svc)).length;const hidQt=b.exB.filter(e=>e.svc.toLowerCase().includes("hidrat")).length;const selQt=b.exB.filter(e=>e.svc.toLowerCase().includes("selagem")).length;
@@ -1518,37 +1524,38 @@ export default function App(){
   const ext14=b.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d14&&d<d7;}).length;
   const quedaExtra=ext14>0?((ext7-ext14)/ext14)*100:0;
   const ratioAssin=tFich>0?(b.ftot/tFich)*100:0;const ratioProd=b.qProd>0?b.qProd:0;const ratioExt=b.qExt>0?b.qExt:0;
-  const perfil=ratioAssin>40?"Especialista em Assinaturas":ratioProd>10?"Especialista em Produtos":"Especialista em Extras";
-  const perfilDesc=ratioAssin>40?"Você converte "+ratioAssin.toFixed(0)+"% mais planos que a média.":ratioProd>10?"Você está entre os top vendedores de produtos.":"Você é fera nos serviços extras.";
+  // Perfil comparado com a equipe, com números reais. Só é "destaque" quem está
+  // acima da média da equipe; sem venda de extra/produto não há especialidade.
+  const atendDe=x=>x.avB.reduce((a,s)=>a+(s.qt||1),0)+x.lotB.length+x.ss2.length;
+  const atendEq=calcB.reduce((a,x)=>a+atendDe(x),0);
+  const taxaExtEq=atendEq>0?calcB.reduce((a,x)=>a+x.qExt,0)/atendEq*100:0;
+  const taxaProdEq=atendEq>0?calcB.reduce((a,x)=>a+x.qProd,0)/atendEq*100:0;
+  const taxaExtB=totalAtend>0?b.qExt/totalAtend*100:0;const taxaProdB=totalAtend>0?b.qProd/totalAtend*100:0;
+  const partePlanoMedia=calcB.length>0?100/calcB.length:0;
+  const rels=[
+    {k:"extras",rel:taxaExtEq>0?taxaExtB/taxaExtEq:0,desc:`Vende extra em ${taxaExtB.toFixed(0)}% dos atendimentos (equipe: ${taxaExtEq.toFixed(0)}%).`},
+    {k:"produtos",rel:taxaProdEq>0?taxaProdB/taxaProdEq:0,desc:`Vende produto em ${taxaProdB.toFixed(0)}% dos atendimentos (equipe: ${taxaProdEq.toFixed(0)}%).`},
+    {k:"assinaturas",rel:partePlanoMedia>0?ratioAssin/partePlanoMedia:0,desc:`Faz ${ratioAssin.toFixed(0)}% das fichas do clube (média por barbeiro: ${partePlanoMedia.toFixed(0)}%).`},
+  ].sort((x,y)=>y.rel-x.rel);
+  const semVendaMes=b.qExt+b.qProd===0;
+  const perfil=semVendaMes?"Sem vendas no mês":rels[0].rel>=1.1?"Destaque em "+rels[0].k:"Abaixo da média em vendas";
+  const perfilDesc=semVendaMes?`Nenhum extra ou produto vendido em ${totalAtend} atendimentos — cada cliente é uma oportunidade.`:rels[0].rel>=1.1?rels[0].desc:`${taxaExtB.toFixed(0)}% dos atendimentos com extra (equipe: ${taxaExtEq.toFixed(0)}%) e ${taxaProdB.toFixed(0)}% com produto (equipe: ${taxaProdEq.toFixed(0)}%).`;
   const conquistas=[];if(sobQt>=40)conquistas.push({icon:"👑",nome:"Mestre da Sobrancelha",desc:"40+ sobrancelhas no mês"});if(pctMes>=120)conquistas.push({icon:"🚀",nome:"Meta Explodida",desc:"120%+ da meta mensal"});if(b.streak>=7)conquistas.push({icon:"🔥",nome:"Sequência de Fogo",desc:b.streak+" dias seguidos"});if(b.qProd>=15)conquistas.push({icon:"🛍️",nome:"Vendedor Top",desc:"15+ produtos vendidos"});
-  const rkExt=[...calcB].sort((a,c)=>c.qExt-a.qExt);const rkProd=[...calcB].sort((a,c)=>c.qProd-a.qProd);const rkAssin=[...calcB].sort((a,c)=>c.assinB-c.assinB);const rkAtend=[...calcB].sort((a,c)=>c.atend-a.atend);
-  const posExt=rkExt.findIndex(x=>x.id===b.id)+1;const posProd=rkProd.findIndex(x=>x.id===b.id)+1;const posAssin=rkAssin.findIndex(x=>x.id===b.id)+1;const posAtend=rkAtend.findIndex(x=>x.id===b.id)+1;
   const cacaBon=b.bonDet.filter(m=>!m.bateu&&m.faltam<=5);
   const bonPotencial=cacaBon.reduce((a,m)=>a+m.bon,0);
   const clientesSemExtra=Math.max(0,totalAtend-totalExtras);
   const potPerdido=clientesSemExtra*(ticketB*0.3||20);
   const velPct=Math.min(150,b.metaB>0?(ritmoFech/b.metaB)*100:0);
   const velColor=velPct>=100?"#059669":velPct>=80?"#d97706":"#dc2626";
-  const txL=b.txPct/100;
-  const comHoje=(b.avB.filter(s=>s.dt===hjFatD).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0))*txL+b.prB.filter(p=>p.dt===hjFatD).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjFatD).reduce((a,e)=>a+e.val,0)*b.pct*txL);
-  const semAvExt=b.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+b.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
-  const semProd=b.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
-  const semPote=poM.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0)*b.pct*txL;
-  const comSemana=semAvExt*txL+semProd+semPote;
 
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-    {/* COMISSÃO DIA / SEMANA */}
-    <div className="card" style={{borderLeft:"4px solid #059669"}}>
-      <div style={{fontWeight:700,fontSize:15,marginBottom:10}}>💰 Comissão do Dia e da Semana</div>
-      <div className="g2">
-        <div style={{background:"#f0fdf4",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>COMISSÃO HOJE</div><div style={{fontSize:22,fontWeight:800,color:"#059669"}}>{R(comHoje)}</div></div>
-        <div style={{background:"#ecfeff",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>COMISSÃO SEMANA</div><div style={{fontSize:22,fontWeight:800,color:"#0e7490"}}>{R(comSemana)}</div></div>
-      </div>
-    </div>
-
     {/* META DO DIA */}
     <div className="card" style={{borderLeft:"4px solid #0e7490"}}>
-      <div style={{fontWeight:700,fontSize:15,marginBottom:12}}>📅 Meta do Dia</div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:12}}>
+        <div><div style={{fontWeight:700,fontSize:15}}>📅 Meta do Dia · {hjFatD.split("-").reverse().slice(0,2).join("/")}</div>
+          <div style={{fontSize:11,color:"#888"}}>{!perfDia&&hjFatD===diasLanc[diasLanc.length-1]?"Último dia lançado (os lançamentos entram às 6:00 do dia seguinte)":"Dia escolhido"}</div></div>
+        <input type="date" className="inp" style={{width:150}} value={hjFatD} min={mesPref+"-01"} max={hojeLocal} onChange={e=>setPerfDia(e.target.value)}/>
+      </div>
       <div className="g3" style={{marginBottom:10}}>
         <div style={{background:"#ecfeff",borderRadius:8,padding:"10px 12px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>META</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(metaDiaB)}</div></div>
         <div style={{background:hjFat>=metaDiaB?"#f0fdf4":"#fffbeb",borderRadius:8,padding:"10px 12px",textAlign:"center"}}><div style={{fontSize:10,color:hjFat>=metaDiaB?"#059669":"#d97706",fontWeight:700}}>REALIZADO</div><div style={{fontSize:20,fontWeight:800,color:hjFat>=metaDiaB?"#059669":"#d97706"}}>{R(hjFat)}</div></div>
@@ -1556,7 +1563,7 @@ export default function App(){
       </div>
       <div style={{marginBottom:4,display:"flex",justifyContent:"space-between"}}><span style={{fontSize:11,color:"#aaa"}}>Progresso do dia</span><span style={{fontSize:11,fontWeight:700,color:pctHj>=100?"#059669":"#0e7490"}}>{pctHj.toFixed(1)}%</span></div>
       <div style={{background:"#f0f0f5",borderRadius:6,height:10}}><div style={{height:10,borderRadius:6,background:pctColor(pctHj),width:Math.min(100,pctHj)+"%",transition:"width .8s, background .5s"}}/></div>
-      <div style={{marginTop:8,fontSize:12,color:"#888"}}>Atendimentos hoje: <b>{atendHj}</b> · Ticket médio: <b>{R(ticketB)}</b></div>
+      <div style={{marginTop:8,fontSize:12,color:"#888"}}>Atendimentos no dia: <b>{atendHj}</b> · Vendas de extra/produto: <b>{vendasHj}</b> · Sem venda: <b>{Math.max(0,atendHj-vendasHj)}</b></div>
       {pctHj>=100&&<div className="celebrate" style={{marginTop:10,padding:"10px 14px",background:"linear-gradient(135deg,#059669,#0284c7)",borderRadius:8,textAlign:"center",color:"#fff",fontWeight:700,fontSize:13}}>🎉 Meta do dia batida! Mandou bem.</div>}
     </div>
 
@@ -1602,12 +1609,6 @@ export default function App(){
         {hidQt<5&&<div style={{padding:"10px 14px",background:"#ffffff10",borderRadius:8,color:"#facc15",fontSize:13}}>💡 Sua maior oportunidade é <b>hidratação</b>. Se converter apenas +1 por dia: <span style={{color:"#4ade80",fontWeight:700}}>+{R(30*dim)}/mês</span></div>}
         <div style={{padding:"10px 14px",background:"#ffffff10",borderRadius:8,color:"#a5f3fc",fontSize:13}}>👤 Perfil: <b>{perfil}</b> — {perfilDesc}</div>
       </div>
-    </div>
-
-    {/* RANKING POR CATEGORIA */}
-    <div className="card">
-      <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>🏆 Ranking por Categoria</div>
-      <div className="g4">{[{l:"Extras",pos:posExt,icon:"⭐"},{l:"Produtos",pos:posProd,icon:"🛍️"},{l:"Assinaturas",pos:posAssin,icon:"💳"},{l:"Atendimentos",pos:posAtend,icon:"✂️"}].map((r,i)=><div key={i} style={{textAlign:"center",padding:"10px 8px",background:r.pos===1?"#fffbeb":r.pos===2?"#f8f8f8":"#fafafe",border:"1px solid "+(r.pos===1?"#fde68a":"#e8e8f0"),borderRadius:8}}><div style={{fontSize:20}}>{r.icon}</div><div style={{fontSize:10,color:"#888",marginTop:4,fontWeight:600}}>{r.l.toUpperCase()}</div><div style={{fontSize:20,fontWeight:800,color:r.pos===1?"#d97706":r.pos===2?"#888":"#b45309"}}>#{r.pos}</div><div style={{fontSize:10,color:"#aaa"}}>{r.pos===1?"🥇 Líder":r.pos===2?"🥈 2º":r.pos===3?"🥉 3º":r.pos+"º"}</div></div>)}</div>
     </div>
 
     {/* MODO CAÇA BÔNUS */}
@@ -1662,28 +1663,6 @@ export default function App(){
         </>;
       })()}
     </div>
-
-    {/* DESAFIO DA SEMANA (loja) */}
-    <div className="card" style={{borderLeft:"4px solid #0284c7",background:"#f0f9ff"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div style={{fontWeight:700,fontSize:14,color:"#0284c7"}}>🏅 Desafio da Semana (loja)</div></div>
-      <div style={{textAlign:"center",padding:"14px 0"}}><div style={{fontSize:13,color:"#555",marginBottom:4}}>VENDA</div><div style={{fontSize:28,fontWeight:800,color:"#0284c7"}}>{desafio.qt} {desafio.servico}</div><div style={{marginTop:8,padding:"6px 16px",background:"#0284c7",color:"#fff",borderRadius:20,display:"inline-block",fontWeight:700}}>Recompensa: +{desafio.pontos} pontos</div></div>
-    </div>
-
-    {/* MEU DESAFIO PESSOAL (só barbeiro) */}
-    {isBarb&&(()=>{
-      const meuDes=desafioPessoal[user.bId]||{servico:"sobrancelhas extras",qt:5,pontos:20};
-      return <div className="card" style={{borderLeft:"4px solid #0e7490",background:"#f8f7ff"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#0e7490"}}>🎯 Meu Desafio Pessoal</div>
-          {desafioPesEdit?<div style={{display:"flex",gap:6}}><button className="btn bsm" onClick={()=>{setDesafioPessoal(d=>({...d,[user.bId]:{...desafioPesTmp}}));setDesafioPesEdit(false);addNotif("🎯","Desafio pessoal salvo!");}}>Salvar</button><button className="bg bsm" onClick={()=>setDesafioPesEdit(false)}>Cancelar</button></div>:<button onClick={()=>{setDesafioPesTmp({...meuDes});setDesafioPesEdit(true);}} style={{background:"none",border:"none",cursor:"pointer",fontSize:16}} title="Editar meu desafio">✏️</button>}
-        </div>
-        {desafioPesEdit?<div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <div style={{flex:3,minWidth:140}}><span className="lbl">Meu desafio</span><input className="inp" value={desafioPesTmp.servico} onChange={e=>setDesafioPesTmp(t=>({...t,servico:e.target.value}))}/></div>
-          <div style={{flex:1,minWidth:70}}><span className="lbl">Qtd</span><input type="number" className="inp" value={desafioPesTmp.qt} onChange={e=>setDesafioPesTmp(t=>({...t,qt:+e.target.value||0}))}/></div>
-          <div style={{flex:1,minWidth:70}}><span className="lbl">Pontos</span><input type="number" className="inp" value={desafioPesTmp.pontos} onChange={e=>setDesafioPesTmp(t=>({...t,pontos:+e.target.value||0}))}/></div>
-        </div>:<div style={{textAlign:"center",padding:"10px 0"}}><div style={{fontSize:24,fontWeight:800,color:"#0e7490"}}>{meuDes.qt} {meuDes.servico}</div><div style={{marginTop:6,padding:"5px 14px",background:"#0e7490",color:"#fff",borderRadius:20,display:"inline-block",fontWeight:700,fontSize:12}}>+{meuDes.pontos} pontos (auto-desafio)</div></div>}
-      </div>;
-    })()}
 
     {/* RELÓGIO DE META */}
     <div className="card"><div style={{fontWeight:700,fontSize:13,marginBottom:10}}>⏱️ Relógio de Meta</div>
@@ -2009,12 +1988,9 @@ export default function App(){
 
 {/* ─── LANÇAMENTO ─── */}
 {aba==="lanc"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card"><div className="st">Lote</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={flt.bId} onChange={e=>setFlt(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={flt.vb} onChange={e=>setFlt(f=>({...f,vb:e.target.value}))}/></div><div><span className="lbl">Data</span><input type="date" className="inp" value={flt.dt} onChange={e=>setFlt(f=>({...f,dt:e.target.value}))}/></div></div><button className="btn" onClick={lanLote}>+ Lançar lote</button></div>
   <div className="card"><div className="st">Serviço avulso</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fa.bId} onChange={e=>setFa(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Serviço</span><select className="inp" value={fa.svc} onChange={e=>{const s2=SVC_DEF.find(x=>x.nome===e.target.value);setFa(f=>({...f,svc:e.target.value,val:s2?s2.v:f.val}));}}>{SVC_DEF.map(s=><option key={s.nome}>{s.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fa.val} onChange={e=>setFa(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fa.qt} min="1" onChange={e=>setFa(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fa.dt} onChange={e=>setFa(f=>({...f,dt:e.target.value}))}/></div></div><div><span className="lbl">Nota do atendimento</span><select className="inp" value={fa.nota} onChange={e=>setFa(f=>({...f,nota:e.target.value}))}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{"⭐".repeat(n)+" ("+n+")"}</option>)}</select></div></div><button className="btn" onClick={lanAvul}>+ Lançar</button></div>
-  <div className="card"><div className="st">Fichas do clube</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={ff.bId} onChange={e=>setFf(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Plano</span><select className="inp" value={ff.svc} onChange={e=>setFf(f=>({...f,svc:e.target.value}))}>{Object.entries(FICHAS_DEF).map(([s,pts])=><option key={s} value={s}>{s} — {pts}pts</option>)}</select></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={ff.qt} min="1" onChange={e=>setFf(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={ff.dt} onChange={e=>setFf(f=>({...f,dt:e.target.value}))}/></div></div></div><button className="btn" onClick={lanFich}>+ Registrar</button></div>
   <div className="card"><div className="st">Extra / Upsell</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fe.bId} onChange={e=>setFe(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Extra</span><select className="inp" value={fe.svc} onChange={e=>setFe(f=>({...f,svc:e.target.value}))}>{EXT_DEF.map(s=><option key={s}>{s}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fe.val} onChange={e=>setFe(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fe.qt} min="1" onChange={e=>setFe(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fe.dt} onChange={e=>setFe(f=>({...f,dt:e.target.value}))}/></div><div style={{display:"flex",alignItems:"flex-end"}}><label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,paddingBottom:10}}><input type="checkbox" checked={fe.assi} onChange={e=>setFe(f=>({...f,assi:e.target.checked}))} style={{accentColor:"#0e7490"}}/><span>Assinante</span></label></div></div></div><button className="btn" onClick={lanExt}>+ Lançar extra</button></div>
   <div className="card"><div className="st">Produto</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fp.bId} onChange={e=>setFp(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Produto</span><select className="inp" value={fp.prod} onChange={e=>{const pd=prodLst.find(x=>x.nome===e.target.value);setFp(f=>({...f,prod:e.target.value,val:pd?pd.v:f.val}));}}>{prodLst.map(p=><option key={p.nome}>{p.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fp.val} onChange={e=>setFp(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fp.qt} min="1" onChange={e=>setFp(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fp.dt} onChange={e=>setFp(f=>({...f,dt:e.target.value}))}/></div></div></div>{fp.prod&&estoque[fp.prod]!=null&&<div style={{fontSize:12,color:estoque[fp.prod]>0?"#059669":"#dc2626",marginBottom:8,background:estoque[fp.prod]>0?"#f0fdf4":"#fef2f2",padding:"5px 9px",borderRadius:6}}>Estoque: <b>{estoque[fp.prod]}</b></div>}<button className="btn" onClick={lanProd}>+ Lançar produto</button></div>
-  <div className="card" style={{borderLeft:"3px solid #dc2626"}}><div className="st">Vale</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fv.bId} onChange={e=>setFv(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fv.val} onChange={e=>setFv(f=>({...f,val:e.target.value}))}/></div><div><span className="lbl">Data</span><input type="date" className="inp" value={fv.dt} onChange={e=>setFv(f=>({...f,dt:e.target.value}))}/></div><div style={{gridColumn:"1/-1"}}><span className="lbl">Motivo</span><input type="text" className="inp" value={fv.obs} onChange={e=>setFv(f=>({...f,obs:e.target.value}))}/></div></div><button className="btn" style={{background:"#dc2626"}} onClick={lanVale}>+ Lançar vale</button>{vales.filter(v=>noM(v.dt)).map(v=><ERow key={v.id} item={v} fields={[{key:"bId",label:"Barbeiro",type:"barbSelect"},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"},{key:"obs",label:"Motivo",type:"text"}]} setter={setVales} tipo="vales"><div style={{flex:1,fontSize:12}}>{(barbs.find(b=>b.id===v.bId)||{nome:"?"}).nome.split(" ")[0]}{v.obs?" · "+v.obs:""}</div><span style={{color:"#dc2626",fontWeight:600}}>-{R(v.val)}</span></ERow>)}</div>
 </div>}
 
 {/* ─── TAXAS CEL CASH ─── */}
