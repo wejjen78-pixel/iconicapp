@@ -598,12 +598,12 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["gest","Gestão"],["equi","Equipe"],["game","Gamificação"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["game","Gamificação"],["intel","Inteligência"],["equiv","Equipe"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
-  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump}[k]||ICO.dash);
-  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
+  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,taxas:ICO.fech,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump}[k]||ICO.dash);
+  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",taxas:"💳 Taxas Cel Cash",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
 
   // ── CARREGAR DADOS (Supabase) ────────────────────────────────────────────
   const[loadError,setLoadError]=useState(null);const[loadTick,setLoadTick]=useState(0);
@@ -982,6 +982,20 @@ export default function App(){
     }
     await refreshGalaxStatus();setGalaxSyncing(false);
   }
+
+  // ── TAXAS CEL CASH (relatório do mês, lido sob demanda da galaxpay-sync) ──
+  const[taxRel,setTaxRel]=useState(null);const[taxLoad,setTaxLoad]=useState(false);const[taxErr,setTaxErr]=useState("");const[taxFiltro,setTaxFiltro]=useState("todos");
+  async function carregarTaxas(){
+    setTaxLoad(true);setTaxErr("");
+    const{data,error}=await supabase.functions.invoke("galaxpay-sync",{body:{acao:"taxas",mes:ano+"-"+String(mes+1).padStart(2,"0")}});
+    if(error){
+      const msg=await error.context?.json?.().then(j=>j?.error).catch(()=>null);
+      setTaxErr(msg||error.message||"Falha ao carregar as taxas.");setTaxLoad(false);return;
+    }
+    if(data?.error){setTaxErr(data.error);setTaxLoad(false);return;}
+    setTaxRel(data);setTaxLoad(false);
+  }
+  useEffect(()=>{if(aba==="taxas"&&isDono&&galaxStatus?.configured)carregarTaxas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
   function limparTudoBarbeiro(bId){
     if(!window.confirm("Excluir TODOS os lançamentos?"))return;
     const match=s=>s.bId===bId&&noM(s.dt);
@@ -1907,6 +1921,69 @@ export default function App(){
   <div className="card"><div className="st">Produto</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fp.bId} onChange={e=>setFp(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Produto</span><select className="inp" value={fp.prod} onChange={e=>{const pd=prodLst.find(x=>x.nome===e.target.value);setFp(f=>({...f,prod:e.target.value,val:pd?pd.v:f.val}));}}>{prodLst.map(p=><option key={p.nome}>{p.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fp.val} onChange={e=>setFp(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fp.qt} min="1" onChange={e=>setFp(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fp.dt} onChange={e=>setFp(f=>({...f,dt:e.target.value}))}/></div></div></div>{fp.prod&&estoque[fp.prod]!=null&&<div style={{fontSize:12,color:estoque[fp.prod]>0?"#059669":"#dc2626",marginBottom:8,background:estoque[fp.prod]>0?"#f0fdf4":"#fef2f2",padding:"5px 9px",borderRadius:6}}>Estoque: <b>{estoque[fp.prod]}</b></div>}<button className="btn" onClick={lanProd}>+ Lançar produto</button></div>
   <div className="card" style={{borderLeft:"3px solid #dc2626"}}><div className="st">Vale</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fv.bId} onChange={e=>setFv(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fv.val} onChange={e=>setFv(f=>({...f,val:e.target.value}))}/></div><div><span className="lbl">Data</span><input type="date" className="inp" value={fv.dt} onChange={e=>setFv(f=>({...f,dt:e.target.value}))}/></div><div style={{gridColumn:"1/-1"}}><span className="lbl">Motivo</span><input type="text" className="inp" value={fv.obs} onChange={e=>setFv(f=>({...f,obs:e.target.value}))}/></div></div><button className="btn" style={{background:"#dc2626"}} onClick={lanVale}>+ Lançar vale</button>{vales.filter(v=>noM(v.dt)).map(v=><ERow key={v.id} item={v} fields={[{key:"bId",label:"Barbeiro",type:"barbSelect"},{key:"val",label:"Valor",type:"number"},{key:"dt",label:"Data",type:"date"},{key:"obs",label:"Motivo",type:"text"}]} setter={setVales} tipo="vales"><div style={{flex:1,fontSize:12}}>{(barbs.find(b=>b.id===v.bId)||{nome:"?"}).nome.split(" ")[0]}{v.obs?" · "+v.obs:""}</div><span style={{color:"#dc2626",fontWeight:600}}>-{R(v.val)}</span></ERow>)}</div>
 </div>}
+
+{/* ─── TAXAS CEL CASH ─── */}
+{aba==="taxas"&&isDono&&(()=>{
+  const s=taxRel?.resumo;const cob=taxRel?.cobrancas||[];
+  const MET={cartao:"Cartão",boleto:"Boleto",pix:"Pix",fora:"Por fora"};
+  const dtBr=d=>d?d.split("-").reverse().slice(0,2).join("/"):"";
+  const pct=(t,v)=>v?((t/v)*100).toFixed(2).replace(".",",")+"%":"–";
+  const lista=taxFiltro==="todos"?cob:cob.filter(c=>c.metodo===taxFiltro);
+  const fora=cob.filter(c=>c.metodo==="fora");
+  const th={textAlign:"left",padding:"7px 8px",fontSize:11,color:"#888",fontWeight:600,borderBottom:"1px solid #eee",whiteSpace:"nowrap"};
+  const td={padding:"7px 8px",fontSize:12,borderBottom:"1px solid #f3f3f3",whiteSpace:"nowrap"};
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+  <div className="card" style={{borderLeft:"3px solid #7c3aed"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+      <div><div className="st" style={{marginBottom:2}}>Taxas Cel Cash · {MESES[mes]} {ano}</div>
+        <div style={{fontSize:12,color:"#888"}}>Cartão: taxa descontada nos depósitos do mês (igual ao relatório de Conciliação). Boleto/Pix: taxa de cada pagamento. Por fora: sem taxa.</div></div>
+      <button className="btn bsm" onClick={carregarTaxas} disabled={taxLoad||!galaxStatus?.configured}>{taxLoad?"Carregando...":"🔄 Atualizar"}</button>
+    </div>
+    {!galaxStatus?.configured&&<div style={{marginTop:10,fontSize:12,color:"#d97706"}}>Configure as credenciais do Cel Cash na aba Galaxy Pay.</div>}
+    {taxErr&&<div style={{marginTop:10,padding:"7px 11px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:6,fontSize:12,color:"#dc2626"}}>{taxErr}</div>}
+  </div>
+  {s&&<>
+    <div className="g3">
+      <KPI lbl="Taxa do mês" val={R(s.taxaMes)} cor="#dc2626" glow sub={pct(s.taxaMes,s.recebido)+" do recebido"}/>
+      <KPI lbl="Recebido no Cel Cash" val={R(s.recebido)} cor="#0e7490" sub={(s.cartao.qtd+s.boleto.qtd+s.pix.qtd)+" pagamento(s)"}/>
+      <KPI lbl="Pago por fora" val={R(s.fora.valor)} cor="#d97706" sub={s.fora.qtd+" pagamento(s)"}/>
+    </div>
+    <div className="card"><div className="st">Por forma de pagamento</div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}>
+        <thead><tr><th style={th}>Forma</th><th style={th}>Qtd</th><th style={th}>Valor</th><th style={th}>Taxa</th><th style={th}>% taxa</th></tr></thead>
+        <tbody>
+          <tr><td style={td}>💳 Cartão</td><td style={td}>{s.cartao.qtd}</td><td style={td}>{R(s.cartao.cobrado)}</td><td style={td}>{R(s.cartao.depositos.taxa)}</td><td style={td}>{pct(s.cartao.depositos.taxa,s.cartao.depositos.taxa+s.cartao.depositos.liquido)}</td></tr>
+          <tr><td style={td}>🧾 Boleto</td><td style={td}>{s.boleto.qtd}</td><td style={td}>{R(s.boleto.valor)}</td><td style={td}>{R(s.boleto.taxa)}</td><td style={td}>{pct(s.boleto.taxa,s.boleto.valor)}</td></tr>
+          <tr><td style={td}>⚡ Pix</td><td style={td}>{s.pix.qtd}</td><td style={td}>{R(s.pix.valor)}</td><td style={td}>{R(s.pix.taxa)}</td><td style={td}>{pct(s.pix.taxa,s.pix.valor)}</td></tr>
+          <tr><td style={td}>💵 Por fora</td><td style={td}>{s.fora.qtd}</td><td style={td}>{R(s.fora.valor)}</td><td style={td}>{R(0)}</td><td style={td}>–</td></tr>
+        </tbody>
+      </table></div>
+      <div style={{fontSize:11,color:"#888",marginTop:8}}>Cartão: {s.cartao.depositos.qtd} depósito(s) no mês, líquido {R(s.cartao.depositos.liquido)}. O depósito do cartão cai ~30 dias depois do pagamento, então a taxa do mês é das cobranças do mês anterior.</div>
+    </div>
+    <div className="card" style={{borderLeft:"3px solid #d97706"}}>
+      <div className="st">💵 Pagamentos por fora · {R(s.fora.valor)}</div>
+      {fora.length?<div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}>
+        <thead><tr><th style={th}>Data</th><th style={th}>Cliente</th><th style={th}>Tipo</th><th style={th}>Valor</th></tr></thead>
+        <tbody>{fora.map(c=><tr key={c.id}><td style={td}>{dtBr(c.data)}</td><td style={td}>{c.cliente||"–"}</td><td style={td}>{c.plano?"Plano":"Avulso"}{c.parcela?" · parcela "+c.parcela:""}</td><td style={td}>{R(c.valor)}</td></tr>)}</tbody>
+      </table></div>:<div style={{fontSize:12,color:"#888"}}>Nenhum pagamento por fora neste mês.</div>}
+    </div>
+    <div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:10}}>
+        <div className="st" style={{marginBottom:0}}>Custo de cada cobrança</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{["todos","cartao","boleto","pix","fora"].map(f=><button key={f} className={taxFiltro===f?"btn bsm":"bg bsm"} onClick={()=>setTaxFiltro(f)}>{f==="todos"?"Todos":MET[f]}</button>)}</div>
+      </div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse"}}>
+        <thead><tr><th style={th}>Data</th><th style={th}>Cliente</th><th style={th}>Tipo</th><th style={th}>Forma</th><th style={th}>Valor</th><th style={th}>Taxa</th><th style={th}>%</th></tr></thead>
+        <tbody>{lista.map(c=><tr key={c.id}>
+          <td style={td}>{dtBr(c.data)}</td><td style={td}>{c.cliente||"–"}</td><td style={td}>{c.plano?"Plano":"Avulso"}</td><td style={td}>{MET[c.metodo]}</td><td style={td}>{R(c.valor)}</td>
+          <td style={td}>{c.taxa===null?<span style={{color:"#aaa"}} title="O depósito do cartão ainda não caiu">pendente</span>:R(c.taxa)}</td>
+          <td style={td}>{c.taxa===null?"":pct(c.taxa,c.valor)}</td>
+        </tr>)}</tbody>
+      </table></div>
+      {!lista.length&&<div style={{fontSize:12,color:"#888"}}>Nada nesta forma de pagamento.</div>}
+    </div>
+  </>}
+  </div>;})()}
 
 {/* ─── GALAXY PAY ─── */}
 {aba==="gal"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
