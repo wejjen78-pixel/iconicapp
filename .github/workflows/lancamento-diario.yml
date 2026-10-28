@@ -1,0 +1,59 @@
+name: Lançamento diário (AppBarber + Cel Cash)
+
+on:
+  schedule:
+    # 09:00 UTC = 06:00 em Brasília. Lança o dia anterior, já fechado.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      data:
+        description: "Dia a lançar (AAAA-MM-DD). Vazio = ontem."
+        required: false
+      previa:
+        description: "Só prévia (não grava nada)"
+        type: boolean
+        default: true
+      partes:
+        description: "Partes a rodar"
+        type: choice
+        default: appbarber,celcash
+        options:
+          - appbarber,celcash
+          - appbarber
+          - celcash
+
+concurrency:
+  group: lancamento-diario
+  cancel-in-progress: false
+
+jobs:
+  lancar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: robo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Rodar robô
+        env:
+          APPBARBER_EMAIL: ${{ secrets.APPBARBER_EMAIL }}
+          APPBARBER_SENHA: ${{ secrets.APPBARBER_SENHA }}
+          ICONIC_EMAIL: ${{ secrets.ICONIC_EMAIL }}
+          ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
+          DATA: ${{ inputs.data }}
+          PREVIA: ${{ inputs.previa && '1' || '0' }}
+          PARTES: ${{ inputs.partes || 'appbarber,celcash' }}
+        run: node lancamento-diario.mjs
+      - name: Guardar prints e planilha
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saida-${{ github.run_id }}
+          path: robo/saida
+          retention-days: 7

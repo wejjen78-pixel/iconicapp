@@ -24,3 +24,6 @@ supabase/.temp
 *.njsproj
 *.sln
 *.sw?
+
+# Robô do lançamento diário
+robo/saida
