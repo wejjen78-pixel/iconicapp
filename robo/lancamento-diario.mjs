@@ -150,17 +150,22 @@ async function exportarAppBarber(context) {
 
   await page.goto(`${APPBARBER_URL}/index.php#/relGerencialRankings`, { waitUntil: "networkidle" });
   await page.locator("#DataIni").waitFor({ timeout: 60_000 });
-  for (const id of ["#DataIni", "#DataFim"]) {
-    await page.click(id, { clickCount: 3 });
-    await page.keyboard.type(DATA_BR);
-    await page.keyboard.press("Escape");
-  }
-  // O select do tipo é escondido por um plugin (select2): define pelo jQuery.
-  await page.evaluate(() => {
+  // Datas e tipo definidos pelo jQuery da página: clicar nos campos abre um
+  // calendário que fica por cima do campo seguinte.
+  await page.evaluate((dataBr) => {
+    const $ = window.jQuery;
+    for (const id of ["#DataIni", "#DataFim"]) {
+      const el = $(id);
+      if (el.data("datepicker")) el.datepicker("update", dataBr);
+      el.val(dataBr).trigger("change");
+    }
+    $(".datepicker").hide();
     const s = document.getElementById("ranTipo");
     s.value = "9"; // Profissional x Serviços(Quantidade)
-    window.jQuery(s).val("9").trigger("change");
-  });
+    $(s).val("9").trigger("change");
+  }, DATA_BR);
+  const datas = await page.evaluate(() => [document.getElementById("DataIni").value, document.getElementById("DataFim").value]);
+  if (datas[0] !== DATA_BR || datas[1] !== DATA_BR) throw new Error(`não consegui definir as datas do relatório (ficou ${datas.join(" a ")}).`);
   await page.click("#btnPesquisarRanking");
 
   const detalhes = page.locator("#btnDetalhesProSer");
