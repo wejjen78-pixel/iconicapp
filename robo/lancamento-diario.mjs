@@ -194,10 +194,13 @@ async function esperarSalvo(iconic) {
 
 async function parteAppBarber(context, iconic) {
   const ja = await importadosNoDia(iconic.page, iconic.getApikey());
-  if (ja > 0) {
+  if (ja > 0 && !PREVIA) {
     registrar(`AppBarber ${DATA_BR}: dia já tem lançamentos importados — pulado.`);
     return;
   }
+  // Na prévia segue até a análise mesmo com o dia já importado (nada é aplicado),
+  // para testar o login e a exportação.
+  if (ja > 0) registrar(`AppBarber ${DATA_BR}: dia já importado — prévia segue só para testar.`);
   const { arquivo, total } = await exportarAppBarber(context);
   if (!arquivo) {
     registrar(`AppBarber ${DATA_BR}: sem atendimentos no relatório.`);
