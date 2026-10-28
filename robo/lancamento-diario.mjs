@@ -67,11 +67,14 @@ async function entrarIconic(context) {
   await page.goto(ICONIC_URL, { waitUntil: "networkidle" });
   await page.fill('input[name="email"]', exigir("ICONIC_EMAIL").trim());
   await page.fill('input[name="password"]', exigir("ICONIC_SENHA"));
-  const tam = await page.evaluate(() => ({
-    email: document.querySelector('input[name="email"]').value.length,
-    senha: document.querySelector('input[name="password"]').value.length,
-  }));
+  const tam = await page.evaluate(() => {
+    const e = document.querySelector('input[name="email"]');
+    return { email: e.value.length, emailValido: e.validity.valid, senha: document.querySelector('input[name="password"]').value.length };
+  });
   registrar(`Iconic: campos preenchidos (e-mail ${tam.email} caracteres, senha ${tam.senha})`);
+  if (!tam.emailValido) {
+    throw new Error("o segredo ICONIC_EMAIL não está no formato de e-mail (ex.: nome@gmail.com) — o navegador não deixa enviar o login.");
+  }
   const resposta = page.waitForResponse((r) => r.url().includes("/auth/v1/token"), { timeout: 30_000 }).catch(() => null);
   await page.click('button[type="submit"]');
   const r = await resposta;
