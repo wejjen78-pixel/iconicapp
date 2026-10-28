@@ -957,18 +957,25 @@ export default function App(){
   async function salvarGalaxCreds(){
     if(!galaxId.trim()||!galaxHash.trim()){setGalaxErr("Preencha os dois campos.");return;}
     setGalaxSaving(true);setGalaxErr("");
-    const{error}=await supabase.from("org_integrations").upsert({org_id:orgId,provider:"galaxpay",galax_id:galaxId.trim(),galax_hash:galaxHash.trim()},{onConflict:"org_id"});
+    // RPC em vez de upsert: o upsert exige policy de SELECT quando a linha já existe (ver schema_v5).
+    const{error}=await supabase.rpc("set_galaxpay_creds",{p_galax_id:galaxId.trim(),p_galax_hash:galaxHash.trim()});
     if(error){setGalaxErr(error.message);setGalaxSaving(false);return;}
     setGalaxId("");setGalaxHash("");addNotif("🔗","Credenciais GalaxPay salvas!");
     await refreshGalaxStatus();setGalaxSaving(false);
   }
-  async function sincronizarGalaxPay(){
-    setGalaxSyncing(true);setGalaxErr("");
-    const de=ano+"-"+String(mes+1).padStart(2,"0")+"-01";
-    const{data,error}=await supabase.functions.invoke("galaxpay-sync",{body:{startDate:de,endDate:hj()}});
-    if(error){setGalaxErr(error.message||"Falha ao sincronizar.");setGalaxSyncing(false);return;}
+  // Sincroniza só um dia (padrão: hoje no horário local — hj() usa UTC e vira o dia às 21h).
+  const[galaxDt,setGalaxDt]=useState(()=>new Date().toLocaleDateString("en-CA"));
+  const[galaxPrev,setGalaxPrev]=useState(null);
+  async function sincronizarGalaxPay(dryRun=false){
+    setGalaxSyncing(true);setGalaxErr("");setGalaxPrev(null);
+    const{data,error}=await supabase.functions.invoke("galaxpay-sync",{body:{date:galaxDt,dryRun}});
+    if(error){
+      const msg=await error.context?.json?.().then(j=>j?.error).catch(()=>null);
+      setGalaxErr(msg||error.message||"Falha ao sincronizar.");setGalaxSyncing(false);return;
+    }
     if(data?.error){setGalaxErr(data.error);setGalaxSyncing(false);return;}
-    addNotif("🔄",(data?.added||0)+" lançamento(s) importado(s) do GalaxPay!");
+    if(dryRun){setGalaxPrev(data);setGalaxSyncing(false);return;}
+    addNotif("🔄",(data?.added||0)+" lançamento(s) importado(s) do Cel Cash!");
     if(data?.added>0){
       const{data:rows}=await supabase.from("org_lancamentos").select("payload").eq("org_id",orgId).eq("tipo","pote").order("criado_em",{ascending:false});
       if(rows)setPote(rows.map(r=>r.payload));
@@ -1910,15 +1917,21 @@ export default function App(){
     </div>
     <div style={{fontSize:12,color:"#888",marginBottom:14}}>Puxa automaticamente os pagamentos recebidos no GalaxPay (Pix/cartão/boleto) e lança direto no pote — sem digitar nada. As credenciais ficam guardadas com segurança e nunca aparecem de novo depois de salvas.</div>
     <div className="g2" style={{marginBottom:10}}>
-      <div><span className="lbl">Galax ID</span><input className="inp" placeholder={galaxStatus?.configured?"•••• já salvo":"Ex: 5473"} value={galaxId} onChange={e=>setGalaxId(e.target.value)}/></div>
-      <div><span className="lbl">Galax Hash</span><input type="password" className="inp" placeholder={galaxStatus?.configured?"•••• já salvo":"Chave de acesso"} value={galaxHash} onChange={e=>setGalaxHash(e.target.value)}/></div>
+      <div><span className="lbl">Galax ID</span><input className="inp" name="galax-id" autoComplete="off" inputMode="numeric" placeholder={galaxStatus?.configured?"•••• já salvo":"Ex: 5473"} value={galaxId} onChange={e=>setGalaxId(e.target.value)}/></div>
+      <div><span className="lbl">Galax Hash</span><input type="password" className="inp" name="galax-hash" autoComplete="new-password" placeholder={galaxStatus?.configured?"•••• já salvo":"Chave de acesso"} value={galaxHash} onChange={e=>setGalaxHash(e.target.value)}/></div>
     </div>
     {galaxErr&&<div style={{marginBottom:10,padding:"7px 11px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:6,fontSize:12,color:"#dc2626"}}>{galaxErr}</div>}
     <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
       <button className="btn bsm" onClick={salvarGalaxCreds} disabled={galaxSaving}>{galaxSaving?"Salvando...":galaxStatus?.configured?"Atualizar credenciais":"Salvar credenciais"}</button>
-      {galaxStatus?.configured&&<button className="btn bsm" style={{background:"#0284c7"}} onClick={sincronizarGalaxPay} disabled={galaxSyncing}>{galaxSyncing?"Sincronizando...":"🔄 Sincronizar agora"}</button>}
+      {galaxStatus?.configured&&<input type="date" className="inp" style={{width:150}} value={galaxDt} onChange={e=>{setGalaxDt(e.target.value);setGalaxPrev(null);}}/>}
+      {galaxStatus?.configured&&<button className="bg bsm" onClick={()=>sincronizarGalaxPay(true)} disabled={galaxSyncing}>👁 Prévia</button>}
+      {galaxStatus?.configured&&<button className="btn bsm" style={{background:"#0284c7"}} onClick={()=>sincronizarGalaxPay(false)} disabled={galaxSyncing}>{galaxSyncing?"Sincronizando...":"🔄 Sincronizar dia"}</button>}
       {galaxStatus?.last_sync_at&&<span style={{fontSize:11,color:"#aaa"}}>Última sincronização: {new Date(galaxStatus.last_sync_at).toLocaleString("pt-BR")} · {galaxStatus.last_sync_count} novo(s)</span>}
     </div>
+    {galaxPrev&&<div style={{marginTop:10,padding:"9px 12px",background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:6,fontSize:12,color:"#0c4a6e"}}>
+      Prévia {galaxPrev.startDate.split("-").reverse().join("/")}: {galaxPrev.total} pagamento(s) · bruto {R(galaxPrev.bruto)} · taxas {R(galaxPrev.taxas)} · líquido {R(galaxPrev.liquido)}
+      <br/>{galaxPrev.novas} novo(s) para lançar ({R(galaxPrev.valorNovas)}){galaxPrev.jaLancadas>0&&` · ${galaxPrev.jaLancadas} já lançado(s)`}
+    </div>}
   </div>
   <div className="card" style={{borderLeft:"3px solid #d97706"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="st" style={{marginBottom:0}}>Taxas</div>{editTx?<div style={{display:"flex",gap:8}}><button className="btn bsm" onClick={()=>{setTxB(txTmp.b);setTxBar(txTmp.r);setEditTx(false);}}>Salvar</button><button className="bg bsm" onClick={()=>setEditTx(false)}>Cancelar</button></div>:<button className="bg" onClick={()=>{setTxTmp({b:txB,r:txBar});setEditTx(true);}}>Editar</button>}</div>{editTx?<div style={{display:"flex",gap:12}}><div style={{flex:1}}><span className="lbl">Barbeiro (%)</span><input type="number" className="inp" value={txTmp.b} onChange={e=>{const v=+e.target.value||0;setTxTmp({b:v,r:100-v});}}/></div><div style={{flex:1}}><span className="lbl">Barbearia (%)</span><input type="number" className="inp" value={txTmp.r} onChange={e=>{const v=+e.target.value||0;setTxTmp({r:v,b:100-v});}}/></div></div>:<div style={{display:"flex",gap:12}}><div style={{padding:"12px 18px",background:"#ecfeff",borderRadius:8,textAlign:"center",flex:1}}><div style={{fontSize:11,color:"#0e7490",fontWeight:600}}>Barbeiro</div><div style={{fontSize:24,fontWeight:700,color:"#0e7490"}}>{txB}%</div></div><div style={{padding:"12px 18px",background:"#dcfce7",borderRadius:8,textAlign:"center",flex:1}}><div style={{fontSize:11,color:"#059669",fontWeight:600}}>Barbearia</div><div style={{fontSize:24,fontWeight:700,color:"#059669"}}>{txBar}%</div></div></div>}</div>
   <div className="card"><div className="st">Entrada do pote</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Valor</span><input type="number" className="inp" value={fpo.val} onChange={e=>setFpo(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fpo.qt} min="1" onChange={e=>setFpo(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fpo.dt} onChange={e=>setFpo(f=>({...f,dt:e.target.value}))}/></div></div><div><span className="lbl">Obs</span><input type="text" className="inp" value={fpo.obs} onChange={e=>setFpo(f=>({...f,obs:e.target.value}))}/></div></div><button className="btn" onClick={lanPote}>+ Adicionar</button></div>

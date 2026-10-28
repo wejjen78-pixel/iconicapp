@@ -1,8 +1,18 @@
 // Edge Function: galaxpay-sync
-// Busca transações pagas no GalaxPay (Cel Cash) e lança automaticamente
-// no "pote" (Galaxy Pay) da organização, sem expor as credenciais ao navegador.
+// Busca transações pagas no Cel Cash (antigo GalaxPay) pela API v2 e lança
+// automaticamente no "pote" (Galaxy Pay) da organização, sem expor as
+// credenciais ao navegador.
+//
+// Body (todos opcionais):
+//   date        "AAAA-MM-DD"  — sincroniza só esse dia (padrão: hoje)
+//   startDate / endDate       — intervalo, no lugar de `date`
+//   dryRun      true          — só calcula e devolve a prévia, não grava nada
+//   valor       "bruto" | "liquido" — lança o valor pago ou já sem a taxa (padrão: bruto)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// api.cel.cash/v2 (endereço novo da marca) devolve 503; o domínio antigo segue respondendo a mesma API v2.
+const CELCASH_API = "https://api.galaxpay.com.br/v2";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -10,21 +20,72 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Status do GalaxPay que representam dinheiro que efetivamente entrou.
-const PAID_STATUSES = new Set([
+// Status do Cel Cash que representam dinheiro que efetivamente entrou.
+const PAID_STATUSES = [
   "captured",
   "payedBoleto",
   "moreValueBoleto",
   "lessValueBoleto",
   "payedPix",
   "payExternal",
-]);
+];
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), {
     status,
     headers: { "Content-Type": "application/json", ...CORS_HEADERS },
   });
+}
+
+function hojeSP() {
+  // Data local do Brasil (a Edge Function roda em UTC).
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+function celcashErro(data: any, fallback: string) {
+  return data?.error?.message || data?.message || data?.Errors?.[0]?.message || fallback;
+}
+
+async function celcashToken(galaxId: string, galaxHash: string) {
+  const res = await fetch(CELCASH_API + "/token", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Basic " + btoa(`${galaxId}:${galaxHash}`),
+    },
+    body: JSON.stringify({ grant_type: "authorization_code", scope: "transactions.read" }),
+  });
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.access_token) {
+    throw new Error("Cel Cash recusou as credenciais: " + celcashErro(data, `HTTP ${res.status}`));
+  }
+  return data.access_token as string;
+}
+
+// Lista todas as transações pagas cujo status mudou no intervalo, paginando de 100 em 100.
+async function celcashTransacoesPagas(token: string, startDate: string, endDate: string) {
+  const all: any[] = [];
+  for (let startAt = 0; ; startAt += 100) {
+    const qs = new URLSearchParams({
+      updateStatusFrom: startDate,
+      updateStatusTo: endDate,
+      status: PAID_STATUSES.join(","),
+      startAt: String(startAt),
+      limit: "100",
+      order: "createdAt.asc",
+    });
+    const res = await fetch(`${CELCASH_API}/transactions?${qs}`, {
+      headers: { Authorization: "Bearer " + token },
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) {
+      throw new Error("Cel Cash recusou a consulta: " + celcashErro(data, `HTTP ${res.status}`));
+    }
+    const page = data.Transactions || [];
+    all.push(...page);
+    if (page.length < 100) break;
+  }
+  return all;
 }
 
 Deno.serve(async (req) => {
@@ -62,33 +123,20 @@ Deno.serve(async (req) => {
       .eq("org_id", profile.org_id)
       .single();
     if (!integ?.galax_id || !integ?.galax_hash) {
-      return json({ error: "GalaxPay ainda não configurado. Salve suas credenciais primeiro." }, 400);
+      return json({ error: "Cel Cash ainda não configurado. Salve suas credenciais primeiro." }, 400);
     }
 
     const body = await req.json().catch(() => ({}));
-    const now = new Date();
-    const startDate = body.startDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-    const endDate = body.endDate || now.toISOString().slice(0, 10);
+    const startDate = body.date || body.startDate || hojeSP();
+    const endDate = body.date || body.endDate || startDate;
+    const dryRun = body.dryRun === true;
+    const liquido = body.valor === "liquido";
 
-    const gpRes = await fetch("https://celcash.celcoin.com.br/webservice/getTransactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Auth: { galaxId: integ.galax_id, galaxHash: integ.galax_hash },
-        Request: { startDate, endDate, typeDate: "dateOfLastUpdate" },
-      }),
-    });
-    const gpData = await gpRes.json().catch(() => null);
-    if (!gpData) return json({ error: "Resposta inválida do GalaxPay." }, 502);
-    if (gpData.type === false) {
-      return json({ error: "GalaxPay recusou a requisição: " + (gpData.message || gpData.Errors?.[0]?.message || "verifique as credenciais.") }, 400);
-    }
+    const token = await celcashToken(integ.galax_id, integ.galax_hash);
+    const transactions = await celcashTransacoesPagas(token, startDate, endDate);
 
-    const transactions = (gpData.transactions || []).filter((t: any) => PAID_STATUSES.has(t.status));
-
-    // "pote" agora vive em org_lancamentos (uma linha por lançamento), não mais
-    // dentro do bloco JSON único de org_data — evita reescrever o histórico
-    // inteiro a cada sincronização.
+    // "pote" vive em org_lancamentos (uma linha por lançamento). O extId evita
+    // lançar a mesma transação duas vezes se sincronizar o mesmo dia de novo.
     const { data: existingRows } = await admin
       .from("org_lancamentos")
       .select("payload")
@@ -98,12 +146,18 @@ Deno.serve(async (req) => {
       (existingRows || []).map((r: any) => r.payload?.extId).filter(Boolean)
     );
 
+    // Valores da API v2 vêm em centavos.
+    let bruto = 0, taxas = 0, jaLancadas = 0;
     const newRows = [];
     for (const t of transactions) {
-      const extId = "galaxpay:" + t.internalId;
-      if (existingExtIds.has(extId)) continue;
+      const valBruto = (Number(t.value) || 0) / 100;
+      const valTaxa = (Number(t.fee) || 0) / 100;
+      bruto += valBruto;
+      taxas += valTaxa;
+      const extId = "galaxpay:" + t.galaxPayId;
+      if (existingExtIds.has(extId)) { jaLancadas++; continue; }
       const appId = Math.random().toString(36).substr(2, 8);
-      const dt = (t.payday || startDate).slice(0, 10);
+      const dt = String(t.statusDate || t.paydayDate || t.payday || startDate).slice(0, 10);
       newRows.push({
         org_id: profile.org_id,
         tipo: "pote",
@@ -111,18 +165,33 @@ Deno.serve(async (req) => {
         dt,
         payload: {
           id: appId,
-          val: parseFloat(t.value) || 0,
+          val: Math.round((liquido ? valBruto - valTaxa : valBruto) * 100) / 100,
           dt,
-          obs: "GalaxPay · " + (t.statusDescription || t.status),
+          obs: "Cel Cash · " + (t.statusDescription || t.status),
           extId,
         },
       });
     }
 
+    const resumo = {
+      startDate,
+      endDate,
+      total: transactions.length,
+      jaLancadas,
+      novas: newRows.length,
+      bruto: Math.round(bruto * 100) / 100,
+      taxas: Math.round(taxas * 100) / 100,
+      liquido: Math.round((bruto - taxas) * 100) / 100,
+      valorNovas: Math.round(newRows.reduce((s, r) => s + r.payload.val, 0) * 100) / 100,
+    };
+
+    if (dryRun) return json({ success: true, dryRun: true, ...resumo });
+
     let added = 0;
     if (newRows.length) {
       const { error: insErr } = await admin.from("org_lancamentos").insert(newRows);
-      if (!insErr) added = newRows.length;
+      if (insErr) return json({ error: "Falha ao gravar no pote: " + insErr.message }, 500);
+      added = newRows.length;
     }
 
     await admin
@@ -130,8 +199,8 @@ Deno.serve(async (req) => {
       .update({ last_sync_at: new Date().toISOString(), last_sync_count: added })
       .eq("org_id", profile.org_id);
 
-    return json({ success: true, added, total: transactions.length });
+    return json({ success: true, added, ...resumo });
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
 });
