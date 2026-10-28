@@ -130,7 +130,7 @@ async function abrirAba(page, nome) {
 
 async function exportarAppBarber(context) {
   const page = await context.newPage();
-  await page.goto(`${APPBARBER_URL}/login.php`, { waitUntil: "networkidle" });
+  await page.goto(`${APPBARBER_URL}/login.php`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   const rejeitar = page.getByText("Rejeitar não essenciais");
   if (await rejeitar.isVisible().catch(() => false)) await rejeitar.click();
 
@@ -150,7 +150,7 @@ async function exportarAppBarber(context) {
   }
   log("AppBarber: login ok");
 
-  await page.goto(`${APPBARBER_URL}/index.php#/relGerencialRankings`, { waitUntil: "networkidle" });
+  await page.goto(`${APPBARBER_URL}/index.php#/relGerencialRankings`, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await page.locator("#DataIni").waitFor({ timeout: 60_000 });
   // A tela preenche datas padrão quando termina de carregar; espera isso
   // acontecer para não ter as nossas sobrescritas.
