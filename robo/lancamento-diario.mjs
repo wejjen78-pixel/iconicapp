@@ -407,6 +407,46 @@ async function parteRelatorio(iconic) {
   registrar(`Relatório ${DATA_BR}: ${avisos.length} aviso(s) no sininho; ${enviadas} notificação(ões) enviada(s)${falhou ? `, ${falhou} falharam` : ""}.`);
 }
 
+// ── Aviso de falha para o dono (sininho + notificação) ─────────────────────
+// Só funciona se o login no Iconic deu certo (é ele que dá acesso ao banco);
+// se o próprio login falhar, sobra o e-mail que o GitHub manda quando o job falha.
+
+async function avisarFalha(iconic, falhas) {
+  const execucao = process.env.GITHUB_RUN_ID
+    ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+    : "";
+  const aviso = {
+    barbeiro_id: null,
+    chave: `${DATA}:falha`,
+    dt: DATA,
+    lido: false,
+    titulo: `⚠️ Lançamento de ${DIA}/${MES} com problema`,
+    corpo: falhas.map((f) => "• " + f.slice(0, 160)).join("\n") + "\nConfira o dia no Iconic ou rode o robô de novo pelo GitHub.",
+    dados: { falhas, execucao },
+  };
+  const ins = await restIconic(iconic, "POST", "avisos?on_conflict=org_id,chave", [aviso], { Prefer: "resolution=merge-duplicates,return=minimal" });
+  if (!ins.ok) log(`aviso de falha não gravado (HTTP ${ins.status})`);
+
+  const privada = process.env.VAPID_PRIVADA;
+  const subs = await restIconic(iconic, "GET", "push_subs?select=id,sub&role=eq.dono");
+  if (!privada || !subs.ok || !subs.body.length) {
+    registrar("Aviso de falha: gravado no sininho (sem notificação no celular — nenhum aparelho do dono ativado).");
+    return;
+  }
+  const webpush = (await import("web-push")).default;
+  webpush.setVapidDetails(ICONIC_URL, VAPID_PUBLICA, privada);
+  let enviadas = 0;
+  for (const s of subs.body) {
+    try {
+      await webpush.sendNotification(s.sub, JSON.stringify({ titulo: aviso.titulo, corpo: aviso.corpo, tag: aviso.chave, url: "./?avisos=1" }));
+      enviadas++;
+    } catch (e) {
+      if (e.statusCode === 404 || e.statusCode === 410) await restIconic(iconic, "DELETE", `push_subs?id=eq.${s.id}`);
+    }
+  }
+  registrar(`Aviso de falha: gravado no sininho e enviado para ${enviadas} aparelho(s) do dono.`);
+}
+
 // ── Execução ───────────────────────────────────────────────────────────────
 
 fs.mkdirSync(SAIDA, { recursive: true });
@@ -438,6 +478,11 @@ if (iconic) {
   if (PARTES.includes("relatorio")) {
     try { await parteRelatorio(iconic); } catch (e) { falhas.push("Relatório: " + e.message); await print(iconic.page, "erro-relatorio"); }
   }
+  // TESTAR_AVISO=1 (disparo manual) simula uma falha para conferir o aviso no celular.
+  if (process.env.TESTAR_AVISO === "1") falhas.push("Teste do aviso de falha (nada deu errado de verdade).");
+  if (falhas.length && (!PREVIA || process.env.TESTAR_AVISO === "1")) {
+    try { await avisarFalha(iconic, falhas); } catch (e) { log("aviso de falha não enviado: " + e.message); }
+  }
 }
 
 await browser.close();
@@ -445,4 +490,5 @@ await browser.close();
 for (const f of falhas) registrar("❌ " + f);
 const md = `### Lançamento diário — ${DATA_BR}${PREVIA ? " (prévia)" : ""}\n\n${resumo.map((l) => "- " + l).join("\n")}\n`;
 if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md);
-process.exit(falhas.length ? 1 : 0);
+// O teste do aviso (TESTAR_AVISO) não conta como falha de verdade.
+process.exit(falhas.filter((f) => !f.startsWith("Teste do aviso")).length ? 1 : 0);

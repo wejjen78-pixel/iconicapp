@@ -24,6 +24,10 @@ on:
           - relatorio
           - appbarber
           - celcash
+      testar_aviso:
+        description: "Mandar um aviso de falha de teste para o celular"
+        type: boolean
+        default: false
 
 concurrency:
   group: lancamento-diario
@@ -74,6 +78,7 @@ jobs:
           PREVIA: ${{ inputs.previa && '1' || '0' }}
           PARTES: ${{ inputs.partes || 'appbarber,celcash,relatorio' }}
           VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}
+          TESTAR_AVISO: ${{ inputs.testar_aviso && '1' || '0' }}
         run: node lancamento-diario.mjs
       - name: Guardar prints e planilha
         if: always() && steps.alvo.outputs.pular != 'true'
