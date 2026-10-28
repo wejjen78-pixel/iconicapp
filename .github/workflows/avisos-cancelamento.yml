@@ -1,0 +1,34 @@
+name: Aviso de cancelamento (Cel Cash)
+
+on:
+  schedule:
+    # De hora em hora, das 9h às 21h em Brasília (12h–00h UTC).
+    - cron: "5 12-23 * * *"
+    - cron: "5 0 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: avisos-cancelamento
+  cancel-in-progress: false
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: robo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Só o web-push: este robô não abre navegador.
+      - run: npm install --no-audit --no-fund --no-save web-push@3.6.7
+      - name: Checar cancelamentos
+        env:
+          ICONIC_EMAIL: ${{ secrets.ICONIC_EMAIL }}
+          ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}
+        run: node cancelamentos.mjs

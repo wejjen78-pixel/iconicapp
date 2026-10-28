@@ -299,11 +299,12 @@ async function parteCelCash(iconic) {
     { url: `${SUPABASE_URL}/functions/v1/galaxpay-sync`, token, body: { date: DATA, dryRun: PREVIA } }
   );
   if (r.error) throw new Error("Cel Cash: " + r.error);
-  const fora = r.foraDoPlano?.qtd ? ` (${r.foraDoPlano.qtd} avulso(s) de R$ ${r.foraDoPlano.valor} ficaram de fora)` : "";
+  // O resumo das execuções é público (repositório público): sem valores nem nomes.
+  const fora = r.foraDoPlano?.qtd ? ` (${r.foraDoPlano.qtd} avulso(s) ficaram de fora)` : "";
   if (PREVIA) {
-    registrar(`Cel Cash ${DATA_BR}: ${r.novas} pagamento(s) de planos, R$ ${r.valorNovas} (PRÉVIA — não lançado)${fora}.`);
+    registrar(`Cel Cash ${DATA_BR}: ${r.novas} pagamento(s) de planos (PRÉVIA — não lançado)${fora}.`);
   } else {
-    registrar(`Cel Cash ${DATA_BR}: ${r.added} pagamento(s) de planos lançados no pote, R$ ${r.valorNovas}${r.jaLancadas ? `; ${r.jaLancadas} já estavam lançados` : ""}${fora}.`);
+    registrar(`Cel Cash ${DATA_BR}: ${r.added} pagamento(s) de planos lançados no pote${r.jaLancadas ? `; ${r.jaLancadas} já estavam lançados` : ""}${fora}.`);
   }
 }
 
@@ -367,7 +368,7 @@ async function parteRelatorio(iconic) {
     { barbeiro_id: null, chave: `${DATA}:equipe`, ...textoDono(lista), dados: { barbeiros: lista } },
   ];
   if (PREVIA) {
-    for (const a of avisos) registrar(`Relatório (PRÉVIA) · ${a.titulo} — ${a.corpo.replace(/\n/g, " | ")}`);
+    registrar(`Relatório ${DATA_BR} (PRÉVIA): ${avisos.length} mensagem(ns) montada(s), ${lista.filter((r) => r.realizado >= r.metaDia).length} de ${lista.length} barbeiro(s) bateram a meta. Nada enviado.`);
     return;
   }
 

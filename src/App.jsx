@@ -635,14 +635,19 @@ export default function App(){
     // carregava só uma fatia arbitrária deles (e os totais vinham errados).
     // A ordenação é por id porque criado_em empata em massa (migração/importação
     // gravam tudo no mesmo instante) e empate torna a paginação instável.
+    // Velocidade: conta as linhas e baixa todos os blocos (e o org_data) ao mesmo
+    // tempo, em vez de um bloco depois do outro (~15 viagens em fila = 6–8 s).
     const PAG=1000;let lancRows=[];let lancErr=null;
-    for(let from=0;;from+=PAG){
-      const{data:parte,error:errParte}=await supabase.from("org_lancamentos").select("tipo,payload").eq("org_id",orgId).order("id",{ascending:true}).range(from,from+PAG-1);
-      if(errParte){lancErr=errParte;break;}
-      lancRows=lancRows.concat(parte||[]);
-      if(!parte||parte.length<PAG)break;
+    const orgDataP=supabase.from("org_data").select("data").eq("org_id",orgId).single();
+    const{count,error:errCount}=await supabase.from("org_lancamentos").select("id",{count:"exact",head:true}).eq("org_id",orgId);
+    if(errCount)lancErr=errCount;
+    else{
+      // +1 bloco de folga: lançamentos gravados entre a contagem e a busca não ficam de fora.
+      const blocos=Math.max(1,Math.ceil((count||0)/PAG)+1);
+      const partes=await Promise.all(Array.from({length:blocos},(_,i)=>supabase.from("org_lancamentos").select("tipo,payload").eq("org_id",orgId).order("id",{ascending:true}).range(i*PAG,i*PAG+PAG-1)));
+      for(const p of partes){if(p.error){lancErr=p.error;break;}lancRows=lancRows.concat(p.data||[]);}
     }
-    const{data:row,error}=await supabase.from("org_data").select("data").eq("org_id",orgId).single();
+    const{data:row,error}=await orgDataP;
     // Se a busca falhar, NÃO marcamos como carregado — isso evita que o
     // salvamento automático grave dados vazios por cima dos dados reais.
     if(error){setLoadError(error.message);return;}
@@ -1836,14 +1841,18 @@ export default function App(){
     </div>
     <div className="g2">
     {(()=>{
-      const hoje=new Date(hjS);const d7=new Date(hoje);d7.setDate(hoje.getDate()-7);
+      // Os lançamentos entram às 6:00 do dia seguinte: usa o último dia lançado
+      // (e os 7 dias até ele), não "hoje", que ficaria sempre zerado.
+      const hojeL=hj();
+      const refDia=[...svcs,...avul,...extAv,...prod].map(x=>x.dt).filter(d=>d&&d<=hojeL).sort().pop()||hojeL;
+      const ini7=(()=>{const d=new Date(refDia+"T12:00:00");d.setDate(d.getDate()-6);return d.toLocaleDateString("en-CA");})();
+      const na7=d=>d>=ini7&&d<=refDia;
       const txL=bAtSel.txPct/100;
-      const comHojeB=(bAtSel.avB.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>p.dt===hjS).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0)+(poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL);
-      const semAvExtB=bAtSel.avB.filter(s=>{const d=new Date(s.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0);
-      const semProdB=bAtSel.prB.filter(p=>{const d=new Date(p.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.2);},0);
-      const semPoteB=poM.filter(e=>{const d=new Date(e.dt+"T12:00:00");return d>=d7&&d<=hoje;}).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL;
-      const comSemanaB=semAvExtB*txL+semProdB+semPoteB;
-      return <div className="card"><div className="st">💰 Comissão do dia e da semana</div><div className="g2"><div style={{background:"#f0fdf4",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>HOJE</div><div style={{fontSize:20,fontWeight:800,color:"#059669"}}>{R(comHojeB)}</div></div><div style={{background:"#ecfeff",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>SEMANA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(comSemanaB)}</div></div></div></div>;
+      const comProd=p=>{const pd=prodLst.find(x=>x.nome===p.prod);return p.val*p.qt*(pd?.comissao??0.2);};
+      const comDiaB=(bAtSel.avB.filter(s=>s.dt===refDia).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>e.dt===refDia).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>p.dt===refDia).reduce((a,p)=>a+comProd(p),0)+(pote.filter(e=>e.dt===refDia).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL);
+      const com7B=(bAtSel.avB.filter(s=>na7(s.dt)).reduce((a,s)=>a+s.val*s.qt,0)+bAtSel.exB.filter(e=>na7(e.dt)).reduce((a,e)=>a+e.val,0))*txL+bAtSel.prB.filter(p=>na7(p.dt)).reduce((a,p)=>a+comProd(p),0)+pote.filter(e=>na7(e.dt)).reduce((a,e)=>a+e.val,0)*bAtSel.pct*txL;
+      const dd=d=>d.split("-").reverse().slice(0,2).join("/");
+      return <div className="card"><div className="st">💰 Comissão do dia e da semana</div><div className="g2"><div style={{background:"#f0fdf4",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>ÚLTIMO DIA LANÇADO · {dd(refDia)}</div><div style={{fontSize:20,fontWeight:800,color:"#059669"}}>{R(comDiaB)}</div></div><div style={{background:"#ecfeff",borderRadius:8,padding:"12px 14px",textAlign:"center"}}><div style={{fontSize:10,color:"#0e7490",fontWeight:700}}>7 DIAS · {dd(ini7)} a {dd(refDia)}</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(com7B)}</div></div></div></div>;
     })()}
     {(()=>{
       const horasKey=bAtSel.id+"-"+ano+"-"+mes;

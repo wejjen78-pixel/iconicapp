@@ -268,6 +268,48 @@ async function relatorioAssinaturas(token: string, mes: string) {
   };
 }
 
+// ── Cancelamentos recentes (para o aviso no celular do dono) ───────────────
+// Só as assinaturas canceladas/atualizadas desde `desde` — rápido, sem baixar
+// a lista inteira. Troca de plano (o cliente tem outra assinatura ativa ou
+// criada até 15 dias depois) não conta como cancelamento.
+
+async function cancelamentosRecentes(token: string, desde: string) {
+  const get = async (params: Record<string, string>) => {
+    const out: any[] = [];
+    for (let startAt = 0; ; startAt += 100) {
+      const qs = new URLSearchParams({ ...params, startAt: String(startAt), limit: "100" });
+      const res = await fetch(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) throw new Error("Cel Cash recusou a consulta de assinaturas: " + celcashErro(data, `HTTP ${res.status}`));
+      const page = data.Subscriptions || [];
+      out.push(...page);
+      if (page.length < 100) break;
+    }
+    return out;
+  };
+  const canceladas = (await get({ status: "canceled", createdAtOrUpdatedAtFrom: desde })).filter(
+    (s) => String(s.updatedAt || "").slice(0, 10) >= desde.slice(0, 10)
+  );
+  const reais = [];
+  for (const s of canceladas) {
+    const cliente = s.Customer?.galaxPayId;
+    if (cliente) {
+      const outras = (await get({ customerGalaxPayIds: String(cliente) })).filter((o) => o.galaxPayId !== s.galaxPayId);
+      const fim = Date.parse(String(s.updatedAt || s.createdAt));
+      const troca = outras.some((o) => o.status === "active" || Math.abs(Date.parse(String(o.createdAt)) - fim) <= 15 * 86_400_000);
+      if (troca) continue;
+    }
+    reais.push({
+      id: s.galaxPayId,
+      cliente: s.Customer?.name || "",
+      plano: s.additionalInfo || "",
+      valor: centavos(s.value),
+      cancelada: String(s.updatedAt || "").slice(0, 16).replace("T", " "),
+    });
+  }
+  return { desde, cancelamentos: reais };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -313,7 +355,12 @@ Deno.serve(async (req) => {
     const liquido = body.valor === "liquido";
 
     // Assinaturas pedem permissão extra; só pede quando precisa, para não afetar a sincronização.
-    const token = await celcashToken(integ.galax_id, integ.galax_hash, body.acao === "assinaturas" ? "transactions.read subscriptions.read" : "transactions.read");
+    const precisaAssinaturas = body.acao === "assinaturas" || body.acao === "cancelamentos";
+    const token = await celcashToken(integ.galax_id, integ.galax_hash, precisaAssinaturas ? "transactions.read subscriptions.read" : "transactions.read");
+    if (body.acao === "cancelamentos") {
+      const desde = /^\d{4}-\d{2}-\d{2}/.test(body.desde || "") ? body.desde : hojeSP();
+      return json({ success: true, ...(await cancelamentosRecentes(token, desde)) });
+    }
     if (body.acao === "taxas") {
       const mes = /^\d{4}-\d{2}$/.test(body.mes || "") ? body.mes : hojeSP().slice(0, 7);
       return json({ success: true, ...(await relatorioTaxas(token, mes)) });

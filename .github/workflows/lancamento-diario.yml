@@ -80,10 +80,3 @@ jobs:
           VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}
           TESTAR_AVISO: ${{ inputs.testar_aviso && '1' || '0' }}
         run: node lancamento-diario.mjs
-      - name: Guardar prints e planilha
-        if: always() && steps.alvo.outputs.pular != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: saida-${{ github.run_id }}
-          path: robo/saida
-          retention-days: 7
