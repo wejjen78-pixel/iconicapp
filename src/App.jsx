@@ -16,7 +16,9 @@ const uid=()=>Math.random().toString(36).substr(2,8);
 const R=v=>(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 // Chave pública VAPID das notificações (a privada fica só no segredo VAPID_PRIVADA do robô).
 const VAPID_PUBLICA="BDRu0BVE2knfRY4OQ97MJRU8i2RjqYC5rjmxqAn26JUXLvOYQKnCtT-gOrJRfZt9BQqvQ23C93Lo6mU3Ll8ObQg";
-const hj=()=>new Date().toISOString().split("T")[0];
+// Data de hoje no fuso do aparelho (AAAA-MM-DD). toISOString() usa UTC e no Brasil
+// já virava o dia às 21h, lançando no dia seguinte.
+const hj=()=>new Date().toLocaleDateString("en-CA");
 
 // ── COR DINÂMICA (vermelho → verde conforme % da meta) ────────────────────────
 function interpolateColor(a,b,t){const r=Math.round(a[0]+(b[0]-a[0])*t);const g=Math.round(a[1]+(b[1]-a[1])*t);const bl=Math.round(a[2]+(b[2]-a[2])*t);return`rgb(${r},${g},${bl})`;}
@@ -571,7 +573,7 @@ export default function App(){
     const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
-    a.href=url;a.download="backup-"+new Date().toISOString().slice(0,10)+".json";
+    a.href=url;a.download="backup-"+hj()+".json";
     document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
     addNotif("💾","Backup salvo!");
   }
@@ -981,7 +983,7 @@ export default function App(){
     setGalaxId("");setGalaxHash("");addNotif("🔗","Credenciais GalaxPay salvas!");
     await refreshGalaxStatus();setGalaxSaving(false);
   }
-  // Sincroniza só um dia (padrão: hoje no horário local — hj() usa UTC e vira o dia às 21h).
+  // Sincroniza só um dia (padrão: hoje no horário local).
   const[galaxDt,setGalaxDt]=useState(()=>new Date().toLocaleDateString("en-CA"));
   const[galaxPrev,setGalaxPrev]=useState(null);
   async function sincronizarGalaxPay(dryRun=false){
