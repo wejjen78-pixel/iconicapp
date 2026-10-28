@@ -210,12 +210,31 @@ async function relatorioAssinaturas(token: string, mes: string) {
   const valor = r2([...porAssinatura.values()].reduce((s, v) => s + v, 0));
 
   const subs = await celcashAssinaturas(token);
-  const primeiraDoCliente = new Map<string, string>();
+  const criada = (s: any) => String(s.createdAt || "").slice(0, 10);
+  const fimDe = (s: any) => (s.status === "active" ? "9999-12-31" : String(s.updatedAt || s.createdAt || "").slice(0, 10));
+  const porCliente = new Map<string, any[]>();
   for (const s of subs) {
     const c = clienteDe(s);
-    const d = String(s.createdAt || "").slice(0, 10);
-    if (!primeiraDoCliente.has(c) || d < primeiraDoCliente.get(c)!) primeiraDoCliente.set(c, d);
+    if (!porCliente.has(c)) porCliente.set(c, []);
+    porCliente.get(c)!.push(s);
   }
+  const diasEntre = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / 86_400_000;
+  // Troca de plano: o Cel Cash cancela a assinatura antiga e cria outra para o
+  // mesmo cliente. Se a nova nasce até 15 dias depois do fim da anterior (ou com
+  // a anterior ainda ativa), não é cancelamento nem reativação.
+  const JANELA_TROCA = 15;
+  const anterior = (s: any) =>
+    porCliente.get(clienteDe(s))!.filter((p) => p !== s && criada(p) < criada(s)).sort((a, b) => criada(b).localeCompare(criada(a)))[0];
+  const posterior = (s: any) =>
+    porCliente.get(clienteDe(s))!.filter((p) => p !== s && criada(p) >= criada(s)).sort((a, b) => criada(a).localeCompare(criada(b)))[0];
+  const ehTrocaEntrada = (s: any) => {
+    const p = anterior(s);
+    return !!p && diasEntre(fimDe(p) === "9999-12-31" ? criada(s) : fimDe(p), criada(s)) <= JANELA_TROCA;
+  };
+  const ehTrocaSaida = (s: any) => {
+    const n = posterior(s);
+    return !!n && diasEntre(fimDe(s), criada(n)) <= JANELA_TROCA;
+  };
   const resumo = (s: any) => ({
     id: s.galaxPayId,
     cliente: s.Customer?.name || "",
@@ -224,10 +243,11 @@ async function relatorioAssinaturas(token: string, mes: string) {
     criada: String(s.createdAt || "").slice(0, 10),
     atualizada: String(s.updatedAt || "").slice(0, 10),
   });
-  const criadasNoMes = subs.filter((s) => noMes(String(s.createdAt || "").slice(0, 10)));
-  const novos = criadasNoMes.filter((s) => primeiraDoCliente.get(clienteDe(s)) === String(s.createdAt).slice(0, 10)).map(resumo);
-  const reativacoes = criadasNoMes.filter((s) => primeiraDoCliente.get(clienteDe(s))! < String(s.createdAt).slice(0, 10)).map(resumo);
-  const cancelamentos = subs.filter((s) => s.status === "canceled" && noMes(String(s.updatedAt || "").slice(0, 10))).map(resumo);
+  const criadasNoMes = subs.filter((s) => noMes(criada(s)));
+  const novos = criadasNoMes.filter((s) => !anterior(s)).map(resumo);
+  const trocas = criadasNoMes.filter((s) => anterior(s) && ehTrocaEntrada(s)).map(resumo);
+  const reativacoes = criadasNoMes.filter((s) => anterior(s) && !ehTrocaEntrada(s)).map(resumo);
+  const cancelamentos = subs.filter((s) => s.status === "canceled" && noMes(fimDe(s)) && !ehTrocaSaida(s)).map(resumo);
 
   return {
     mes,
@@ -239,10 +259,12 @@ async function relatorioAssinaturas(token: string, mes: string) {
       novos: novos.length,
       reativacoes: reativacoes.length,
       cancelamentos: cancelamentos.length,
+      trocas: trocas.length,
     },
     novos,
     reativacoes,
     cancelamentos,
+    trocas,
   };
 }
 

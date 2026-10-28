@@ -1027,7 +1027,8 @@ export default function App(){
     if(data?.error){setAssiErr(data.error);setAssiLoad(false);return;}
     setAssiRel(data);setAssiLoad(false);
   }
-  useEffect(()=>{if(aba==="assi"&&isDono&&galaxStatus?.configured)carregarAssinaturas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
+  // Busca todas as assinaturas do Cel Cash (~1 min): só carrega sozinho quando muda o mês.
+  useEffect(()=>{if(aba==="assi"&&isDono&&galaxStatus?.configured&&assiRel?.mes!==ano+"-"+String(mes+1).padStart(2,"0")&&!assiLoad)carregarAssinaturas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
 
   // ── AVISOS (sininho) E NOTIFICAÇÕES NO CELULAR ─────────────────────────────
   // O robô das 6:00 grava o mini relatório em "avisos" e envia Web Push para
@@ -2121,7 +2122,7 @@ export default function App(){
       <div className="card" style={{borderLeft:"3px solid #0e7490"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div><div className="st" style={{marginBottom:2}}>Assinaturas · {MESES[mes]} {ano}</div><div style={{fontSize:12,color:"#888"}}>Pagantes, valor, novos, reativações e cancelamentos vêm do Cel Cash; atendimentos vêm das fichas do clube lançadas.</div></div>
-          <button className="btn bsm" onClick={carregarAssinaturas} disabled={assiLoad||!galaxStatus?.configured}>{assiLoad?"Carregando...":"🔄 Atualizar"}</button>
+          <button className="btn bsm" onClick={carregarAssinaturas} disabled={assiLoad||!galaxStatus?.configured}>{assiLoad?"Carregando (até 1 min)...":"🔄 Atualizar"}</button>
         </div>
         {assiErr&&<div style={{marginTop:10,padding:"7px 11px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:6,fontSize:12,color:"#dc2626"}}>{assiErr}</div>}
       </div>
@@ -2132,15 +2133,17 @@ export default function App(){
           <KPI lbl="Ticket médio" val={R(s.ticket)} cor="#0284c7"/>
           <KPI lbl="Frequência média" val={freq.toFixed(1).replace(".",",")+"x"} cor="#7c3aed" sub={atendAssin+" atendimentos de assinantes"}/>
         </div>
-        <div className="g3">
+        <div className="g4">
           <KPI lbl="Novos assinantes" val={s.novos} cor="#059669"/>
-          <KPI lbl="Reativações" val={s.reativacoes} cor="#0284c7"/>
+          <KPI lbl="Reativações" val={s.reativacoes} cor="#0284c7" sub="voltaram depois de cancelar"/>
           <KPI lbl="Cancelamentos" val={s.cancelamentos} cor="#dc2626" sub={"Saldo do mês: "+(s.novos+s.reativacoes-s.cancelamentos>=0?"+":"")+(s.novos+s.reativacoes-s.cancelamentos)}/>
+          <KPI lbl="Trocas de plano" val={s.trocas||0} cor="#7c3aed" sub="não contam como cancelamento"/>
         </div>
-        <div className="g3">
+        <div className="g2">
           <div className="card"><div className="st" style={{marginBottom:0}}>🆕 Novos</div>{lista("n",assiRel.novos)}</div>
           <div className="card"><div className="st" style={{marginBottom:0}}>🔁 Reativações</div>{lista("r",assiRel.reativacoes)}</div>
           <div className="card"><div className="st" style={{marginBottom:0}}>❌ Cancelamentos</div>{lista("c",assiRel.cancelamentos)}</div>
+          <div className="card"><div className="st" style={{marginBottom:0}}>🔄 Trocas de plano</div>{lista("n",assiRel.trocas)}</div>
         </div>
       </>}
     </>;
