@@ -20,15 +20,22 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Status do Cel Cash que representam dinheiro que efetivamente entrou.
-const PAID_STATUSES = [
-  "captured",
-  "payedBoleto",
-  "moreValueBoleto",
-  "lessValueBoleto",
-  "payedPix",
-  "payExternal",
-];
+// Status do Cel Cash que NÃO são pagamento (em aberto, cancelado, negado...).
+// Filtra por exclusão para bater com o filtro "Pago" do painel, que inclui
+// status sem código documentado (ex.: "Pago na Pagamento Express").
+const UNPAID_STATUSES = new Set([
+  "noSend",
+  "denied",
+  "reversed",
+  "chargeback",
+  "pendingBoleto",
+  "notCompensated",
+  "pendingPix",
+  "unavailablePix",
+  "cancel",
+  "cancelByContract",
+  "free",
+]);
 
 function json(obj: unknown, status = 200) {
   return new Response(JSON.stringify(obj), {
@@ -69,7 +76,6 @@ async function celcashTransacoesPagas(token: string, startDate: string, endDate:
     const qs = new URLSearchParams({
       updateStatusFrom: startDate,
       updateStatusTo: endDate,
-      status: PAID_STATUSES.join(","),
       startAt: String(startAt),
       limit: "100",
       order: "createdAt.asc",
@@ -82,7 +88,7 @@ async function celcashTransacoesPagas(token: string, startDate: string, endDate:
       throw new Error("Cel Cash recusou a consulta: " + celcashErro(data, `HTTP ${res.status}`));
     }
     const page = data.Transactions || [];
-    all.push(...page);
+    all.push(...page.filter((t: any) => !UNPAID_STATUSES.has(t.status)));
     if (page.length < 100) break;
   }
   return all;
