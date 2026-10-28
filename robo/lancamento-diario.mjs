@@ -65,9 +65,21 @@ async function entrarIconic(context) {
     if (!apikey && req.url().startsWith(SUPABASE_URL)) apikey = req.headers()["apikey"] || null;
   });
   await page.goto(ICONIC_URL, { waitUntil: "networkidle" });
-  await page.fill('input[name="email"]', exigir("ICONIC_EMAIL"));
+  await page.fill('input[name="email"]', exigir("ICONIC_EMAIL").trim());
   await page.fill('input[name="password"]', exigir("ICONIC_SENHA"));
+  const tam = await page.evaluate(() => ({
+    email: document.querySelector('input[name="email"]').value.length,
+    senha: document.querySelector('input[name="password"]').value.length,
+  }));
+  log(`Iconic: campos preenchidos (e-mail ${tam.email} caracteres, senha ${tam.senha})`);
+  const resposta = page.waitForResponse((r) => r.url().includes("/auth/v1/token"), { timeout: 30_000 }).catch(() => null);
   await page.click('button[type="submit"]');
+  const r = await resposta;
+  log(`Iconic: resposta do login: ${r ? "HTTP " + r.status() : "nenhum pedido de login saiu"}`);
+  if (r && !r.ok()) {
+    const corpo = await r.json().catch(() => ({}));
+    throw new Error(`servidor recusou o login (HTTP ${r.status()}: ${corpo.error_description || corpo.msg || corpo.error || "?"}). Confira os segredos ICONIC_EMAIL/ICONIC_SENHA.`);
+  }
   try {
     await page.getByText("Importar Excel", { exact: true }).first().waitFor({ timeout: 60_000 });
   } catch {
