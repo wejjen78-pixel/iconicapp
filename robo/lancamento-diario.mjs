@@ -68,7 +68,14 @@ async function entrarIconic(context) {
   await page.fill('input[name="email"]', exigir("ICONIC_EMAIL"));
   await page.fill('input[name="password"]', exigir("ICONIC_SENHA"));
   await page.click('button[type="submit"]');
-  await page.getByText("Importar Excel", { exact: true }).first().waitFor({ timeout: 60_000 });
+  try {
+    await page.getByText("Importar Excel", { exact: true }).first().waitFor({ timeout: 60_000 });
+  } catch {
+    await print(page, "iconic-login");
+    const erro = await page.locator("form .card div, form div").filter({ hasText: /inválid|incorret|erro|Invalid/i }).first().innerText().catch(() => "");
+    const texto = (await page.locator("body").innerText().catch(() => "")).replace(/\s+/g, " ").slice(0, 300);
+    throw new Error(erro ? `mensagem do Iconic: "${erro}"` : `não chegou à tela principal. Tela: "${texto}"`);
+  }
   log("Iconic: login ok");
   return { page, getApikey: () => apikey };
 }
