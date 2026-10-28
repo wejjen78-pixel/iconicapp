@@ -24,6 +24,10 @@ on:
           - relatorio
           - appbarber
           - celcash
+      backup:
+        description: "Fazer o backup no final"
+        type: boolean
+        default: false
       testar_aviso:
         description: "Mandar um aviso de falha de teste para o celular"
         type: boolean
@@ -80,3 +84,10 @@ jobs:
           VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}
           TESTAR_AVISO: ${{ inputs.testar_aviso && '1' || '0' }}
         run: node lancamento-diario.mjs
+      - name: Backup diário (pasta privada do Supabase)
+        if: always() && steps.alvo.outputs.pular != 'true' && (github.event_name == 'schedule' || inputs.backup)
+        env:
+          ICONIC_EMAIL: ${{ secrets.ICONIC_EMAIL }}
+          ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: node backup.mjs

@@ -638,7 +638,10 @@ export default function App(){
     // Velocidade: conta as linhas e baixa todos os blocos (e o org_data) ao mesmo
     // tempo, em vez de um bloco depois do outro (~15 viagens em fila = 6–8 s).
     const PAG=1000;let lancRows=[];let lancErr=null;
-    const orgDataP=supabase.from("org_data").select("data").eq("org_id",orgId).single();
+    // Barbeiro não lê o org_data inteiro (salários, custos, saldo — ver schema_v7):
+    // recebe só o que as telas dele usam. Sem a função no banco, cai no jeito antigo.
+    const orgDataP=isDono?supabase.from("org_data").select("data").eq("org_id",orgId).single():
+      supabase.rpc("org_data_barbeiro").then(r=>r.error?supabase.from("org_data").select("data").eq("org_id",orgId).single():{data:{data:r.data},error:null});
     const{count,error:errCount}=await supabase.from("org_lancamentos").select("id",{count:"exact",head:true}).eq("org_id",orgId);
     if(errCount)lancErr=errCount;
     else{
@@ -676,6 +679,19 @@ export default function App(){
     setVales(grupos.vales);setCoaching(grupos.coaching);setInstaLancamentos(grupos.instaLancamentos);
     setLoaded(true);
   })();},[orgId,loadTick]);
+
+  // Voltou para o app depois de 1+ min fora: recarrega do servidor, para um
+  // celular com dados velhos não salvar por cima do que o robô ou outro aparelho
+  // gravou. Se houver alteração ainda sendo salva, espera.
+  useEffect(()=>{
+    let saiuEm=0;
+    const onVis=()=>{
+      if(document.visibilityState==="hidden"){saiuEm=Date.now();return;}
+      if(saiuEm&&Date.now()-saiuEm>60_000&&!stRef.current)setLoadTick(t=>t+1);
+    };
+    document.addEventListener("visibilitychange",onVis);
+    return()=>document.removeEventListener("visibilitychange",onVis);
+  },[]);
 
   // ── AUTO-SAVE (Supabase) ─────────────────────────────────────────────────
   // Nunca salva se o carregamento inicial não foi confirmado (evita sobrescrever dados reais com estado vazio).
@@ -2022,6 +2038,14 @@ export default function App(){
 
 {/* ─── LANÇAMENTO ─── */}
 {aba==="lanc"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
+  {(()=>{
+    // Até que dia o robô das 6:00 já importou (lançamentos vindos do Excel, src "pdf").
+    const ultRobo=[...svcs,...avul,...extAv,...prod].filter(x=>x.src==="pdf"&&x.dt).map(x=>x.dt).sort().pop();
+    if(!ultRobo)return null;
+    return <div className="card" style={{background:"#fffbeb",border:"1px solid #fde68a",padding:"10px 14px",fontSize:12,color:"#92400e"}}>
+      🤖 O robô já lançou serviços e produtos até <b>{ultRobo.split("-").reverse().join("/")}</b>. Lance aqui só o que ficou de fora — lançar de novo um dia que o robô já lançou duplica os valores. (O último dia do mês é sempre lançado à mão.)
+    </div>;
+  })()}
   <div className="card"><div className="st">Serviço avulso</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fa.bId} onChange={e=>setFa(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Serviço</span><select className="inp" value={fa.svc} onChange={e=>{const s2=SVC_DEF.find(x=>x.nome===e.target.value);setFa(f=>({...f,svc:e.target.value,val:s2?s2.v:f.val}));}}>{SVC_DEF.map(s=><option key={s.nome}>{s.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fa.val} onChange={e=>setFa(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fa.qt} min="1" onChange={e=>setFa(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fa.dt} onChange={e=>setFa(f=>({...f,dt:e.target.value}))}/></div></div><div><span className="lbl">Nota do atendimento</span><select className="inp" value={fa.nota} onChange={e=>setFa(f=>({...f,nota:e.target.value}))}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{"⭐".repeat(n)+" ("+n+")"}</option>)}</select></div></div><button className="btn" onClick={lanAvul}>+ Lançar</button></div>
   <div className="card"><div className="st">Extra / Upsell</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fe.bId} onChange={e=>setFe(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Extra</span><select className="inp" value={fe.svc} onChange={e=>setFe(f=>({...f,svc:e.target.value}))}>{EXT_DEF.map(s=><option key={s}>{s}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fe.val} onChange={e=>setFe(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fe.qt} min="1" onChange={e=>setFe(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fe.dt} onChange={e=>setFe(f=>({...f,dt:e.target.value}))}/></div><div style={{display:"flex",alignItems:"flex-end"}}><label style={{display:"flex",alignItems:"center",gap:5,cursor:"pointer",fontSize:12,paddingBottom:10}}><input type="checkbox" checked={fe.assi} onChange={e=>setFe(f=>({...f,assi:e.target.checked}))} style={{accentColor:"#0e7490"}}/><span>Assinante</span></label></div></div></div><button className="btn" onClick={lanExt}>+ Lançar extra</button></div>
   <div className="card"><div className="st">Produto</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fp.bId} onChange={e=>setFp(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div><span className="lbl">Produto</span><select className="inp" value={fp.prod} onChange={e=>{const pd=prodLst.find(x=>x.nome===e.target.value);setFp(f=>({...f,prod:e.target.value,val:pd?pd.v:f.val}));}}>{prodLst.map(p=><option key={p.nome}>{p.nome}</option>)}</select></div><div><span className="lbl">Valor</span><input type="number" className="inp" value={fp.val} onChange={e=>setFp(f=>({...f,val:e.target.value}))}/></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fp.qt} min="1" onChange={e=>setFp(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fp.dt} onChange={e=>setFp(f=>({...f,dt:e.target.value}))}/></div></div></div>{fp.prod&&estoque[fp.prod]!=null&&<div style={{fontSize:12,color:estoque[fp.prod]>0?"#059669":"#dc2626",marginBottom:8,background:estoque[fp.prod]>0?"#f0fdf4":"#fef2f2",padding:"5px 9px",borderRadius:6}}>Estoque: <b>{estoque[fp.prod]}</b></div>}<button className="btn" onClick={lanProd}>+ Lançar produto</button></div>

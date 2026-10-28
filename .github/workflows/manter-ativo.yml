@@ -1,0 +1,25 @@
+name: Manter robôs ativos
+
+# O GitHub desliga tarefas agendadas de repositórios públicos depois de 60 dias
+# sem mudanças no código — o robô das 6:00 pararia sem avisar. Todo dia 1º esta
+# tarefa reativa os agendamentos, o que zera essa contagem.
+
+on:
+  schedule:
+    - cron: "0 12 1 * *"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  reativar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reativar agendamentos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for wf in lancamento-diario.yml avisos-cancelamento.yml manter-ativo.yml; do
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$wf/enable" && echo "ok: $wf"
+          done
