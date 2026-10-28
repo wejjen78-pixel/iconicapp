@@ -547,6 +547,14 @@ export default function App(){
   const[horasTrab,setHorasTrab]=useState({});
   const[auditLog,setAuditLog]=useState([]);
   const[simExtra,setSimExtra]=useState(0);const[simProd,setSimProd]=useState(0);const[perfDia,setPerfDia]=useState("");
+  // Relatório abre num guia; Extras, Comissões e Profit vivem dentro dele.
+  const[relSub,setRelSub]=useState("");const relVer=k=>aba===k||(aba==="rel"&&relSub===k);
+  useEffect(()=>{if(aba==="rel")setRelSub("");},[aba]);
+  function addCusto(){
+    if(!fCusto.desc||!fCusto.valor)return;
+    setCustos(l=>[...l,{id:uid(),...fCusto,categoria:fCusto.categoria||fCusto.desc}]);
+    setFCusto(f=>({desc:"",categoria:"",tipo:f.tipo,direcao:f.direcao,valor:0,dia:5}));
+  }
   const[instaMeta,setInstaMeta]=useState({storiesQt:20,storiesBon:50,reelsQt:10,reelsBon:50});
   const[instaMetaTmp,setInstaMetaTmp]=useState({storiesQt:20,storiesBon:50,reelsQt:10,reelsBon:50});
   const[instaEditMeta,setInstaEditMeta]=useState(false);
@@ -608,7 +616,7 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["extv","Extras"],["rel","Relatório"],["fech","Fechamento"],["comis","Comissões"],["custos","Custos"],["profit","Profit"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["rel","Relatório"],["fech","Fechamento"],["custos","Custos"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["intel","Inteligência"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
@@ -1006,6 +1014,20 @@ export default function App(){
     setTaxRel(data);setTaxLoad(false);
   }
   useEffect(()=>{if(aba==="taxas"&&isDono&&galaxStatus?.configured)carregarTaxas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── ASSINATURAS (painel do mês, lido sob demanda da galaxpay-sync) ─────────
+  const[assiRel,setAssiRel]=useState(null);const[assiLoad,setAssiLoad]=useState(false);const[assiErr,setAssiErr]=useState("");
+  async function carregarAssinaturas(){
+    setAssiLoad(true);setAssiErr("");
+    const{data,error}=await supabase.functions.invoke("galaxpay-sync",{body:{acao:"assinaturas",mes:ano+"-"+String(mes+1).padStart(2,"0")}});
+    if(error){
+      const msg=await error.context?.json?.().then(j=>j?.error).catch(()=>null);
+      setAssiErr(msg||error.message||"Falha ao carregar as assinaturas.");setAssiLoad(false);return;
+    }
+    if(data?.error){setAssiErr(data.error);setAssiLoad(false);return;}
+    setAssiRel(data);setAssiLoad(false);
+  }
+  useEffect(()=>{if(aba==="assi"&&isDono&&galaxStatus?.configured)carregarAssinaturas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
 
   // ── AVISOS (sininho) E NOTIFICAÇÕES NO CELULAR ─────────────────────────────
   // O robô das 6:00 grava o mini relatório em "avisos" e envia Web Push para
@@ -2090,18 +2112,62 @@ export default function App(){
 
 {/* ─── ASSINATURA ─── */}
 {aba==="assi"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card"><div className="st">Painel</div><div className="g4" style={{marginBottom:12}}>{[{l:"Ativos",v:assinD.ativas,c:"#0e7490"},{l:"Novas",v:assinD.novas,c:"#059669"},{l:"Canceladas",v:assinD.canceladas,c:"#dc2626"},{l:"Churn",v:assinD.novas-assinD.canceladas>=0?"+"+(assinD.novas-assinD.canceladas):String(assinD.novas-assinD.canceladas),c:assinD.novas-assinD.canceladas>=0?"#059669":"#dc2626"}].map((k,i)=><KPI key={i} lbl={k.l} val={k.v} cor={k.c}/>)}</div><div className="g3"><div><span className="lbl">Ativos</span><input type="number" className="inp" value={assinD.ativas} onChange={e=>setAssinD(d=>({...d,ativas:+e.target.value||0}))}/></div><div><span className="lbl">Novas</span><input type="number" className="inp" value={assinD.novas} onChange={e=>setAssinD(d=>({...d,novas:+e.target.value||0}))}/></div><div><span className="lbl">Canceladas</span><input type="number" className="inp" value={assinD.canceladas} onChange={e=>setAssinD(d=>({...d,canceladas:+e.target.value||0}))}/></div></div></div>
+  {(()=>{
+    const s=assiRel?.resumo;
+    const atendAssin=sM.reduce((a,x)=>a+(x.qt||1),0);
+    const freq=s?.pagantes?atendAssin/s.pagantes:0;
+    const lista=(t,arr,cor)=>arr?.length?<div style={{marginTop:6}}>{arr.map(x=><div key={x.id} style={{display:"flex",justifyContent:"space-between",gap:8,padding:"5px 0",borderTop:"1px solid #f5f5f5",fontSize:12}}><span>{x.cliente||"–"}</span><span style={{color:"#888",whiteSpace:"nowrap"}}>{(t==="c"?x.atualizada:x.criada).split("-").reverse().slice(0,2).join("/")} · {R(x.valor)}</span></div>)}</div>:<div style={{fontSize:12,color:"#bbb",marginTop:6}}>Nenhum no mês.</div>;
+    return <>
+      <div className="card" style={{borderLeft:"3px solid #0e7490"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div><div className="st" style={{marginBottom:2}}>Assinaturas · {MESES[mes]} {ano}</div><div style={{fontSize:12,color:"#888"}}>Pagantes, valor, novos, reativações e cancelamentos vêm do Cel Cash; atendimentos vêm das fichas do clube lançadas.</div></div>
+          <button className="btn bsm" onClick={carregarAssinaturas} disabled={assiLoad||!galaxStatus?.configured}>{assiLoad?"Carregando...":"🔄 Atualizar"}</button>
+        </div>
+        {assiErr&&<div style={{marginTop:10,padding:"7px 11px",background:"#fef2f2",border:"1px solid #fecaca",borderRadius:6,fontSize:12,color:"#dc2626"}}>{assiErr}</div>}
+      </div>
+      {s&&<>
+        <div className="g4">
+          <KPI lbl="Pagaram no mês" val={s.pagantes} cor="#0e7490" glow sub={s.ativasHoje+" ativas hoje no Cel Cash"}/>
+          <KPI lbl="Valor que entrou" val={R(s.valor)} cor="#059669"/>
+          <KPI lbl="Ticket médio" val={R(s.ticket)} cor="#0284c7"/>
+          <KPI lbl="Frequência média" val={freq.toFixed(1).replace(".",",")+"x"} cor="#7c3aed" sub={atendAssin+" atendimentos de assinantes"}/>
+        </div>
+        <div className="g3">
+          <KPI lbl="Novos assinantes" val={s.novos} cor="#059669"/>
+          <KPI lbl="Reativações" val={s.reativacoes} cor="#0284c7"/>
+          <KPI lbl="Cancelamentos" val={s.cancelamentos} cor="#dc2626" sub={"Saldo do mês: "+(s.novos+s.reativacoes-s.cancelamentos>=0?"+":"")+(s.novos+s.reativacoes-s.cancelamentos)}/>
+        </div>
+        <div className="g3">
+          <div className="card"><div className="st" style={{marginBottom:0}}>🆕 Novos</div>{lista("n",assiRel.novos)}</div>
+          <div className="card"><div className="st" style={{marginBottom:0}}>🔁 Reativações</div>{lista("r",assiRel.reativacoes)}</div>
+          <div className="card"><div className="st" style={{marginBottom:0}}>❌ Cancelamentos</div>{lista("c",assiRel.cancelamentos)}</div>
+        </div>
+      </>}
+    </>;
+  })()}
   <div className="card"><div className="st">Venda por barbeiro</div><div className="g3" style={{marginBottom:10}}><div><span className="lbl">Barbeiro</span><select className="inp" value={fav2.bId} onChange={e=>setFav2(f=>({...f,bId:e.target.value}))}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select></div><div style={{display:"flex",gap:6}}><div style={{flex:1}}><span className="lbl">Qtd</span><input type="number" className="inp" value={fav2.qt} min="1" onChange={e=>setFav2(f=>({...f,qt:e.target.value}))}/></div><div style={{flex:2}}><span className="lbl">Data</span><input type="date" className="inp" value={fav2.dt} onChange={e=>setFav2(f=>({...f,dt:e.target.value}))}/></div></div><div style={{display:"flex",alignItems:"flex-end"}}><button className="btn" style={{width:"100%"}} onClick={lanAssin}>+ Registrar</button></div></div></div>
 </div>}
 
 {/* ─── EXTRAS ─── */}
-{aba==="extv"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
+{/* ─── RELATÓRIO: guia para escolher o relatório ─── */}
+{aba==="rel"&&isDono&&(()=>{
+  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"]];
+  if(!relSub)return <div className="card"><div className="st">Qual relatório você quer ver?</div>
+    <div className="g2" style={{gap:10}}>{OPC.map(([k,ic,t,d])=><button key={k} onClick={()=>setRelSub(k)} style={{textAlign:"left",background:"#fafafa",border:"1px solid #eee",borderRadius:10,padding:"14px 16px",cursor:"pointer"}}>
+      <div style={{fontSize:22}}>{ic}</div><div style={{fontWeight:700,fontSize:14,marginTop:4}}>{t}</div><div style={{fontSize:12,color:"#888",marginTop:2}}>{d}</div></button>)}</div></div>;
+  return <div style={{display:"flex",gap:6,flexWrap:"wrap",alignItems:"center",marginBottom:14}}>
+    <button className="bg bsm" onClick={()=>setRelSub("")}>← Guia</button>
+    {OPC.map(([k,ic,t])=><button key={k} className={relSub===k?"btn bsm":"bg bsm"} onClick={()=>setRelSub(k)}>{ic} {t}</button>)}
+  </div>;
+})()}
+
+{relVer("extv")&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
   <div className="g4"><KPI lbl="Total" val={[...eM,...eAM].length} cor="#0284c7" glow/><KPI lbl="Receita" val={R(tExt)} cor="#0e7490"/><KPI lbl="TM" val={R([...eM,...eAM].length>0?tExt/[...eM,...eAM].length:0)} cor="#059669"/><KPI lbl="% fatur." val={fat>0?(tExt/fat*100).toFixed(1)+"%":"0%"} cor="#d97706"/></div>
   <div className="card"><div className="st">Ranking extras</div>{(()=>{const g=[...eM,...eAM].reduce((a,e)=>{if(!a[e.svc])a[e.svc]={nome:e.svc,qt:0,rec:0};a[e.svc].qt++;a[e.svc].rec+=e.val;return a;},{});return Object.values(g).sort((a,b2)=>b2.rec-a.rec).map((e,i)=><div key={i} className="row"><span style={{width:18,height:18,borderRadius:"50%",background:i===0?"#fef3c7":"#f0f0f5",color:i===0?"#d97706":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><div style={{flex:1,fontSize:13}}>{e.nome}</div><span style={{fontSize:11,color:"#888"}}>{e.qt}x</span><span style={{fontWeight:700,color:"#0e7490"}}>{R(e.rec)}</span></div>);})()}</div>
 </div>}
 
 {/* ─── RELATÓRIO ─── */}
-{aba==="rel"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
+{aba==="rel"&&relSub==="geral"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
   <div className="card"><div className="g4">{[{l:"Faturamento",v:R(fat),c:"#0e7490"},{l:"Assinatura",v:R(tPote),c:"#d97706"},{l:"Avulso+Extras",v:R(tSvcU+tExt),c:"#0e7490"},{l:"Produtos",v:R(tProdBruto),c:"#059669"},{l:"Ticket médio",v:R(ticketM),c:"#0284c7"},{l:"% Meta",v:((fat/meta)*100).toFixed(1)+"%",c:(fat/meta)>=1?"#059669":"#d97706"},{l:"Bônus",v:R(tBon),c:"#d97706"},{l:"vs mês ant.",v:(cresc>=0?"+":"")+cresc.toFixed(1)+"%",c:cresc>=0?"#059669":"#dc2626"}].map((k,i)=><KPI key={i} lbl={k.l} val={k.v} cor={k.c}/>)}</div></div>
   <div className="card"><div className="st">🏆 Serviços mais vendidos</div>{(()=>{const g={};sM.forEach(s=>{g[s.svc]=(g[s.svc]||0)+(s.qt||1);});aM.forEach(s=>{g[s.svc]=(g[s.svc]||0)+(s.qt||1);});const list=Object.entries(g).map(([nome,qt])=>({nome,qt})).sort((a,b)=>b.qt-a.qt).slice(0,10);return list.length===0?<div style={{color:"#ccc",textAlign:"center",padding:10}}>Nenhum lançamento.</div>:list.map((s,i)=><div key={i} className="row"><span style={{width:18,height:18,borderRadius:"50%",background:i===0?"#fef3c7":"#f0f0f5",color:i===0?"#d97706":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><div style={{flex:1,fontSize:13}}>{s.nome}</div><span style={{fontWeight:700,color:"#0e7490"}}>{s.qt}x</span></div>);})()}</div>
   <div className="card"><div className="st">Comissões</div><div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:540}}><thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Barbeiro","Fichas","Assinatura","Avulso/Extra","Produtos","Bônus","Total","Vales","Líquido"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead><tbody>{calcB.map(b=><tr key={b.id} style={{borderBottom:"1px solid #f0f0f5"}}><td style={{padding:"7px 8px"}}><div style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={20} fs={9}/><span style={{fontWeight:600}}>{b.nome.split(" ")[0]}</span></div></td><td style={{padding:"7px 8px",color:"#d97706",fontWeight:700}}>{b.ftot}pts</td><td style={{padding:"7px 8px",color:"#d97706"}}>{R(b.cPote)}</td><td style={{padding:"7px 8px",color:"#0e7490"}}>{R(b.cAv)}</td><td style={{padding:"7px 8px",color:"#059669"}}>{R(b.fPr)}</td><td style={{padding:"7px 8px",color:"#059669"}}>{b.bonTotal>0?"+"+R(b.bonTotal):"—"}</td><td style={{padding:"7px 8px",fontWeight:600,color:b.cor}}>{R(b.totCBon)}</td><td style={{padding:"7px 8px",color:b.tVale>0?"#dc2626":"#aaa"}}>{b.tVale>0?"-"+R(b.tVale):"—"}</td><td style={{padding:"7px 8px"}}><span style={{fontWeight:700,color:"#059669",background:"#dcfce7",padding:"2px 6px",borderRadius:20}}>{R(b.cLiq)}</span></td></tr>)}<tr style={{borderTop:"2px solid #e0e0f0",background:"#fafafa"}}><td style={{padding:"7px 8px",fontWeight:700}}>TOTAL</td><td style={{padding:"7px 8px",fontWeight:700,color:"#d97706"}}>{tFich}pts</td><td style={{padding:"7px 8px",fontWeight:700,color:"#d97706"}}>{R(tCP)}</td><td style={{padding:"7px 8px",fontWeight:700,color:"#0e7490"}}>{R(tCA)}</td><td style={{padding:"7px 8px",fontWeight:700,color:"#059669"}}>{R(calcB.reduce((a,b)=>a+b.fPr,0))}</td><td style={{padding:"7px 8px",fontWeight:700}}>{R(tBon)}</td><td style={{padding:"7px 8px",fontWeight:700}}>{R(calcB.reduce((a,b)=>a+b.totCBon,0))}</td><td style={{padding:"7px 8px",fontWeight:700,color:"#dc2626"}}>{tVG>0?"-"+R(tVG):"—"}</td><td style={{padding:"7px 8px"}}><span style={{fontWeight:700,color:"#059669",background:"#dcfce7",padding:"2px 6px",borderRadius:20}}>{R(tCL)}</span></td></tr></tbody></table></div></div>
@@ -2129,7 +2195,7 @@ export default function App(){
 })()}
 
 {/* ─── COMISSÕES ─── */}
-{aba==="comis"&&isDono&&(()=>{
+{relVer("comis")&&isDono&&(()=>{
   const calcBInc=calcB.filter(b=>!comisExcl.includes(b.id));
   const totalCLT=clt.reduce((a,c)=>a+(c.salario||0),0);
   const totalComAssin=calcBInc.reduce((a,b)=>a+b.cPote,0);
@@ -2247,29 +2313,35 @@ export default function App(){
       <div style={{flex:1,minWidth:140}}><span className="lbl">Comissão avulso — dia</span><input type="number" className="inp" value={diaPagAvulso} onChange={e=>setDiaPagAvulso(+e.target.value||1)}/></div>
     </div></div>
 
-    <div className="card"><div className="st">📉 Custos fixos e variáveis</div>
-      {custos.length===0&&<div style={{color:"#ccc",textAlign:"center",padding:10,fontSize:12}}>Nenhum custo cadastrado.</div>}
-      <div style={{overflowX:"auto"}}>{custos.length>0&&<table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:560}}>
-        <thead><tr style={{borderBottom:"2px solid #f0f0f5"}}>{["Descrição","Categoria","Tipo","Direção","Dia","Valor",""].map(h=><th key={h} style={{textAlign:"left",padding:"6px 8px",fontSize:10,color:"#aaa",fontWeight:600}}>{h}</th>)}</tr></thead>
-        <tbody>{custos.map(c=><tr key={c.id} style={{borderBottom:"1px solid #f0f0f5"}}>
-          <td style={{padding:"7px 8px",fontWeight:600}}>{c.desc}</td>
-          <td style={{padding:"7px 8px",color:"#888"}}>{c.categoria||"—"}</td>
-          <td style={{padding:"7px 8px"}}>{c.tipo==="fixo"?"Fixo":"Variável"}</td>
-          <td style={{padding:"7px 8px",color:c.direcao==="entrada"?"#059669":"#dc2626"}}>{c.direcao==="entrada"?"Entrada":"Saída"}</td>
-          <td style={{padding:"7px 8px",color:"#aaa"}}>{c.dia}</td>
-          <td style={{padding:"7px 8px",fontWeight:700,color:c.direcao==="entrada"?"#059669":"#dc2626"}}>{c.direcao==="entrada"?"+":"-"}{R(c.valor)}</td>
-          <td style={{padding:"7px 8px"}}><button className="bg bsm" onClick={()=>setCustos(l=>l.filter(x=>x.id!==c.id))}>Remover</button></td>
-        </tr>)}</tbody></table>}</div>
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
-        <input className="inp" placeholder="Descrição" style={{flex:2,minWidth:120}} value={fCusto.desc} onChange={e=>setFCusto(f=>({...f,desc:e.target.value}))}/>
-        <input className="inp" placeholder="Categoria" style={{flex:1,minWidth:100}} value={fCusto.categoria} onChange={e=>setFCusto(f=>({...f,categoria:e.target.value}))}/>
-        <select className="inp" style={{flex:1,minWidth:100}} value={fCusto.tipo} onChange={e=>setFCusto(f=>({...f,tipo:e.target.value}))}><option value="fixo">Fixo</option><option value="variavel">Variável</option></select>
-        <select className="inp" style={{flex:1,minWidth:100}} value={fCusto.direcao} onChange={e=>setFCusto(f=>({...f,direcao:e.target.value}))}><option value="saida">Saída</option><option value="entrada">Entrada</option></select>
-        <input type="number" className="inp" placeholder="Valor" style={{flex:1,minWidth:90}} value={fCusto.valor||""} onChange={e=>setFCusto(f=>({...f,valor:+e.target.value||0}))}/>
-        <input type="number" className="inp" placeholder="Dia" style={{flex:1,minWidth:70}} value={fCusto.dia} onChange={e=>setFCusto(f=>({...f,dia:+e.target.value||1}))}/>
-        <button className="btn bsm" onClick={()=>{if(!fCusto.desc||!fCusto.valor)return;setCustos(l=>[...l,{id:uid(),...fCusto}]);setFCusto({desc:"",categoria:"",tipo:"fixo",direcao:"saida",valor:0,dia:5});}}>Adicionar</button>
+    <div className="card"><div className="st">➕ Adicionar custo ou entrada</div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
+        {[["🏠","Aluguel","fixo"],["⚡","Energia","fixo"],["💧","Água","fixo"],["🌐","Internet","fixo"],["📱","Aplicativos","fixo"],["📦","Fornecedor","variavel"],["📣","Marketing","variavel"],["🔧","Manutenção","variavel"],["🧼","Limpeza","variavel"],["☕","Copa / café","variavel"]].map(([ic,nome,tipo])=>
+          <button key={nome} className={fCusto.desc===nome?"btn bsm":"bg bsm"} onClick={()=>setFCusto(f=>({...f,desc:nome,categoria:nome,tipo,direcao:"saida"}))}>{ic} {nome}</button>)}
+      </div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"flex-end"}} onKeyDown={e=>{if(e.key==="Enter")addCusto();}}>
+        <div style={{flex:2,minWidth:140}}><span className="lbl">Descrição</span><input className="inp" placeholder="Ex.: Aluguel" value={fCusto.desc} onChange={e=>setFCusto(f=>({...f,desc:e.target.value,categoria:f.categoria||e.target.value}))}/></div>
+        <div style={{flex:1,minWidth:100}}><span className="lbl">Valor R$</span><input type="number" className="inp" value={fCusto.valor||""} onChange={e=>setFCusto(f=>({...f,valor:+e.target.value||0}))}/></div>
+        <div style={{width:70}}><span className="lbl">Dia</span><input type="number" min="1" max="31" className="inp" value={fCusto.dia} onChange={e=>setFCusto(f=>({...f,dia:Math.min(31,Math.max(1,+e.target.value||1))}))}/></div>
+        <div style={{display:"flex",gap:4}}>{[["fixo","Fixo (todo mês)"],["variavel","Variável"]].map(([k,l])=><button key={k} className={fCusto.tipo===k?"btn bsm":"bg bsm"} onClick={()=>setFCusto(f=>({...f,tipo:k}))}>{l}</button>)}</div>
+        <div style={{display:"flex",gap:4}}>{[["saida","Saída"],["entrada","Entrada"]].map(([k,l])=><button key={k} className={fCusto.direcao===k?"btn bsm":"bg bsm"} style={fCusto.direcao===k?{background:k==="entrada"?"#059669":"#dc2626"}:{}} onClick={()=>setFCusto(f=>({...f,direcao:k}))}>{l}</button>)}</div>
+        <button className="btn" onClick={addCusto} disabled={!fCusto.desc||!fCusto.valor}>Adicionar</button>
       </div>
     </div>
+
+    {[["Custos fixos","fixo","saida","#d97706"],["Custos variáveis","variavel","saida","#dc2626"],["Entradas extras",null,"entrada","#059669"]].map(([titulo,tipo,dir,cor])=>{
+      const lista=custos.filter(c=>c.direcao===dir&&(tipo==null||c.tipo===tipo)).sort((x,y)=>(x.dia||1)-(y.dia||1));
+      const total=lista.reduce((a,c)=>a+(+c.valor||0),0);
+      const edit=(id,campo,v)=>setCustos(l=>l.map(x=>x.id===id?{...x,[campo]:v}:x));
+      return <div key={titulo} className="card" style={{borderLeft:"4px solid "+cor}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:lista.length?8:0}}><div className="st" style={{marginBottom:0}}>{titulo}</div><div style={{fontWeight:800,fontSize:16,color:cor}}>{dir==="entrada"?"+":""}{R(total)}</div></div>
+        {lista.length===0?<div style={{fontSize:12,color:"#bbb"}}>Nada cadastrado.</div>:lista.map(c=><div key={c.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderTop:"1px solid #f5f5f5",flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:120,fontSize:13,fontWeight:600}}>{c.desc}</div>
+          <span style={{fontSize:11,color:"#aaa"}}>dia</span><input type="number" min="1" max="31" className="inp" style={{width:58,padding:"4px 6px",fontSize:12}} value={c.dia||1} onChange={e=>edit(c.id,"dia",Math.min(31,Math.max(1,+e.target.value||1)))}/>
+          <input type="number" className="inp" style={{width:110,padding:"4px 6px",fontSize:12,fontWeight:700,color:cor}} value={c.valor} onChange={e=>edit(c.id,"valor",+e.target.value||0)}/>
+          <button className="bdel" title="Remover" onClick={()=>setCustos(l=>l.filter(x=>x.id!==c.id))}>×</button>
+        </div>)}
+      </div>;
+    })}
 
     <div className="card"><div className="st">Resumo do mês</div>
       {[{l:"Custos fixos",v:R(custosFixos),c:"#d97706"},{l:"Custos variáveis",v:R(custosVar),c:"#dc2626"},{l:"Entradas extras",v:"+"+R(totalEntradas),c:"#059669"}].map((k,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 12px",borderBottom:"1px solid #f8f8f8"}}><span style={{fontSize:12,color:"#666"}}>{k.l}</span><span style={{fontSize:13,fontWeight:600,color:k.c}}>{k.v}</span></div>)}
@@ -2319,7 +2391,7 @@ export default function App(){
 })()}
 
 {/* ─── PROFIT ─── */}
-{aba==="profit"&&isDono&&(()=>{
+{relVer("profit")&&isDono&&(()=>{
   const keyOf=(cat,nome)=>cat+"|"+nome;
   const setOv=(cat,nome,campo,val)=>setProfitItens(p=>({...p,[keyOf(cat,nome)]:{...(p[keyOf(cat,nome)]||{}),[campo]:val}}));
 
@@ -2357,8 +2429,12 @@ export default function App(){
   const itensFiltrados=profitCatSel?itens.filter(i=>i.cat===profitCatSel):itens;
   const corMc=m=>m>=50?"#059669":m>=30?"#d97706":"#dc2626";
 
-  // Ponto de equilíbrio — assinatura entra pelo real: receita do pote menos a comissão paga sobre ela.
-  const contribAssin=tPote-tCP;
+  // Ponto de equilíbrio — assinatura entra pelo real: receita do pote menos a comissão paga sobre ela
+  // e, quando o relatório da aba Taxas foi carregado para este mês, menos as taxas do Cel Cash.
+  const mesTaxas=ano+"-"+String(mes+1).padStart(2,"0");
+  const taxasCelcash=taxRel?.mes===mesTaxas?taxRel.resumo.taxaMes:0;
+  const taxaCartaoReal=taxRel?.mes===mesTaxas&&taxRel.resumo.cartao.depositos.liquido>0?taxRel.resumo.cartao.depositos.taxa/(taxRel.resumo.cartao.depositos.taxa+taxRel.resumo.cartao.depositos.liquido)*100:null;
+  const contribAssin=tPote-tCP-taxasCelcash;
   const contribMensal=itens.reduce((a,i)=>a+i.contribTotal,0)+contribAssin;
   const custoVarTotal=fat-contribMensal;
   const mcGeral=fat>0?(contribMensal/fat)*100:0;
@@ -2374,6 +2450,10 @@ export default function App(){
     <div className="card" style={{borderLeft:"4px solid #0e7490"}}>
       <div style={{fontWeight:700,fontSize:15}}>Profit</div>
       <div style={{fontSize:12,color:"#555",marginTop:2}}>Descubra quanto realmente sobra em cada serviço e produto — calculado sobre as vendas de {MESES[mes]}.</div>
+      <div className="g4" style={{marginTop:12}}>
+        {[{l:"Faturamento",v:R(fat),c:"#0e7490"},{l:"Contribuição",v:R(contribMensal),c:"#0284c7"},{l:"Margem geral",v:mcGeral.toFixed(1)+"%",c:corMc(mcGeral)},{l:"Resultado do mês",v:(resultado>=0?"+":"−")+" "+R(Math.abs(resultado)),c:resultado>=0?"#059669":"#dc2626"}].map(k=><div key={k.l} style={{background:"#fafafa",borderRadius:8,padding:"10px 12px"}}><div style={{fontSize:10,color:"#888",fontWeight:700,textTransform:"uppercase"}}>{k.l}</div><div style={{fontSize:18,fontWeight:800,color:k.c}}>{k.v}</div></div>)}
+      </div>
+      <div style={{fontSize:11,color:"#888",marginTop:8}}>{taxasCelcash>0?<>Assinaturas já descontam {R(taxasCelcash)} de taxas do Cel Cash (aba Taxas).</>:<>Taxas do Cel Cash ainda não descontadas das assinaturas — <span style={{color:"#0e7490",cursor:"pointer",fontWeight:600}} onClick={carregarTaxas}>{taxLoad?"carregando...":"carregar taxas reais"}</span>.</>}</div>
       <div style={{display:"flex",gap:16,marginTop:12,borderBottom:"1px solid #f0f0f5"}}>
         {[["itens","Itens (precificar)"],["equil","Ponto de equilíbrio"]].map(([k,v])=><div key={k} onClick={()=>setProfitAba(k)} style={{cursor:"pointer",paddingBottom:8,fontSize:13,fontWeight:profitAba===k?700:500,color:profitAba===k?"#0e7490":"#888",borderBottom:profitAba===k?"2px solid #0e7490":"2px solid transparent",marginBottom:-1}}>{v}</div>)}
       </div>
@@ -2415,6 +2495,8 @@ export default function App(){
         <div className="g4">
           {[["cartao","Cartão %"],["imposto","Imposto %"],["gerente","Comissão gerente %"],["taxaFixa","Taxa fixa R$"]].map(([k,l])=><div key={k}><span className="lbl">{l}</span><input type="number" step="0.01" className="inp" value={profitPrem[k]} onChange={e=>setProfitPrem(p=>({...p,[k]:+e.target.value||0}))}/></div>)}
         </div>
+        {taxaCartaoReal!=null?<div style={{marginTop:10,fontSize:12,color:"#555"}}>Taxa real do cartão no Cel Cash este mês: <b>{taxaCartaoReal.toFixed(2).replace(".",",")}%</b> {Math.abs(taxaCartaoReal-profitPrem.cartao)>0.05&&<button className="bg bsm" style={{marginLeft:6}} onClick={()=>setProfitPrem(p=>({...p,cartao:Math.round(taxaCartaoReal*100)/100}))}>Usar essa taxa</button>}</div>:
+          <div style={{marginTop:10,fontSize:12,color:"#888"}}>Quer usar a taxa real do cartão? <span style={{color:"#0e7490",cursor:"pointer",fontWeight:600}} onClick={carregarTaxas}>{taxLoad?"carregando...":"Buscar no Cel Cash"}</span></div>}
       </div>
 
       <div className="card">

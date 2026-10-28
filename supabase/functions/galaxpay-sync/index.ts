@@ -46,14 +46,14 @@ function celcashErro(data: any, fallback: string) {
   return data?.error?.message || data?.message || data?.Errors?.[0]?.message || fallback;
 }
 
-async function celcashToken(galaxId: string, galaxHash: string) {
+async function celcashToken(galaxId: string, galaxHash: string, scope = "transactions.read") {
   const res = await fetch(CELCASH_API + "/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: "Basic " + btoa(`${galaxId}:${galaxHash}`),
     },
-    body: JSON.stringify({ grant_type: "authorization_code", scope: "transactions.read" }),
+    body: JSON.stringify({ grant_type: "authorization_code", scope }),
   });
   const data = await res.json().catch(() => null);
   if (!res.ok || !data?.access_token) {
@@ -173,6 +173,79 @@ async function relatorioTaxas(token: string, mes: string) {
   };
 }
 
+// ── Painel de assinaturas do mês ───────────────────────────────────────────
+// Pagantes, valor e ticket vêm dos pagamentos de planos do mês. Novos,
+// reativações e cancelamentos vêm da lista de assinaturas: reativação = cliente
+// que já tinha uma assinatura anterior; cancelamento = cancelada no mês
+// (data da última atualização).
+
+async function celcashAssinaturas(token: string) {
+  const all: any[] = [];
+  for (let startAt = 0; ; startAt += 100) {
+    const qs = new URLSearchParams({ startAt: String(startAt), limit: "100", order: "createdAt.asc" });
+    const res = await fetch(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data) throw new Error("Cel Cash recusou a lista de assinaturas: " + celcashErro(data, `HTTP ${res.status}`));
+    const page = data.Subscriptions || [];
+    all.push(...page);
+    if (page.length < 100) break;
+  }
+  return all;
+}
+
+async function relatorioAssinaturas(token: string, mes: string) {
+  const inicio = mes + "-01";
+  const fim = ultimoDia(mes);
+  const noMes = (d: string) => d >= inicio && d <= fim;
+  const clienteDe = (s: any) => String(s.Customer?.galaxPayId || s.Customer?.document || s.Customer?.name || s.galaxPayId);
+
+  const pagas = (await celcashTransacoesPagas(token, inicio, fim)).filter(
+    (t) => Number(t.subscriptionGalaxPayId || t.Subscription?.galaxPayId) > 0
+  );
+  const porAssinatura = new Map<string, number>();
+  for (const t of pagas) {
+    const id = String(t.subscriptionGalaxPayId || t.Subscription?.galaxPayId);
+    porAssinatura.set(id, (porAssinatura.get(id) || 0) + centavos(t.value));
+  }
+  const valor = r2([...porAssinatura.values()].reduce((s, v) => s + v, 0));
+
+  const subs = await celcashAssinaturas(token);
+  const primeiraDoCliente = new Map<string, string>();
+  for (const s of subs) {
+    const c = clienteDe(s);
+    const d = String(s.createdAt || "").slice(0, 10);
+    if (!primeiraDoCliente.has(c) || d < primeiraDoCliente.get(c)!) primeiraDoCliente.set(c, d);
+  }
+  const resumo = (s: any) => ({
+    id: s.galaxPayId,
+    cliente: s.Customer?.name || "",
+    plano: s.additionalInfo || "",
+    valor: centavos(s.value),
+    criada: String(s.createdAt || "").slice(0, 10),
+    atualizada: String(s.updatedAt || "").slice(0, 10),
+  });
+  const criadasNoMes = subs.filter((s) => noMes(String(s.createdAt || "").slice(0, 10)));
+  const novos = criadasNoMes.filter((s) => primeiraDoCliente.get(clienteDe(s)) === String(s.createdAt).slice(0, 10)).map(resumo);
+  const reativacoes = criadasNoMes.filter((s) => primeiraDoCliente.get(clienteDe(s))! < String(s.createdAt).slice(0, 10)).map(resumo);
+  const cancelamentos = subs.filter((s) => s.status === "canceled" && noMes(String(s.updatedAt || "").slice(0, 10))).map(resumo);
+
+  return {
+    mes,
+    resumo: {
+      pagantes: porAssinatura.size,
+      valor,
+      ticket: porAssinatura.size ? r2(valor / porAssinatura.size) : 0,
+      ativasHoje: subs.filter((s) => s.status === "active").length,
+      novos: novos.length,
+      reativacoes: reativacoes.length,
+      cancelamentos: cancelamentos.length,
+    },
+    novos,
+    reativacoes,
+    cancelamentos,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -217,10 +290,15 @@ Deno.serve(async (req) => {
     const dryRun = body.dryRun === true;
     const liquido = body.valor === "liquido";
 
-    const token = await celcashToken(integ.galax_id, integ.galax_hash);
+    // Assinaturas pedem permissão extra; só pede quando precisa, para não afetar a sincronização.
+    const token = await celcashToken(integ.galax_id, integ.galax_hash, body.acao === "assinaturas" ? "transactions.read subscriptions.read" : "transactions.read");
     if (body.acao === "taxas") {
       const mes = /^\d{4}-\d{2}$/.test(body.mes || "") ? body.mes : hojeSP().slice(0, 7);
       return json({ success: true, ...(await relatorioTaxas(token, mes)) });
+    }
+    if (body.acao === "assinaturas") {
+      const mes = /^\d{4}-\d{2}$/.test(body.mes || "") ? body.mes : hojeSP().slice(0, 7);
+      return json({ success: true, ...(await relatorioAssinaturas(token, mes)) });
     }
     const pagas = await celcashTransacoesPagas(token, startDate, endDate);
 
