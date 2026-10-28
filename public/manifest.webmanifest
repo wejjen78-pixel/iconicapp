@@ -1,0 +1,16 @@
+{
+  "name": "Iconic App",
+  "short_name": "Iconic",
+  "description": "Gestão da barbearia: lançamentos, metas, equipe e desempenho.",
+  "start_url": "/iconicapp/",
+  "scope": "/iconicapp/",
+  "display": "standalone",
+  "background_color": "#101828",
+  "theme_color": "#101828",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

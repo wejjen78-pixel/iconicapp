@@ -20,7 +20,7 @@ const SUPABASE_URL = "https://hjihmdlpntrnjkduwelp.supabase.co";
 const SAIDA = path.resolve("saida");
 
 const PREVIA = process.env.PREVIA === "1";
-const PARTES = (process.env.PARTES || "appbarber,celcash").split(",").map((s) => s.trim());
+const PARTES = (process.env.PARTES || "appbarber,celcash,relatorio").split(",").map((s) => s.trim());
 
 function ontemSP() {
   const hoje = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
@@ -307,6 +307,106 @@ async function parteCelCash(iconic) {
   }
 }
 
+// ── Parte C: mini relatório (sininho + notificação no celular) ─────────────
+
+const VAPID_PUBLICA = "BDRu0BVE2knfRY4OQ97MJRU8i2RjqYC5rjmxqAn26JUXLvOYQKnCtT-gOrJRfZt9BQqvQ23C93Lo6mU3Ll8ObQg";
+const reais = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+async function restIconic(iconic, metodo, caminho, corpo, extras = {}) {
+  const token = await sessaoIconic(iconic.page);
+  return iconic.page.evaluate(
+    async ({ url, metodo, corpo, headers }) => {
+      const res = await fetch(url, { method: metodo, headers, body: corpo ? JSON.stringify(corpo) : undefined });
+      return { ok: res.ok, status: res.status, body: await res.json().catch(() => null) };
+    },
+    {
+      url: `${SUPABASE_URL}/rest/v1/${caminho}`,
+      metodo,
+      corpo,
+      headers: { apikey: iconic.getApikey(), Authorization: "Bearer " + token, "Content-Type": "application/json", ...extras },
+    }
+  );
+}
+
+function textoBarbeiro(r) {
+  const nome = r.nome.split(" ")[0];
+  const meta = r.realizado >= r.metaDia
+    ? `✅ Bateu a meta: ${reais(r.realizado)} de ${reais(r.metaDia)}`
+    : `💰 Realizado ${reais(r.realizado)} · Meta ${reais(r.metaDia)} → faltaram ${reais(r.metaDia - r.realizado)}`;
+  const linhas = [meta, `✂️ ${r.atend} atendimento(s) · ✨ ${r.extras} extra(s) · 🧴 ${r.produtos} produto(s)`];
+  if (r.semVenda > 0) linhas.push(`⚠️ ${r.semVenda} atendimento(s) sem venda de extra/produto`);
+  return { titulo: `${nome}, seu dia ${DIA}/${MES}`, corpo: linhas.join("\n") };
+}
+
+function textoDono(lista) {
+  const linhas = lista.map((r) => {
+    const nome = r.nome.split(" ")[0];
+    return r.realizado >= r.metaDia
+      ? `✅ ${nome}: ${reais(r.realizado)} de ${reais(r.metaDia)}`
+      : `❌ ${nome}: ${reais(r.realizado)} de ${reais(r.metaDia)} (faltaram ${reais(r.metaDia - r.realizado)})`;
+  });
+  const atend = lista.reduce((t, r) => t + r.atend, 0);
+  const sem = lista.reduce((t, r) => t + r.semVenda, 0);
+  linhas.push(`⚠️ ${sem} de ${atend} atendimento(s) sem venda de extra/produto`);
+  return { titulo: `Equipe ${DIA}/${MES}: ${lista.filter((r) => r.realizado >= r.metaDia).length} de ${lista.length} bateram a meta`, corpo: linhas.join("\n") };
+}
+
+async function parteRelatorio(iconic) {
+  // Recarrega para o app já ter os lançamentos de hoje (serviços, produtos, pote).
+  await iconic.page.reload({ waitUntil: "domcontentloaded" });
+  await iconic.page.waitForFunction(() => window.__iconic?.pronto === true, null, { timeout: 90_000 });
+  await iconic.page.waitForTimeout(3000);
+  const lista = await iconic.page.evaluate((d) => window.__iconic.resumoDia(d), DATA);
+  if (!lista.length) {
+    registrar(`Relatório ${DATA_BR}: nenhum barbeiro com movimento no dia — nada enviado.`);
+    return;
+  }
+
+  const avisos = [
+    ...lista.map((r) => ({ barbeiro_id: String(r.bId), chave: `${DATA}:${r.bId}`, ...textoBarbeiro(r), dados: r })),
+    { barbeiro_id: null, chave: `${DATA}:equipe`, ...textoDono(lista), dados: { barbeiros: lista } },
+  ];
+  if (PREVIA) {
+    for (const a of avisos) registrar(`Relatório (PRÉVIA) · ${a.titulo} — ${a.corpo.replace(/\n/g, " | ")}`);
+    return;
+  }
+
+  const ins = await restIconic(
+    iconic, "POST", "avisos?on_conflict=org_id,chave",
+    avisos.map((a) => ({ ...a, dt: DATA, lido: false })),
+    { Prefer: "resolution=merge-duplicates,return=minimal" }
+  );
+  if (!ins.ok) throw new Error(`não consegui gravar os avisos (HTTP ${ins.status}: ${ins.body?.message || "?"}).`);
+
+  const subs = await restIconic(iconic, "GET", "push_subs?select=id,role,barbeiro_id,sub");
+  if (!subs.ok) throw new Error(`não consegui ler as inscrições de notificação (HTTP ${subs.status}).`);
+  const privada = process.env.VAPID_PRIVADA;
+  if (!privada) {
+    registrar(`Relatório ${DATA_BR}: ${avisos.length} aviso(s) no sininho; notificação no celular desligada (segredo VAPID_PRIVADA não configurado).`);
+    return;
+  }
+  const webpush = (await import("web-push")).default;
+  webpush.setVapidDetails(ICONIC_URL, VAPID_PUBLICA, privada);
+
+  let enviadas = 0, falhou = 0;
+  for (const s of subs.body) {
+    const aviso = s.role === "dono"
+      ? avisos.find((a) => a.barbeiro_id === null)
+      : avisos.find((a) => a.barbeiro_id === String(s.barbeiro_id));
+    if (!aviso) continue; // barbeiro sem movimento no dia
+    try {
+      await webpush.sendNotification(s.sub, JSON.stringify({ titulo: aviso.titulo, corpo: aviso.corpo, tag: aviso.chave, url: "./?avisos=1" }));
+      enviadas++;
+    } catch (e) {
+      falhou++;
+      // 404/410: o aparelho cancelou a inscrição — remove para não tentar de novo.
+      if (e.statusCode === 404 || e.statusCode === 410) await restIconic(iconic, "DELETE", `push_subs?id=eq.${s.id}`);
+      else log(`push falhou (${e.statusCode || "?"}): ${e.body || e.message}`);
+    }
+  }
+  registrar(`Relatório ${DATA_BR}: ${avisos.length} aviso(s) no sininho; ${enviadas} notificação(ões) enviada(s)${falhou ? `, ${falhou} falharam` : ""}.`);
+}
+
 // ── Execução ───────────────────────────────────────────────────────────────
 
 fs.mkdirSync(SAIDA, { recursive: true });
@@ -334,6 +434,9 @@ if (iconic) {
   }
   if (PARTES.includes("appbarber")) {
     await parteAppBarber(context, iconic);
+  }
+  if (PARTES.includes("relatorio")) {
+    try { await parteRelatorio(iconic); } catch (e) { falhas.push("Relatório: " + e.message); await print(iconic.page, "erro-relatorio"); }
   }
 }
 

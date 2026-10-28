@@ -14,6 +14,8 @@ const LogoSVG=({height=48,invert=false})=><img src={invert?logoBranco:logoPreto}
 
 const uid=()=>Math.random().toString(36).substr(2,8);
 const R=v=>(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+// Chave pública VAPID das notificações (a privada fica só no segredo VAPID_PRIVADA do robô).
+const VAPID_PUBLICA="BDRu0BVE2knfRY4OQ97MJRU8i2RjqYC5rjmxqAn26JUXLvOYQKnCtT-gOrJRfZt9BQqvQ23C93Lo6mU3Ll8ObQg";
 const hj=()=>new Date().toISOString().split("T")[0];
 
 // ── COR DINÂMICA (vermelho → verde conforme % da meta) ────────────────────────
@@ -1004,6 +1006,74 @@ export default function App(){
     setTaxRel(data);setTaxLoad(false);
   }
   useEffect(()=>{if(aba==="taxas"&&isDono&&galaxStatus?.configured)carregarTaxas();},[aba,mes,ano,isDono,galaxStatus?.configured]);// eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── AVISOS (sininho) E NOTIFICAÇÕES NO CELULAR ─────────────────────────────
+  // O robô das 6:00 grava o mini relatório em "avisos" e envia Web Push para
+  // os aparelhos inscritos em "push_subs" (ver supabase/schema_v6_avisos.sql).
+  const[avisos,setAvisos]=useState([]);const[showAvisos,setShowAvisos]=useState(()=>new URLSearchParams(window.location.search).has("avisos"));
+  const[pushMsg,setPushMsg]=useState("");const[pushOn,setPushOn]=useState(false);
+  const isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent);
+  const instalado=window.navigator.standalone===true||window.matchMedia?.("(display-mode: standalone)").matches;
+  const meusAvisos=avisos.filter(a=>isDono?a.barbeiro_id==null:String(a.barbeiro_id)===String(user?.bId));
+  const naoLidos=meusAvisos.filter(a=>!a.lido).length;
+  const carregarAvisos=useCallback(async()=>{
+    if(!orgId)return;
+    const{data}=await supabase.from("avisos").select("*").order("dt",{ascending:false}).order("criado_em",{ascending:false}).limit(60);
+    if(data)setAvisos(data);
+  },[orgId]);
+  useEffect(()=>{carregarAvisos();},[carregarAvisos]);
+  useEffect(()=>{(async()=>{
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)||Notification.permission!=="granted")return;
+    const reg=await navigator.serviceWorker.getRegistration();const sub=await reg?.pushManager.getSubscription();setPushOn(!!sub);
+  })();},[]);
+  async function abrirAvisos(){
+    const abrir=!showAvisos;setShowAvisos(abrir);
+    if(!abrir)return;
+    await carregarAvisos();
+    const ids=meusAvisos.filter(a=>!a.lido).map(a=>a.id);
+    if(ids.length){await supabase.from("avisos").update({lido:true}).in("id",ids);setAvisos(v=>v.map(a=>ids.includes(a.id)?{...a,lido:true}:a));}
+  }
+  async function ativarNotificacoes(){
+    setPushMsg("");
+    if(!("serviceWorker" in navigator)||!("PushManager" in window)){
+      setPushMsg(isIOS&&!instalado?"No iPhone, primeiro instale o Iconic: toque em Compartilhar (□↑) → \"Adicionar à Tela de Início\", abra o Iconic pelo ícone novo e toque aqui de novo.":"Este navegador não aceita notificações.");return;
+    }
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){setPushMsg("Notificações bloqueadas. Libere em Ajustes → Notificações → Iconic e tente de novo.");return;}
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      const chave=Uint8Array.from(atob(VAPID_PUBLICA.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-VAPID_PUBLICA.length%4)%4)),c=>c.charCodeAt(0));
+      const sub=(await reg.pushManager.getSubscription())||(await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:chave}));
+      const j=sub.toJSON();
+      const{error}=await supabase.from("push_subs").upsert({endpoint:j.endpoint,sub:j},{onConflict:"endpoint"});
+      if(error)throw error;
+      setPushOn(true);setPushMsg("✅ Notificações ativadas neste aparelho.");
+    }catch(e){setPushMsg("Não consegui ativar: "+(e.message||e));}
+  }
+
+  // Mini relatório de um dia por barbeiro — mesma conta do Centro de Performance
+  // (realizado = avulsos + extras + produtos + lotes + parte do pote do dia).
+  // "Sem venda" é aproximado: atendimentos − extras − produtos (o relatório do
+  // AppBarber não traz o cliente).
+  function resumoDia(d){
+    const ym=d.slice(0,7);const[a,m]=ym.split("-").map(Number);const dimD=new Date(a,m,0).getDate();
+    const svM=svcs.filter(s=>s.dt&&s.dt.slice(0,7)===ym);
+    const fichasB=id=>svM.filter(s=>s.bId===id).reduce((t,s)=>t+getFichasPorTipo(s.svc)*(s.qt||1),0);
+    const tF=barbs.reduce((t,b)=>t+fichasB(b.id),0);
+    const poteDia=pote.filter(e=>e.dt===d).reduce((t,e)=>t+(+e.val||0),0);
+    const r2=v=>Math.round(v*100)/100;
+    return barbs.map(b=>{
+      const doDia=arr=>arr.filter(x=>x.bId===b.id&&x.dt===d);
+      const tx=(b.com!=null?b.com:txB)/100;const pct=tF>0?fichasB(b.id)/tF:0;
+      const fich=doDia(svcs).reduce((t,s)=>t+(s.qt||1),0);
+      const av=doDia(avul);const ex=[...doDia(ext),...doDia(extAv)];const pr=doDia(prod);const lt=doDia(lote);
+      const realizado=av.reduce((t,s)=>t+s.val*(s.qt||1),0)+ex.reduce((t,e)=>t+(+e.val||0),0)+pr.reduce((t,p)=>t+p.val*(p.qt||1),0)+lt.reduce((t,l)=>t+(+l.vb||0),0)+poteDia*pct*tx;
+      const qAv=av.reduce((t,s)=>t+(s.qt||1),0);const atend=fich+qAv;const qEx=ex.length;const qPr=pr.reduce((t,p)=>t+(p.qt||1),0);
+      return{bId:b.id,nome:b.nome,realizado:r2(realizado),metaDia:r2((b.meta||7000)/dimD),atend,fichas:fich,avulsos:qAv,extras:qEx,produtos:qPr,semVenda:Math.max(0,atend-qEx-qPr)};
+    }).filter(r=>r.atend||r.realizado);
+  }
+  // Para o robô (que entra como dono) montar o mini relatório com a mesma lógica do app.
+  useEffect(()=>{if(isDono)window.__iconic={pronto:loaded,resumoDia};});
   function limparTudoBarbeiro(bId){
     if(!window.confirm("Excluir TODOS os lançamentos?"))return;
     const match=s=>s.bId===bId&&noM(s.dt);
@@ -1156,10 +1226,25 @@ export default function App(){
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <select className="inp" style={{width:"auto",fontSize:12,padding:"5px 8px"}} value={mes} onChange={e=>setMes(+e.target.value)}>{MESES.map((m,i)=><option key={i} value={i}>{m}</option>)}</select>
           <select className="inp" style={{width:"auto",fontSize:12,padding:"5px 8px"}} value={ano} onChange={e=>setAno(+e.target.value)}>{[2023,2024,2025,2026,2027].map(a=><option key={a}>{a}</option>)}</select>
+          <button className="bg bsm" onClick={abrirAvisos} style={{position:"relative"}} title="Avisos">🔔{naoLidos>0&&<span style={{position:"absolute",top:-5,right:-5,background:"#dc2626",color:"#fff",borderRadius:10,fontSize:10,fontWeight:700,padding:"1px 5px",lineHeight:"14px"}}>{naoLidos}</span>}</button>
           <button className="bg bsm" onClick={()=>window.location.reload()}>🔄</button>
           {isDono&&<button className="btn bsm" style={{background:"#1a1a2e"}} onClick={()=>setTvMode(true)}>TV</button>}
         </div>
       </div>
+      {showAvisos&&<div className="card" style={{position:"fixed",top:58,right:16,width:"min(400px, calc(100vw - 32px))",maxHeight:"75vh",overflowY:"auto",zIndex:500,boxShadow:"0 10px 40px #0003",padding:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div className="st" style={{marginBottom:0}}>🔔 Avisos</div><button className="bg bsm" onClick={()=>setShowAvisos(false)}>Fechar</button></div>
+        {!pushOn&&<div style={{background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:8,padding:"10px 12px",marginBottom:12,fontSize:12,color:"#0e7490"}}>
+          <div style={{fontWeight:700,marginBottom:4}}>Receba o resumo do dia no celular</div>
+          {isIOS&&!instalado?<div>No iPhone: toque em <b>Compartilhar (□↑)</b> → <b>Adicionar à Tela de Início</b>. Depois abra o Iconic pelo ícone novo e ative aqui.</div>:<button className="btn bsm" onClick={ativarNotificacoes}>Ativar notificações</button>}
+          {pushMsg&&<div style={{marginTop:6}}>{pushMsg}</div>}
+        </div>}
+        {pushOn&&pushMsg&&<div style={{fontSize:12,color:"#059669",marginBottom:10}}>{pushMsg}</div>}
+        {(isDono?avisos:meusAvisos).length===0?<div style={{fontSize:12,color:"#888"}}>Nenhum aviso ainda. O resumo do dia chega todo dia às 6:00.</div>:
+          (isDono?avisos:meusAvisos).map(a=><div key={a.id} style={{padding:"10px 0",borderTop:"1px solid #f0f0f0"}}>
+            <div style={{display:"flex",justifyContent:"space-between",gap:8}}><div style={{fontWeight:700,fontSize:13}}>{a.titulo}</div><div style={{fontSize:11,color:"#aaa",whiteSpace:"nowrap"}}>{a.dt.split("-").reverse().slice(0,2).join("/")}</div></div>
+            <div style={{fontSize:12,color:"#444",whiteSpace:"pre-line",marginTop:3}}>{a.corpo}</div>
+          </div>)}
+      </div>}
       <div className="pb">
 
 {/* ─── DASHBOARD ─── */}

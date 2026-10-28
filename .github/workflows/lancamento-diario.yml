@@ -17,9 +17,11 @@ on:
       partes:
         description: "Partes a rodar"
         type: choice
-        default: appbarber,celcash
+        default: appbarber,celcash,relatorio
         options:
+          - appbarber,celcash,relatorio
           - appbarber,celcash
+          - relatorio
           - appbarber
           - celcash
 
@@ -70,7 +72,8 @@ jobs:
           ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
           DATA: ${{ steps.alvo.outputs.data }}
           PREVIA: ${{ inputs.previa && '1' || '0' }}
-          PARTES: ${{ inputs.partes || 'appbarber,celcash' }}
+          PARTES: ${{ inputs.partes || 'appbarber,celcash,relatorio' }}
+          VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}
         run: node lancamento-diario.mjs
       - name: Guardar prints e planilha
         if: always() && steps.alvo.outputs.pular != 'true'
