@@ -88,6 +88,91 @@ async function celcashTransacoesPagas(token: string, startDate: string, endDate:
   return all;
 }
 
+// ── Relatório de taxas do mês ──────────────────────────────────────────────
+// Cartão: a taxa é descontada no depósito (~30 dias depois), nas
+// ConciliationOccurrences — conta pela data do depósito, como o relatório de
+// Conciliação do painel. Pix/boleto: taxa (fee) cobrada no próprio pagamento.
+// Pagamento por fora (payExternal): não passa pelo Cel Cash, sem taxa.
+
+const centavos = (v: unknown) => (Number(v) || 0) / 100;
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+function metodoDe(t: any) {
+  if (t.status === "payExternal" || t.payedOutsideGalaxPay) return "fora";
+  if (t.status === "payedPix") return "pix";
+  if (/Boleto$/.test(t.status)) return "boleto";
+  return "cartao";
+}
+
+function ultimoDia(mes: string) {
+  const [a, m] = mes.split("-").map(Number);
+  return new Date(Date.UTC(a, m, 0)).toISOString().slice(0, 10);
+}
+
+function mesAnterior(mes: string) {
+  const [a, m] = mes.split("-").map(Number);
+  return new Date(Date.UTC(a, m - 2, 1)).toISOString().slice(0, 7);
+}
+
+async function relatorioTaxas(token: string, mes: string) {
+  const inicio = mes + "-01";
+  const fim = ultimoDia(mes);
+  // Depósitos do mês vêm de cartões pagos até ~1 mês antes: busca 2 meses.
+  const trans = await celcashTransacoesPagas(token, mesAnterior(mes) + "-01", fim);
+  const noMes = (d: string) => d >= inicio && d <= fim;
+
+  const cobrancas = [];
+  const depositos = [];
+  for (const t of trans) {
+    const metodo = metodoDe(t);
+    const data = String(t.statusDate || t.paydayDate || t.payday || "").slice(0, 10);
+    const ocorr = (t.ConciliationOccurrences || []).filter((o: any) => o.type !== "canceled");
+    for (const o of ocorr) {
+      const dep = String(o.depositDate || "").slice(0, 10);
+      if (noMes(dep)) {
+        depositos.push({ id: t.galaxPayId, deposito: dep, taxa: centavos(o.taxValue), liquido: centavos(o.liquidValue) });
+      }
+    }
+    if (!noMes(data)) continue;
+    const taxaCartao = ocorr.length ? r2(ocorr.reduce((s: number, o: any) => s + centavos(o.taxValue), 0)) : null;
+    cobrancas.push({
+      id: t.galaxPayId,
+      data,
+      cliente: t.Subscription?.Customer?.name || t.Customer?.name || t.Charge?.[0]?.Customer?.name || "",
+      plano: Number(t.subscriptionGalaxPayId || t.Subscription?.galaxPayId) > 0,
+      descricao: t.additionalInfo || t.Subscription?.additionalInfo || "",
+      parcela: t.installment || null,
+      metodo,
+      valor: centavos(t.value),
+      // Cartão sem depósito ainda: taxa pendente (null).
+      taxa: metodo === "cartao" ? taxaCartao : metodo === "fora" ? 0 : centavos(t.fee),
+      status: t.statusDescription || t.status,
+    });
+  }
+
+  const soma = (arr: any[], k: string) => r2(arr.reduce((s, x) => s + (Number(x[k]) || 0), 0));
+  const por = (m: string) => cobrancas.filter((c) => c.metodo === m);
+  const cartaoDep = { qtd: depositos.length, taxa: soma(depositos, "taxa"), liquido: soma(depositos, "liquido") };
+  const pixBoleto = [...por("pix"), ...por("boleto")];
+  const fora = por("fora");
+  const recebido = soma(cobrancas.filter((c) => c.metodo !== "fora"), "valor");
+  const taxaMes = r2(cartaoDep.taxa + soma(pixBoleto, "taxa"));
+
+  return {
+    mes,
+    resumo: {
+      taxaMes,
+      percentual: recebido ? r2((taxaMes / recebido) * 100) : 0,
+      recebido,
+      cartao: { cobrado: soma(por("cartao"), "valor"), qtd: por("cartao").length, depositos: cartaoDep },
+      pix: { valor: soma(por("pix"), "valor"), qtd: por("pix").length, taxa: soma(por("pix"), "taxa") },
+      boleto: { valor: soma(por("boleto"), "valor"), qtd: por("boleto").length, taxa: soma(por("boleto"), "taxa") },
+      fora: { valor: soma(fora, "valor"), qtd: fora.length },
+    },
+    cobrancas: cobrancas.sort((a, b) => b.data.localeCompare(a.data)),
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
@@ -133,6 +218,10 @@ Deno.serve(async (req) => {
     const liquido = body.valor === "liquido";
 
     const token = await celcashToken(integ.galax_id, integ.galax_hash);
+    if (body.acao === "taxas") {
+      const mes = /^\d{4}-\d{2}$/.test(body.mes || "") ? body.mes : hojeSP().slice(0, 7);
+      return json({ success: true, ...(await relatorioTaxas(token, mes)) });
+    }
     const pagas = await celcashTransacoesPagas(token, startDate, endDate);
 
     // O pote é só dos planos (assinaturas). Cobranças avulsas — ex.: sobrancelha
