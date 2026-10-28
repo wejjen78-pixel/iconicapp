@@ -3,10 +3,8 @@ name: Lançamento diário (AppBarber + Cel Cash)
 on:
   schedule:
     # 09:00 UTC = 06:00 em Brasília. Lança o dia anterior, já fechado.
+    # O último dia do mês é pulado: o dono lança à mão no fechamento.
     - cron: "0 9 * * *"
-    # 02:30 UTC = 23:30 em Brasília. Só age no último dia do mês (fechamento):
-    # lança o próprio dia para o mês fechar sem esperar a manhã seguinte.
-    - cron: "30 2 * * *"
   workflow_dispatch:
     inputs:
       data:
@@ -42,15 +40,15 @@ jobs:
         working-directory: .
         run: |
           data="${{ inputs.data }}"
-          if [ "${{ github.event.schedule }}" = "30 2 * * *" ]; then
-            # Volta 3h para cair no dia de Brasília mesmo se o GitHub atrasar o disparo.
-            data=$(TZ=America/Sao_Paulo date -d '-3 hours' +%F)
-            if [ "$(date -d "$data +1 day" +%d)" != "01" ]; then
-              echo "$data não é o último dia do mês — nada a fazer."
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            data=$(TZ=America/Sao_Paulo date -d 'yesterday' +%F)
+            # Último dia do mês é lançado à mão pelo dono no fechamento (~20h);
+            # lançar de novo aqui duplicaria o pote do Cel Cash.
+            if [ "$(date -d "$data +1 day" +%d)" = "01" ]; then
+              echo "$data é o último dia do mês (fechamento manual) — pulado."
               echo "pular=true" >> "$GITHUB_OUTPUT"
               exit 0
             fi
-            echo "Fechamento do mês: lançando $data"
           fi
           echo "data=$data" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
