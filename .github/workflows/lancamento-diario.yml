@@ -2,9 +2,12 @@ name: Lançamento diário (AppBarber + Cel Cash)
 
 on:
   schedule:
-    # 09:00 UTC = 06:00 em Brasília. Lança o dia anterior, já fechado.
+    # 09:07 UTC = ~06:07 em Brasília. Lança o dia anterior, já fechado.
+    # Minuto 7 (não 0): agendamentos exatos na hora cheia são os mais sujeitos
+    # a atraso/perda por congestionamento do GitHub Actions (foi o que
+    # aconteceu no dia 29/10 — o disparo das 06:00 simplesmente não veio).
     # O último dia do mês é pulado: o dono lança à mão no fechamento.
-    - cron: "0 9 * * *"
+    - cron: "7 9 * * *"
   workflow_dispatch:
     inputs:
       data:

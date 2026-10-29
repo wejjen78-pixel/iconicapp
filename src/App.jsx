@@ -2189,7 +2189,7 @@ export default function App(){
 {/* ─── EXTRAS ─── */}
 {/* ─── RELATÓRIO: guia para escolher o relatório ─── */}
 {aba==="rel"&&isDono&&(()=>{
-  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"]];
+  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"],["brutos","🧾","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
   if(!relSub)return <div className="card"><div className="st">Qual relatório você quer ver?</div>
     <div className="g2" style={{gap:10}}>{OPC.map(([k,ic,t,d])=><button key={k} onClick={()=>setRelSub(k)} style={{textAlign:"left",background:"#fafafa",border:"1px solid #eee",borderRadius:10,padding:"14px 16px",cursor:"pointer"}}>
       <div style={{fontSize:22}}>{ic}</div><div style={{fontWeight:700,fontSize:14,marginTop:4}}>{t}</div><div style={{fontSize:12,color:"#888",marginTop:2}}>{d}</div></button>)}</div></div>;
@@ -2203,6 +2203,29 @@ export default function App(){
   <div className="g4"><KPI lbl="Total" val={[...eM,...eAM].length} cor="#0284c7" glow/><KPI lbl="Receita" val={R(tExt)} cor="#0e7490"/><KPI lbl="TM" val={R([...eM,...eAM].length>0?tExt/[...eM,...eAM].length:0)} cor="#059669"/><KPI lbl="% fatur." val={fat>0?(tExt/fat*100).toFixed(1)+"%":"0%"} cor="#d97706"/></div>
   <div className="card"><div className="st">Ranking extras</div>{(()=>{const g=[...eM,...eAM].reduce((a,e)=>{if(!a[e.svc])a[e.svc]={nome:e.svc,qt:0,rec:0};a[e.svc].qt++;a[e.svc].rec+=e.val;return a;},{});return Object.values(g).sort((a,b2)=>b2.rec-a.rec).map((e,i)=><div key={i} className="row"><span style={{width:18,height:18,borderRadius:"50%",background:i===0?"#fef3c7":"#f0f0f5",color:i===0?"#d97706":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><div style={{flex:1,fontSize:13}}>{e.nome}</div><span style={{fontSize:11,color:"#888"}}>{e.qt}x</span><span style={{fontWeight:700,color:"#0e7490"}}>{R(e.rec)}</span></div>);})()}</div>
 </div>}
+
+{/* ─── ÚLTIMOS LANÇAMENTOS (brutos) ─── */}
+{relVer("brutos")&&isDono&&(()=>{
+  const dtBr=d=>{try{return d.split("-").reverse().join("/");}catch(e){return d;}}
+  const Badge=({auto})=>auto?<span style={{fontSize:9,fontWeight:700,color:"#0e7490",background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:20,padding:"1px 6px",whiteSpace:"nowrap"}}>🤖 auto</span>:<span style={{fontSize:9,fontWeight:700,color:"#888",background:"#f5f5f7",border:"1px solid #eee",borderRadius:20,padding:"1px 6px",whiteSpace:"nowrap"}}>✍️ manual</span>;
+  const poteList=[...poM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
+  const avulList=[...aM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
+  const prodList=[...pM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
+  return <div className="g3" style={{alignItems:"start"}}>
+    <div className="card">
+      <div className="st">💳 Cel Cash <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {poteList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{poteList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:poteList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600}}>{R(p.val)}</div><div style={{fontSize:10,color:"#aaa",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.obs||"—"}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={!!p.extId}/></div></div>)}</div>
+    </div>
+    <div className="card">
+      <div className="st">✂️ Avulsos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {avulList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{avulList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:avulList.map(s=><div key={s.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(s.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.svc}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(s.bId)||{}).nome?.split(" ")[0]||"?"} · {s.qt||1}x {R(s.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(s.dt)}</div><Badge auto={s.src==="pdf"}/></div></div>)}</div>
+    </div>
+    <div className="card">
+      <div className="st">🛍️ Produtos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {prodList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{prodList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:prodList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(p.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.prod}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(p.bId)||{}).nome?.split(" ")[0]||"?"} · {p.qt||1}x {R(p.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={p.src==="pdf"}/></div></div>)}</div>
+    </div>
+  </div>;
+})()}
 
 {/* ─── RELATÓRIO ─── */}
 {aba==="rel"&&relSub==="geral"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
