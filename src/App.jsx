@@ -552,6 +552,7 @@ export default function App(){
   // Relatório abre num guia; Extras, Comissões e Profit vivem dentro dele.
   const[relSub,setRelSub]=useState("");const relVer=k=>aba===k||(aba==="rel"&&relSub===k);
   useEffect(()=>{if(aba==="rel")setRelSub("");},[aba]);
+  const[brutosDt,setBrutosDt]=useState("");
   function addCusto(){
     if(!fCusto.desc||!fCusto.valor)return;
     setCustos(l=>[...l,{id:uid(),...fCusto,categoria:fCusto.categoria||fCusto.desc}]);
@@ -2208,22 +2209,40 @@ export default function App(){
 {relVer("brutos")&&isDono&&(()=>{
   const dtBr=d=>{try{return d.split("-").reverse().join("/");}catch(e){return d;}}
   const Badge=({auto})=>auto?<span style={{fontSize:9,fontWeight:700,color:"#0e7490",background:"#ecfeff",border:"1px solid #a5f3fc",borderRadius:20,padding:"1px 6px",whiteSpace:"nowrap"}}>🤖 auto</span>:<span style={{fontSize:9,fontWeight:700,color:"#888",background:"#f5f5f7",border:"1px solid #eee",borderRadius:20,padding:"1px 6px",whiteSpace:"nowrap"}}>✍️ manual</span>;
-  const poteList=[...poM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
-  const avulList=[...aM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
-  const prodList=[...pM].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,60);
-  return <div className="g3" style={{alignItems:"start"}}>
+  const filtrando=!!brutosDt;
+  const poteSrc=filtrando?pote.filter(p=>p.dt===brutosDt):poM;
+  const avulSrc=filtrando?avul.filter(s=>s.dt===brutosDt):aM;
+  const prodSrc=filtrando?prod.filter(p=>p.dt===brutosDt):pM;
+  const loteSrc=filtrando?lote.filter(l=>l.dt===brutosDt):lM;
+  const extSrc=filtrando?[...ext,...extAv].filter(e=>e.dt===brutosDt):[...eM,...eAM];
+  const poteList=[...poteSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
+  const avulList=[...avulSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
+  const prodList=[...prodSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
+  const fatDia=poteSrc.reduce((a,p)=>a+p.val,0)+avulSrc.reduce((a,s)=>a+s.val*(s.qt||1),0)+loteSrc.reduce((a,l)=>a+l.vb,0)+extSrc.reduce((a,e)=>a+e.val,0)+prodSrc.reduce((a,p)=>a+p.val*(p.qt||1),0);
+  const qtServicos=avulSrc.reduce((a,s)=>a+(s.qt||1),0)+loteSrc.length;
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+  <div className="card" style={{display:"flex",gap:14,flexWrap:"wrap",alignItems:"flex-end"}}>
+    <div><span className="lbl">Filtrar por data</span><input type="date" className="inp" value={brutosDt} onChange={e=>setBrutosDt(e.target.value)}/></div>
+    {filtrando&&<button className="bg bsm" onClick={()=>setBrutosDt("")}>✕ Limpar filtro</button>}
+    {filtrando&&<div style={{display:"flex",gap:20,marginLeft:"auto",flexWrap:"wrap"}}>
+      <div><div style={{fontSize:10,color:"#aaa",fontWeight:600,textTransform:"uppercase"}}>Faturamento em {dtBr(brutosDt)}</div><div style={{fontSize:22,fontWeight:800,color:"#0e7490"}}>{R(fatDia)}</div></div>
+      <div><div style={{fontSize:10,color:"#aaa",fontWeight:600,textTransform:"uppercase"}}>Qtd. de serviços</div><div style={{fontSize:22,fontWeight:800,color:"#7c3aed"}}>{qtServicos}</div></div>
+    </div>}
+  </div>
+  <div className="g3" style={{alignItems:"start"}}>
     <div className="card">
-      <div className="st">💳 Cel Cash <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {poteList.length}</span></div>
-      <div style={{maxHeight:420,overflowY:"auto"}}>{poteList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:poteList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600}}>{R(p.val)}</div><div style={{fontSize:10,color:"#aaa",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.obs||"—"}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={!!p.extId}/></div></div>)}</div>
+      <div className="st">💳 Cel Cash <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· {filtrando?poteList.length+" em "+dtBr(brutosDt):"últimos "+poteList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{poteList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento{filtrando?" em "+dtBr(brutosDt):" em "+MESES[mes]}.</div>:poteList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600}}>{R(p.val)}</div><div style={{fontSize:10,color:"#aaa",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.obs||"—"}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={!!p.extId}/></div></div>)}</div>
     </div>
     <div className="card">
-      <div className="st">✂️ Avulsos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {avulList.length}</span></div>
-      <div style={{maxHeight:420,overflowY:"auto"}}>{avulList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:avulList.map(s=><div key={s.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(s.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.svc}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(s.bId)||{}).nome?.split(" ")[0]||"?"} · {s.qt||1}x {R(s.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(s.dt)}</div><Badge auto={s.src==="pdf"}/></div></div>)}</div>
+      <div className="st">✂️ Avulsos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· {filtrando?avulList.length+" em "+dtBr(brutosDt):"últimos "+avulList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{avulList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento{filtrando?" em "+dtBr(brutosDt):" em "+MESES[mes]}.</div>:avulList.map(s=><div key={s.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(s.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.svc}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(s.bId)||{}).nome?.split(" ")[0]||"?"} · {s.qt||1}x {R(s.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(s.dt)}</div><Badge auto={s.src==="pdf"}/></div></div>)}</div>
     </div>
     <div className="card">
-      <div className="st">🛍️ Produtos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· últimos {prodList.length}</span></div>
-      <div style={{maxHeight:420,overflowY:"auto"}}>{prodList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento em {MESES[mes]}.</div>:prodList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(p.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.prod}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(p.bId)||{}).nome?.split(" ")[0]||"?"} · {p.qt||1}x {R(p.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={p.src==="pdf"}/></div></div>)}</div>
+      <div className="st">🛍️ Produtos <span style={{fontWeight:400,color:"#aaa",fontSize:11}}>· {filtrando?prodList.length+" em "+dtBr(brutosDt):"últimos "+prodList.length}</span></div>
+      <div style={{maxHeight:420,overflowY:"auto"}}>{prodList.length===0?<div style={{color:"#ccc",fontSize:12,padding:"10px 0"}}>Nenhum lançamento{filtrando?" em "+dtBr(brutosDt):" em "+MESES[mes]}.</div>:prodList.map(p=><div key={p.id} className="row" style={{alignItems:"flex-start"}}><BAv b={getB(p.bId)} size={20} fs={9}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.prod}</div><div style={{fontSize:10,color:"#aaa"}}>{(getB(p.bId)||{}).nome?.split(" ")[0]||"?"} · {p.qt||1}x {R(p.val)}</div></div><div style={{textAlign:"right",flexShrink:0}}><div style={{fontSize:10,color:"#888"}}>{dtBr(p.dt)}</div><Badge auto={p.src==="pdf"}/></div></div>)}</div>
     </div>
+  </div>
   </div>;
 })()}
 
