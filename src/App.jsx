@@ -2218,15 +2218,19 @@ export default function App(){
   const poteList=[...poteSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
   const avulList=[...avulSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
   const prodList=[...prodSrc].sort((a,b)=>b.dt.localeCompare(a.dt)).slice(0,filtrando?999:60);
-  const fatDia=poteSrc.reduce((a,p)=>a+p.val,0)+avulSrc.reduce((a,s)=>a+s.val*(s.qt||1),0)+loteSrc.reduce((a,l)=>a+l.vb,0)+extSrc.reduce((a,e)=>a+e.val,0)+prodSrc.reduce((a,p)=>a+p.val*(p.qt||1),0);
+  const assinDia=poteSrc.reduce((a,p)=>a+p.val,0);
+  const avulExtDia=avulSrc.reduce((a,s)=>a+s.val*(s.qt||1),0)+loteSrc.reduce((a,l)=>a+l.vb,0)+extSrc.reduce((a,e)=>a+e.val,0);
+  const prodDia=prodSrc.reduce((a,p)=>a+p.val*(p.qt||1),0);
+  const fatDia=assinDia+avulExtDia+prodDia;
   const qtServicos=avulSrc.reduce((a,s)=>a+(s.qt||1),0)+loteSrc.length;
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card" style={{display:"flex",gap:14,flexWrap:"wrap",alignItems:"flex-end"}}>
-    <div><span className="lbl">Filtrar por data</span><input type="date" className="inp" value={brutosDt} onChange={e=>setBrutosDt(e.target.value)}/></div>
-    {filtrando&&<button className="bg bsm" onClick={()=>setBrutosDt("")}>✕ Limpar filtro</button>}
-    {filtrando&&<div style={{display:"flex",gap:20,marginLeft:"auto",flexWrap:"wrap"}}>
-      <div><div style={{fontSize:10,color:"#aaa",fontWeight:600,textTransform:"uppercase"}}>Faturamento em {dtBr(brutosDt)}</div><div style={{fontSize:22,fontWeight:800,color:"#0e7490"}}>{R(fatDia)}</div></div>
-      <div><div style={{fontSize:10,color:"#aaa",fontWeight:600,textTransform:"uppercase"}}>Qtd. de serviços</div><div style={{fontSize:22,fontWeight:800,color:"#7c3aed"}}>{qtServicos}</div></div>
+  <div className="card" style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div style={{display:"flex",gap:14,flexWrap:"wrap",alignItems:"flex-end"}}>
+      <div><span className="lbl">Filtrar por data</span><input type="date" className="inp" value={brutosDt} onChange={e=>setBrutosDt(e.target.value)}/></div>
+      {filtrando&&<button className="bg bsm" onClick={()=>setBrutosDt("")}>✕ Limpar filtro</button>}
+    </div>
+    {filtrando&&<div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+      {[["Faturamento · "+dtBr(brutosDt),R(fatDia),"#1a1a2e",true],["Assinatura",R(assinDia),"#d97706"],["Avulso+Extras",R(avulExtDia),"#0e7490"],["Produtos",R(prodDia),"#059669"],["Qtd. de serviços",qtServicos,"#7c3aed"]].map(([l,v,c,gl],i)=><div key={i} style={{flex:"1 1 150px"}}><KPI lbl={l} val={v} cor={c} glow={gl}/></div>)}
     </div>}
   </div>
   <div className="g3" style={{alignItems:"start"}}>
