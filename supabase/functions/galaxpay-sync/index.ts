@@ -46,8 +46,29 @@ function celcashErro(data: any, fallback: string) {
   return data?.error?.message || data?.message || data?.Errors?.[0]?.message || fallback;
 }
 
+// Erros 502/503/504 do Cel Cash costumam ser instabilidade passageira do
+// servidor deles — tenta de novo algumas vezes antes de desistir.
+async function fetchComRetry(url: string, init: RequestInit, tentativas = 3): Promise<Response> {
+  for (let i = 0; i < tentativas; i++) {
+    let res: Response;
+    try {
+      res = await fetch(url, init);
+    } catch (e) {
+      if (i === tentativas - 1) throw e;
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+      continue;
+    }
+    if ([502, 503, 504].includes(res.status) && i < tentativas - 1) {
+      await new Promise((r) => setTimeout(r, 1000 * (i + 1)));
+      continue;
+    }
+    return res;
+  }
+  throw new Error("Cel Cash: sem resposta após " + tentativas + " tentativas.");
+}
+
 async function celcashToken(galaxId: string, galaxHash: string, scope = "transactions.read") {
-  const res = await fetch(CELCASH_API + "/token", {
+  const res = await fetchComRetry(CELCASH_API + "/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -74,7 +95,7 @@ async function celcashTransacoesPagas(token: string, startDate: string, endDate:
       limit: "100",
       order: "createdAt.asc",
     });
-    const res = await fetch(`${CELCASH_API}/transactions?${qs}`, {
+    const res = await fetchComRetry(`${CELCASH_API}/transactions?${qs}`, {
       headers: { Authorization: "Bearer " + token },
     });
     const data = await res.json().catch(() => null);
@@ -183,7 +204,7 @@ async function celcashAssinaturas(token: string) {
   const all: any[] = [];
   for (let startAt = 0; ; startAt += 100) {
     const qs = new URLSearchParams({ startAt: String(startAt), limit: "100", order: "createdAt.asc" });
-    const res = await fetch(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
+    const res = await fetchComRetry(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
     const data = await res.json().catch(() => null);
     if (!res.ok || !data) throw new Error("Cel Cash recusou a lista de assinaturas: " + celcashErro(data, `HTTP ${res.status}`));
     const page = data.Subscriptions || [];
@@ -278,7 +299,7 @@ async function cancelamentosRecentes(token: string, desde: string) {
     const out: any[] = [];
     for (let startAt = 0; ; startAt += 100) {
       const qs = new URLSearchParams({ ...params, startAt: String(startAt), limit: "100" });
-      const res = await fetch(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
+      const res = await fetchComRetry(`${CELCASH_API}/subscriptions?${qs}`, { headers: { Authorization: "Bearer " + token } });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data) throw new Error("Cel Cash recusou a consulta de assinaturas: " + celcashErro(data, `HTTP ${res.status}`));
       const page = data.Subscriptions || [];
