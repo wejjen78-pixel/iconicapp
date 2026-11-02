@@ -13,6 +13,9 @@ on:
       data:
         description: "Dia a lançar (AAAA-MM-DD). Vazio = ontem."
         required: false
+      data_fim:
+        description: "Ressincronizar Cel Cash de 'data' até aqui (AAAA-MM-DD). Só vale com partes=celcash — recupera lacunas de um período sem duplicar nada."
+        required: false
       previa:
         description: "Só prévia (não grava nada)"
         type: boolean
@@ -82,6 +85,7 @@ jobs:
           ICONIC_EMAIL: ${{ secrets.ICONIC_EMAIL }}
           ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
           DATA: ${{ steps.alvo.outputs.data }}
+          DATA_FIM: ${{ inputs.data_fim }}
           PREVIA: ${{ inputs.previa && '1' || '0' }}
           PARTES: ${{ inputs.partes || 'appbarber,celcash,relatorio' }}
           VAPID_PRIVADA: ${{ secrets.VAPID_PRIVADA }}

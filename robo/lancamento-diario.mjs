@@ -8,7 +8,10 @@
 //
 // Variáveis de ambiente (segredos do GitHub):
 //   APPBARBER_EMAIL, APPBARBER_SENHA, ICONIC_EMAIL, ICONIC_SENHA
-// Opcionais: DATA=AAAA-MM-DD (dia alvo), PREVIA=1 (não grava nada), PARTES=appbarber,celcash
+// Opcionais: DATA=AAAA-MM-DD (dia alvo), DATA_FIM=AAAA-MM-DD (ressincroniza o
+//   Cel Cash de DATA até DATA_FIM num intervalo só, pra recuperar lacunas —
+//   só vale pra parte "celcash", AppBarber continua sendo 1 dia por vez),
+//   PREVIA=1 (não grava nada), PARTES=appbarber,celcash
 
 import { chromium } from "playwright";
 import fs from "node:fs";
@@ -32,6 +35,8 @@ function ontemSP() {
 const DATA = process.env.DATA || ontemSP();
 const [ANO, MES, DIA] = DATA.split("-");
 const DATA_BR = `${DIA}/${MES}/${ANO}`;
+const DATA_FIM = /^\d{4}-\d{2}-\d{2}$/.test(process.env.DATA_FIM || "") ? process.env.DATA_FIM : null;
+const DATA_FIM_BR = DATA_FIM ? DATA_FIM.split("-").reverse().join("/") : null;
 
 function exigir(nome) {
   const v = process.env[nome];
@@ -287,6 +292,7 @@ async function parteAppBarber(context, iconic) {
 
 async function parteCelCash(iconic) {
   const token = await sessaoIconic(iconic.page);
+  const body = DATA_FIM ? { startDate: DATA, endDate: DATA_FIM, dryRun: PREVIA } : { date: DATA, dryRun: PREVIA };
   const r = await iconic.page.evaluate(
     async ({ url, token, body }) => {
       const res = await fetch(url, {
@@ -296,15 +302,16 @@ async function parteCelCash(iconic) {
       });
       return res.json().catch(() => ({ error: "Resposta inválida (HTTP " + res.status + ")" }));
     },
-    { url: `${SUPABASE_URL}/functions/v1/galaxpay-sync`, token, body: { date: DATA, dryRun: PREVIA } }
+    { url: `${SUPABASE_URL}/functions/v1/galaxpay-sync`, token, body }
   );
   if (r.error) throw new Error("Cel Cash: " + r.error);
   // O resumo das execuções é público (repositório público): sem valores nem nomes.
+  const periodo = DATA_FIM ? `${DATA_BR} a ${DATA_FIM_BR}` : DATA_BR;
   const fora = r.foraDoPlano?.qtd ? ` (${r.foraDoPlano.qtd} avulso(s) ficaram de fora)` : "";
   if (PREVIA) {
-    registrar(`Cel Cash ${DATA_BR}: ${r.novas} pagamento(s) de planos (PRÉVIA — não lançado)${fora}.`);
+    registrar(`Cel Cash ${periodo}: ${r.novas} pagamento(s) de planos (PRÉVIA — não lançado)${fora}.`);
   } else {
-    registrar(`Cel Cash ${DATA_BR}: ${r.added} pagamento(s) de planos lançados no pote${r.jaLancadas ? `; ${r.jaLancadas} já estavam lançados` : ""}${fora}.`);
+    registrar(`Cel Cash ${periodo}: ${r.added} pagamento(s) de planos lançados no pote${r.jaLancadas ? `; ${r.jaLancadas} já estavam lançados` : ""}${fora}.`);
   }
 }
 
