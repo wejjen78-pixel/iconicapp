@@ -1,0 +1,30 @@
+name: Emergência · desfazer ressync Cel Cash (01-31/10)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: "Apagar de verdade (desmarcado = só mostra quanto seria apagado)"
+        type: boolean
+        default: false
+
+jobs:
+  desfazer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: robo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Rodar
+        env:
+          ICONIC_EMAIL: ${{ secrets.ICONIC_EMAIL }}
+          ICONIC_SENHA: ${{ secrets.ICONIC_SENHA }}
+          CONFIRMAR: ${{ inputs.confirmar && '1' || '0' }}
+        run: node desfazer-ressync-celcash.mjs
