@@ -2,12 +2,19 @@ name: Lançamento diário (AppBarber + Cel Cash)
 
 on:
   schedule:
+    # Dois horários, não um: na prática os dois atrasam de forma imprevisível
+    # (já vimos disparos de 09:07 saírem entre 11h e 19h UTC, sem padrão fixo
+    # ligado ao minuto) — mudar só o horário não resolve. Rodar duas vezes
+    # por dia aumenta a chance de pelo menos um disparo vir na hora certa, e
+    # é seguro: tanto o AppBarber quanto o Cel Cash pulam o que já foi
+    # lançado, então a segunda execução não duplica nada se a primeira já
+    # tiver dado certo — só serve de rede de segurança se a primeira atrasar
+    # demais ou simplesmente não vier.
     # 09:07 UTC = ~06:07 em Brasília. Lança o dia anterior, já fechado.
-    # Minuto 7 (não 0): agendamentos exatos na hora cheia são os mais sujeitos
-    # a atraso/perda por congestionamento do GitHub Actions (foi o que
-    # aconteceu no dia 29/10 — o disparo das 06:00 simplesmente não veio).
-    # O último dia do mês é pulado: o dono lança à mão no fechamento.
     - cron: "7 9 * * *"
+    # 18:07 UTC = ~15:07 em Brasília.
+    - cron: "7 18 * * *"
+    # O último dia do mês é pulado em ambos: o dono lança à mão no fechamento.
   workflow_dispatch:
     inputs:
       data:
