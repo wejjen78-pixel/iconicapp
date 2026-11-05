@@ -2,19 +2,24 @@ name: Lançamento diário (AppBarber + Cel Cash)
 
 on:
   schedule:
-    # Dois horários, não um: na prática os dois atrasam de forma imprevisível
-    # (já vimos disparos de 09:07 saírem entre 11h e 19h UTC, sem padrão fixo
-    # ligado ao minuto) — mudar só o horário não resolve. Rodar duas vezes
-    # por dia aumenta a chance de pelo menos um disparo vir na hora certa, e
-    # é seguro: tanto o AppBarber quanto o Cel Cash pulam o que já foi
-    # lançado, então a segunda execução não duplica nada se a primeira já
-    # tiver dado certo — só serve de rede de segurança se a primeira atrasar
-    # demais ou simplesmente não vier.
-    # 09:07 UTC = ~06:07 em Brasília. Lança o dia anterior, já fechado.
+    # Três horários, não um: na prática os disparos atrasam de forma
+    # imprevisível (já vimos o mesmo cron sair entre 11h e 19h UTC, sem
+    # padrão fixo ligado ao minuto) — mudar só o horário não resolve.
+    # Rodar várias vezes por dia aumenta a chance de pelo menos um disparo
+    # vir na hora certa, e é seguro: tanto o AppBarber quanto o Cel Cash
+    # pulam o que já foi lançado, então uma execução a mais não duplica
+    # nada se uma anterior já tiver dado certo — só serve de rede de
+    # segurança se alguma atrasar demais ou simplesmente não vier.
+    #
+    # Horário principal: 23:11 em Brasília (dia já fechado, lança HOJE à
+    # noite — ver "Definir dia alvo" abaixo pra regra de qual dia cada
+    # horário lança).
+    - cron: "11 2 * * *"
+    # Reforços pela manhã/tarde, cobrindo o dia anterior caso o de 23h
+    # atrase demais ou não venha.
     - cron: "7 9 * * *"
-    # 18:07 UTC = ~15:07 em Brasília.
     - cron: "7 18 * * *"
-    # O último dia do mês é pulado em ambos: o dono lança à mão no fechamento.
+    # O último dia do mês é pulado em todos: o dono lança à mão no fechamento.
   workflow_dispatch:
     inputs:
       data:
@@ -64,7 +69,15 @@ jobs:
         run: |
           data="${{ inputs.data }}"
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            data=$(TZ=America/Sao_Paulo date -d 'yesterday' +%F)
+            # Depois das 21h em Brasília o dia já fechou: lança HOJE (é o
+            # horário de 23h). Antes disso, é um reforço de manhã/tarde
+            # cobrindo o dia ANTERIOR, que já devia ter fechado há horas.
+            hora=$(TZ=America/Sao_Paulo date +%H)
+            if [ "$hora" -ge 21 ]; then
+              data=$(TZ=America/Sao_Paulo date +%F)
+            else
+              data=$(TZ=America/Sao_Paulo date -d 'yesterday' +%F)
+            fi
             # Último dia do mês é lançado à mão pelo dono no fechamento (~20h);
             # lançar de novo aqui duplicaria o pote do Cel Cash.
             if [ "$(date -d "$data +1 day" +%d)" = "01" ]; then
