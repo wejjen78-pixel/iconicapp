@@ -871,7 +871,24 @@ export default function App(){
     });
     return{total:perBarber.reduce((a,b)=>a+b.total,0),perBarber};
   }
+  // Faturamento bruto por categoria de um mês (pra "Comparativo mensal" da Visão Estratégica).
+  // TM de assinatura fica de fora: o Iconic só guarda o nº de assinantes ativos atual, não o histórico de meses passados.
+  function computeMonthCategorias(m2,a2){
+    const inM=d=>{try{const dt=new Date(d+"T12:00:00");return dt.getMonth()===m2&&dt.getFullYear()===a2;}catch(e){return false;}};
+    const aM2=avul.filter(s=>inM(s.dt));const lM2=lote.filter(l=>inM(l.dt));
+    const eM2=[...ext,...extAv].filter(e=>inM(e.dt));const pM2=prod.filter(p=>inM(p.dt));const poM2=pote.filter(e=>inM(e.dt));
+    const pote2=poM2.reduce((a,e)=>a+e.val,0);
+    const svc2=aM2.reduce((a,s)=>a+s.val*s.qt,0)+lM2.reduce((a,l)=>a+l.vb,0);
+    const ext3=eM2.reduce((a,e)=>a+e.val,0);
+    const prod3=pM2.reduce((a,p)=>a+p.val*p.qt,0);
+    const qtAv=aM2.reduce((a,s)=>a+s.qt,0)+lM2.length;const qtExt=eM2.length;const qtProd=pM2.reduce((a,p)=>a+p.qt,0);
+    const diasSet=new Set([...aM2,...lM2,...eM2,...pM2,...poM2].map(x=>x.dt));
+    return{pote:pote2,svc:svc2,ext:ext3,prod:prod3,total:pote2+svc2+ext3+prod3,
+      tmAvulso:qtAv>0?svc2/qtAv:0,tmExtras:qtExt>0?ext3/qtExt:0,tmProd:qtProd>0?prod3/qtProd:0,
+      atend:qtAv+qtExt,diasTrabalhados:diasSet.size};
+  }
   const hist6=Array.from({length:6},(_,i)=>{let m2=mes-i,a2=ano;while(m2<0){m2+=12;a2-=1;}const d=computeMonthTotals(m2,a2);return{label:MESES[m2].slice(0,3)+"/"+String(a2).slice(2),m2,a2,...d};}).reverse();
+  const histCat6=Array.from({length:6},(_,i)=>{let m2=mes-i,a2=ano;while(m2<0){m2+=12;a2-=1;}const d=computeMonthCategorias(m2,a2);return{label:MESES[m2].slice(0,3)+"/"+String(a2).slice(2),m2,a2,...d};}).reverse();
   const histRange=monthsBetween(histDe,histAte).map(({m,a})=>{const d=computeMonthTotals(m,a);return{label:MESES[m].slice(0,3)+"/"+String(a).slice(2),m,a,...d};});
   // Faturamento bruto dos últimos 6 meses (só para o gráfico do Dashboard).
   const fat6=Array.from({length:6},(_,i)=>{
@@ -2303,7 +2320,7 @@ export default function App(){
 {/* ─── EXTRAS ─── */}
 {/* ─── RELATÓRIO: guia para escolher o relatório ─── */}
 {aba==="rel"&&isDono&&(()=>{
-  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"],["lucro","💵","Lucro estimado","Lucro do mês, projeção e lucro por atendimento"],["ticket","🎫","Ticket médio","Por categoria e por perfil de serviço"],["brutos","🧾","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
+  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"],["lucro","💵","Lucro estimado","Lucro do mês, projeção e lucro por atendimento"],["ticket","🎫","Ticket médio","Por categoria e por perfil de serviço"],["estrat","🧭","Visão Estratégica","Detalhamento diário e comparativo mensal"],["brutos","🧾","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
   if(!relSub)return <div className="card"><div className="st">Qual relatório você quer ver?</div>
     <div className="g2" style={{gap:10}}>{OPC.map(([k,ic,t,d])=><button key={k} onClick={()=>setRelSub(k)} style={{textAlign:"left",background:"var(--surface-2)",border:"1px solid #eee",borderRadius:10,padding:"14px 16px",cursor:"pointer"}}>
       <div style={{fontSize:22}}>{ic}</div><div style={{fontWeight:700,fontSize:14,marginTop:4}}>{t}</div><div style={{fontSize:12,color:"var(--ink-3)",marginTop:2}}>{d}</div></button>)}</div></div>;
@@ -2383,6 +2400,65 @@ export default function App(){
       </div>
       <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(p.ticket/maxPerfilTicket*100||0)+"%",background:"#0e7490",transition:"width .8s"}}/></div>
     </div>)}
+  </div>;
+})()}
+
+{/* ─── VISÃO ESTRATÉGICA ─── */}
+{relVer("estrat")&&isDono&&(()=>{
+  const atual=computeMonthCategorias(mes,ano);
+  const diasDetalhe=Array.from({length:dim},(_,i)=>{
+    const d=i+1;const dS=ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    const avD=aM.filter(s=>s.dt===dS);const loD=lM.filter(l=>l.dt===dS);const exD=[...eM,...eAM].filter(e=>e.dt===dS);const prD=pM.filter(p=>p.dt===dS);const poD=poM.filter(p=>p.dt===dS);
+    const pote=poD.reduce((a,e)=>a+e.val,0);
+    const svc=avD.reduce((a,s)=>a+s.val*s.qt,0)+loD.reduce((a,l)=>a+l.vb,0);
+    const ext2=exD.reduce((a,e)=>a+e.val,0);
+    const prod2=prD.reduce((a,p)=>a+p.val*p.qt,0);
+    const atend=avD.reduce((a,s)=>a+s.qt,0)+loD.length+exD.length;
+    return{dia:d,pote,svc,ext:ext2,prod:prod2,total:pote+svc+ext2+prod2,atend,tm:atend>0?(svc+ext2)/atend:0};
+  });
+  const th={textAlign:"left",padding:"6px 8px",fontSize:10,color:"var(--ink-3)",fontWeight:600,whiteSpace:"nowrap"};
+  const td={padding:"6px 8px",fontSize:12,whiteSpace:"nowrap"};
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div className="card">
+      <div className="st" style={{marginBottom:2}}>Visão Estratégica — {MESES[mes]}</div>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Consolidado do mês atual. Sem clientes únicos, CPC, ocupação ou frequência — o Iconic não tem esses dados (veja o porquê no relatório Ticket médio).</div>
+      <div className="g4">
+        <KPI lbl="Dias trabalhados" val={atual.diasTrabalhados}/>
+        <KPI lbl="TM Avulso" val={R(atual.tmAvulso)} cor="#0e7490"/>
+        <KPI lbl="TM Extras" val={R(atual.tmExtras)} cor="#0284c7"/>
+        <KPI lbl="TM Produtos" val={R(atual.tmProd)} cor="#059669"/>
+      </div>
+    </div>
+
+    <div className="card">
+      <div className="st">Comparativo mensal — últimos 6 meses</div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:680}}>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Indicador",...histCat6.map(h=>h.label)].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>
+          {[["Recorrência",h=>R(h.pote)],["Avulso",h=>R(h.svc)],["Extras",h=>R(h.ext)],["Produtos",h=>R(h.prod)],["Total",h=>R(h.total)],["TM Avulso",h=>R(h.tmAvulso)],["TM Extras",h=>R(h.tmExtras)],["TM Produtos",h=>R(h.tmProd)],["Dias trabalhados",h=>h.diasTrabalhados]].map(([lbl,fn])=>
+            <tr key={lbl} style={{borderBottom:"1px solid var(--bd-2)"}}><td style={{...td,fontWeight:600,color:"var(--ink-2)"}}>{lbl}</td>{histCat6.map(h=><td key={h.label} style={td}>{fn(h)}</td>)}</tr>
+          )}
+        </tbody>
+      </table></div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>TM de Recorrência não entra aqui: o Iconic só guarda o nº de assinantes ativos de agora, não o histórico de meses passados.</div>
+    </div>
+
+    <div className="card">
+      <div className="st">Detalhamento diário — {MESES[mes]}</div>
+      <div style={{overflowX:"auto",maxHeight:420}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:620}}>
+        <thead style={{position:"sticky",top:0,background:"var(--surface)"}}><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Dia","Total","Recorrência","Avulso","Extras","Produtos","Atendimentos","Ticket médio"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>{diasDetalhe.map(d=><tr key={d.dia} style={{borderBottom:"1px solid var(--bd-2)",opacity:d.total>0?1:.45}}>
+          <td style={{...td,fontWeight:600}}>{d.dia}</td>
+          <td style={{...td,fontWeight:600}}>{d.total>0?R(d.total):"—"}</td>
+          <td style={td}>{d.pote>0?R(d.pote):"—"}</td>
+          <td style={td}>{d.svc>0?R(d.svc):"—"}</td>
+          <td style={td}>{d.ext>0?R(d.ext):"—"}</td>
+          <td style={td}>{d.prod>0?R(d.prod):"—"}</td>
+          <td style={td}>{d.atend>0?d.atend:"—"}</td>
+          <td style={td}>{d.atend>0?R(d.tm):"—"}</td>
+        </tr>)}</tbody>
+      </table></div>
+    </div>
   </div>;
 })()}
 
