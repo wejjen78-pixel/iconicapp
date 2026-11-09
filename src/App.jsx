@@ -125,16 +125,16 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);font-s
 const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>,profit:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>};
 
 // ── SMALL COMPONENTS ─────────────────────────────────────────────────────────
-function CT({active,payload,label}){if(!active||!payload?.length)return null;return <div style={{background:"#101828",border:"1px solid #1f2a3a",borderRadius:10,padding:"9px 13px",fontSize:12,boxShadow:"0 8px 24px rgba(16,24,40,.18)"}}><div style={{color:"#98a2b3",marginBottom:5,fontSize:11,fontWeight:500}}>{label}</div>{payload.map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:7,color:"#fff",fontWeight:600,marginTop:i?3:0}}><span style={{width:7,height:7,borderRadius:"50%",background:p.color||"#0e7490",flexShrink:0}}/><span style={{color:"#cbd5e1",fontWeight:500}}>{p.name}:</span> {p.value>200?R(p.value):p.value}</div>)}</div>;}
+function CT({active,payload,label}){if(!active||!payload?.length)return null;return <div style={{background:"#101828",border:"1px solid #1f2a3a",borderRadius:10,padding:"9px 13px",fontSize:12,boxShadow:"0 8px 24px rgba(16,24,40,.18)"}}><div style={{color:"var(--ink-3)",marginBottom:5,fontSize:11,fontWeight:500}}>{label}</div>{payload.map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:7,color:"#fff",fontWeight:600,marginTop:i?3:0}}><span style={{width:7,height:7,borderRadius:"50%",background:p.color||"#0e7490",flexShrink:0}}/><span style={{color:"#cbd5e1",fontWeight:500}}>{p.name}:</span> {p.value>200?R(p.value):p.value}</div>)}</div>;}
 function DB({v}){const pos=v>=0;return <span className="dp" style={{background:pos?"#dcfce7":"#fef2f2",color:pos?"#059669":"#dc2626"}}>{pos?"▲":"▼"}{Math.abs(v).toFixed(1)}%</span>;}
 function PB({val,max,cor,lbl,sub,pct=true,lg=false}){const p=max>0?Math.min(100,(val/max)*100):0;const h=lg?8:5;const[w,setW]=useState(0);useEffect(()=>{const t=setTimeout(()=>setW(p),100);return()=>clearTimeout(t);},[p]);return <div><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>{lbl&&<span style={{fontSize:11,color:"var(--ink-3)"}}>{lbl}</span>}{pct&&<span style={{fontSize:11,fontWeight:600,color:p>=100?"#059669":p>70?"#d97706":"#dc2626"}}>{p.toFixed(1)}%</span>}</div><div style={{background:"var(--bd)",borderRadius:4,height:h}}><div style={{height:h,borderRadius:4,width:w+"%",background:p>=100?"#059669":cor||"#0e7490",transition:"width .8s, background .5s"}}/></div>{sub&&<div style={{fontSize:11,color:"var(--ink-3)",marginTop:3}}>{sub}</div>}</div>;}
 function KPI({lbl,val,cor,glow=false,delta,sub}){return <div className="card" style={{padding:"15px 16px",borderTop:glow?"3px solid "+(cor||"#0e7490"):"1px solid var(--bd)"}}>
   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:6}}>
-    <div style={{fontSize:10,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".07em",lineHeight:1.3}}>{lbl}</div>
+    <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".07em",lineHeight:1.3}}>{lbl}</div>
     {delta!=null&&<span className="dp" style={{background:delta>=0?"#dcfce7":"#fef2f2",color:delta>=0?"#059669":"#dc2626",flexShrink:0}}>{delta>=0?"▲":"▼"}{Math.abs(delta).toFixed(1)}%</span>}
   </div>
   <div style={{fontSize:23,fontWeight:800,color:cor||"#101828",letterSpacing:"-.02em",lineHeight:1.1}}>{val}</div>
-  {sub&&<div style={{fontSize:11,color:"#98a2b3",marginTop:4}}>{sub}</div>}
+  {sub&&<div style={{fontSize:11,color:"var(--ink-3)",marginTop:4}}>{sub}</div>}
 </div>;}
 function BAv({b,size=30,fs=12}){if(b?.foto?.length>50)return <div style={{width:size,height:size,borderRadius:"50%",overflow:"hidden",flexShrink:0,border:"2px solid "+(b.cor||"#888")+"55"}}><img src={b.foto} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/></div>;return <div className="av" style={{width:size,height:size,fontSize:fs,background:((b?.cor)||"#888")+"22",color:(b?.cor)||"#888"}}>{((b?.nome)||"?").charAt(0)}</div>;}
 function EditModal({item,fields,barbs,onSave,onClose}){const[tmp,setTmp]=useState({...item});const upd=(k,v)=>setTmp(t=>({...t,[k]:v}));return <div style={{position:"fixed",inset:0,background:"#0008",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}><div style={{background:"var(--surface)",color:"var(--ink)",borderRadius:12,padding:24,width:"100%",maxWidth:440,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}><div style={{fontWeight:700,fontSize:15,marginBottom:16}}>✏️ Editar</div>{fields.map(f=><div key={f.key} style={{marginBottom:11}}><span className="lbl">{f.label}</span>{f.type==="barbSelect"?<select className="inp" value={tmp[f.key]||1} onChange={e=>upd(f.key,+e.target.value)}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select>:f.type==="select"?<select className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}>{(f.options||[]).map(o=><option key={o}>{o}</option>)}</select>:f.type==="date"?<input type="date" className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}/>:f.type==="number"?<input type="number" className="inp" value={tmp[f.key]||0} onChange={e=>upd(f.key,parseFloat(e.target.value)||0)}/>:<input type="text" className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}/>}</div>)}<div style={{display:"flex",gap:10,marginTop:16}}><button className="btn" onClick={()=>onSave(tmp)}>Salvar</button><button className="bg" onClick={onClose}>Cancelar</button></div></div></div>;}
@@ -510,6 +510,9 @@ export default function App(){
   const[assinD,setAssinD]=useState({ativas:0,novas:0,canceladas:0});
   const[assinV,setAssinV]=useState([]);const[vales,setVales]=useState([]);
   const[meta,setMeta]=useState(35000);const[metaI,setMetaI]=useState("35000");
+  const[metaCat,setMetaCat]=useState({assin:0,avulso:0,extras:0,prod:0});
+  const[metaCatI,setMetaCatI]=useState({assin:"0",avulso:"0",extras:"0",prod:"0"});
+  useEffect(()=>{setMetaCatI({assin:String(metaCat.assin||0),avulso:String(metaCat.avulso||0),extras:String(metaCat.extras||0),prod:String(metaCat.prod||0)});},[metaCat]);
   const[mes,setMes]=useState(now.getMonth());const[ano,setAno]=useState(now.getFullYear());
   const[prodLst,setProdLst]=useState([]);
   const[estoque,setEstoque]=useState({});const[niveis,setNiveis]=useState([]);
@@ -582,7 +585,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+hj()+".json";
@@ -610,6 +613,7 @@ export default function App(){
       if(d.assinV){excluirRemoto("assinV",delDiff(assinV,d.assinV));setAssinV(d.assinV);}
       if(d.vales){excluirRemoto("vales",delDiff(vales,d.vales));setVales(d.vales);}
       if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
+      if(d.metaCat)setMetaCat(mc=>({...mc,...d.metaCat}));
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
@@ -672,6 +676,7 @@ export default function App(){
       if(d.barbs)setBarbs(d.barbs);
       if(d.assinD)setAssinD(d.assinD);
       if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
+      if(d.metaCat)setMetaCat(mc=>({...mc,...d.metaCat}));
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
@@ -714,11 +719,11 @@ export default function App(){
     // Os arrays de lançamentos (svcs/avul/ext/extAv/prod/pote/lote/assinV/vales/coaching/instaLancamentos)
     // NÃO entram mais aqui — cada um sincroniza linha a linha via useLancamentoSync, para não reescrever
     // o histórico inteiro a cada mudança (era isso que estourava o tempo limite do banco).
-    const payload={barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
   };
-  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,loaded,isDono,orgId,loadError,saveRetryTick]);
+  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,loaded,isDono,orgId,loadError,saveRetryTick]);
   // Sincroniza cada tipo de lançamento linha a linha (só a diferença desde a última vez, nunca o histórico inteiro).
   const lancFlushRegistry=useRef(new Set());
   const lancReady=loaded&&isDono&&!!orgId&&!loadError;
@@ -1315,12 +1320,12 @@ export default function App(){
   <div className="card">
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12}}>
       <div>
-        <div style={{fontSize:10.5,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}}>{MESES[mes]+" "+ano+" · dia "+dAt+" de "+dim}</div>
+        <div style={{fontSize:10.5,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}}>{MESES[mes]+" "+ano+" · dia "+dAt+" de "+dim}</div>
         <div style={{display:"flex",alignItems:"center",gap:10,marginTop:6,flexWrap:"wrap"}}>
-          <span style={{fontSize:34,fontWeight:800,color:"#101828",letterSpacing:"-.025em",lineHeight:1}}>{R(fat)}</span>
+          <span style={{fontSize:34,fontWeight:800,color:"var(--ink)",letterSpacing:"-.025em",lineHeight:1}}>{R(fat)}</span>
           <DB v={cresc}/>
         </div>
-        <div style={{fontSize:12,color:"#667085",marginTop:5}}>de {R(meta)} de meta</div>
+        <div style={{fontSize:12,color:"var(--ink-2)",marginTop:5}}>de {R(meta)} de meta</div>
       </div>
       {isDono&&<div style={{display:"flex",gap:6,alignItems:"flex-start"}}>
         <div><span className="lbl">Meta do mês</span><input className="inp" type="number" style={{width:120,fontSize:13}} value={metaI} onChange={e=>setMetaI(e.target.value)}/></div>
@@ -1332,13 +1337,33 @@ export default function App(){
       {[{l:"Falta para a meta",v:falta===0?"✓ Meta batida":R(falta),c:falta===0?"#059669":"#dc2626"},
         {l:"Projeção do mês",v:R(proj),c:proj>=meta?"#059669":"#d97706"},
         {l:"Ritmo",v:(ritmo>=0?"+":"−")+Math.abs(ritmo).toFixed(1)+"%",c:ritmo>=0?"#059669":"#dc2626"},
-        {l:"Meta por dia",v:R(metaDia),c:"#101828"}].map((k,i)=>
-        <div key={i} style={{padding:"11px 13px",background:"#fafbfc",border:"1px solid var(--bd)",borderRadius:11}}>
-          <div style={{fontSize:10,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{k.l}</div>
+        {l:"Meta por dia",v:R(metaDia),c:"var(--ink)"}].map((k,i)=>
+        <div key={i} style={{padding:"11px 13px",background:"var(--surface-2)",border:"1px solid var(--bd)",borderRadius:11}}>
+          <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{k.l}</div>
           <div style={{fontSize:17,fontWeight:800,color:k.c,marginTop:4}}>{k.v}</div>
         </div>)}
     </div>
   </div>
+
+  {/* ── METAS POR CATEGORIA ── */}
+  {(()=>{
+    const cats=[
+      {k:"assin",l:"💳 Assinatura",cor:"#d97706",val:tPote,meta:metaCat.assin},
+      {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",val:tSvcU,meta:metaCat.avulso},
+      {k:"extras",l:"✨ Extras",cor:"#0284c7",val:tExt,meta:metaCat.extras},
+      {k:"prod",l:"🛍️ Produtos",cor:"#059669",val:tProdBruto,meta:metaCat.prod},
+    ];
+    if(!cats.some(c=>c.meta>0))return null;
+    return <div className="card">
+      <div className="st" style={{marginBottom:12}}>Metas por categoria</div>
+      <div className="g2">
+        {cats.map(c=>c.meta>0?
+          <div key={c.k}><PB val={c.val} max={c.meta} cor={c.cor} lbl={c.l+" — "+R(c.val)+" / "+R(c.meta)} pct sub={c.val>=c.meta?"✓ Meta batida":"Falta "+R(c.meta-c.val)}/></div>
+          :<div key={c.k} style={{opacity:.5}}><div style={{fontSize:11,marginBottom:3}}>{c.l}</div><div style={{fontSize:11,color:"var(--ink-3)"}}>Sem meta cadastrada</div></div>
+        )}
+      </div>
+    </div>;
+  })()}
 
   {/* ── COMPOSIÇÃO DO FATURAMENTO ── */}
   <div className="g4">
@@ -1373,11 +1398,11 @@ export default function App(){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10,marginBottom:14}}>
         <div>
           <div className="st" style={{marginBottom:2}}>Comparativo com o mês passado</div>
-          <div style={{fontSize:11.5,color:"#98a2b3"}}>Mesmo período: do dia 1 até o dia {dAt}</div>
+          <div style={{fontSize:11.5,color:"var(--ink-3)"}}>Mesmo período: do dia 1 até o dia {dAt}</div>
         </div>
         {fatAntMesmoPeriodo>0&&<div style={{textAlign:"right"}}>
           <div style={{fontSize:20,fontWeight:800,color:dif>=0?"#059669":"#dc2626",letterSpacing:"-.02em"}}>{dif>=0?"+":"−"}{R(Math.abs(dif))}</div>
-          <div style={{fontSize:11.5,color:"#98a2b3"}}>{difPct>=0?"+":"−"}{Math.abs(difPct).toFixed(1)}% vs {MESES[mA2]}</div>
+          <div style={{fontSize:11.5,color:"var(--ink-3)"}}>{difPct>=0?"+":"−"}{Math.abs(difPct).toFixed(1)}% vs {MESES[mA2]}</div>
         </div>}
       </div>
       <div className="g2" style={{marginBottom:14}}>
@@ -1385,9 +1410,9 @@ export default function App(){
           <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#0e7490"}}/><span style={{fontSize:11,color:"#0e7490",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mes]} (até dia {dAt})</span></div>
           <div style={{fontSize:22,fontWeight:800,color:"#0e7490",marginTop:5}}>{R(fat)}</div>
         </div>
-        <div style={{padding:"12px 14px",background:"#fafbfc",border:"1px solid var(--bd)",borderRadius:11}}>
-          <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#98a2b3"}}/><span style={{fontSize:11,color:"#667085",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mA2]} (mesmo período)</span></div>
-          <div style={{fontSize:22,fontWeight:800,color:"#667085",marginTop:5}}>{R(fatAntMesmoPeriodo)}</div>
+        <div style={{padding:"12px 14px",background:"var(--surface-2)",border:"1px solid var(--bd)",borderRadius:11}}>
+          <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#98a2b3"}}/><span style={{fontSize:11,color:"var(--ink-2)",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mA2]} (mesmo período)</span></div>
+          <div style={{fontSize:22,fontWeight:800,color:"var(--ink-2)",marginTop:5}}>{R(fatAntMesmoPeriodo)}</div>
         </div>
       </div>
       {fatAntMesmoPeriodo>0&&dif!==0&&<div style={{padding:"10px 14px",background:dif>=0?"#f0fdf4":"#fef2f2",border:`1px solid ${dif>=0?"#bbf7d0":"#fecaca"}`,borderRadius:11,fontSize:12.5,color:"#344054",marginBottom:14,lineHeight:1.5}}>
@@ -1401,7 +1426,7 @@ export default function App(){
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontSize:13,fontWeight:700,color:c.dif>=0?"#059669":"#dc2626"}}>{c.dif>=0?"+":"−"}{R(Math.abs(c.dif))}</div>
-            <div style={{fontSize:10.5,color:"#98a2b3"}}>{R(c.an)} → {R(c.at)}</div>
+            <div style={{fontSize:10.5,color:"var(--ink-3)"}}>{R(c.an)} → {R(c.at)}</div>
           </div>
         </div>)}
       </div>
@@ -1409,10 +1434,10 @@ export default function App(){
         <AreaChart data={dados} margin={{top:6,right:12,left:-14,bottom:0}}>
           <defs><linearGradient id="gCmp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.24}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs>
           <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-          <XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={Math.max(0,Math.floor(dAt/10))}/>
-          <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
+          <XAxis dataKey="dia" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} interval={Math.max(0,Math.floor(dAt/10))}/>
+          <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
           <Tooltip content={<CT/>} cursor={{stroke:"#cbd5e1",strokeDasharray:"4 4"}}/>
-          <Area type="monotone" dataKey={MESES[mA2]} stroke="#98a2b3" strokeWidth={2} strokeDasharray="5 4" fill="none" dot={false}/>
+          <Area type="monotone" dataKey={MESES[mA2]} stroke="var(--ink-3)" strokeWidth={2} strokeDasharray="5 4" fill="none" dot={false}/>
           <Area type="monotone" dataKey={MESES[mes]} stroke="#0e7490" strokeWidth={2.6} fill="url(#gCmp)" dot={false} activeDot={{r:5,strokeWidth:2,stroke:"#fff"}}/>
         </AreaChart>
       </ResponsiveContainer>
@@ -1428,7 +1453,7 @@ export default function App(){
     return <div className="card" style={{borderLeft:"4px solid "+(bateu?"#059669":dAt>15?"#dc2626":"#d97706")}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:12}}>
         <div className="st" style={{marginBottom:0}}>📆 Meta quinzenal (dia 15) — 60% da meta mensal</div>
-        <span style={{fontSize:11,color:"#98a2b3"}}>{dAt<15?"Faltam "+(15-dAt)+" dia(s) até o corte":dAt===15?"Hoje é o corte":"Corte já passou"}</span>
+        <span style={{fontSize:11,color:"var(--ink-3)"}}>{dAt<15?"Faltam "+(15-dAt)+" dia(s) até o corte":dAt===15?"Hoje é o corte":"Corte já passou"}</span>
       </div>
       <div className="g3" style={{marginBottom:12}}>
         {[{l:"Meta (60%)",v:R(metaQuinz),c:"#0e7490",bg:"#ecfeff"},
@@ -1451,7 +1476,7 @@ export default function App(){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10,marginBottom:6}}>
         <div className="st" style={{marginBottom:0}}>Faturamento — últimos 6 meses</div>
         <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <span style={{fontSize:19,fontWeight:800,color:"#101828",letterSpacing:"-.02em"}}>{R(ult)}</span>
+          <span style={{fontSize:19,fontWeight:800,color:"var(--ink)",letterSpacing:"-.02em"}}>{R(ult)}</span>
           {pen>0&&<DB v={varPct}/>}
         </div>
       </div>
@@ -1459,10 +1484,10 @@ export default function App(){
         <AreaChart data={fat6} margin={{top:18,right:12,left:-14,bottom:0}}>
           <defs><linearGradient id="gFat" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.26}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs>
           <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-          <XAxis dataKey="label" tick={{fill:"#98a2b3",fontSize:11}} tickLine={false} axisLine={false} dy={4}/>
-          <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
+          <XAxis dataKey="label" tick={{fill:"var(--ink-3)",fontSize:11}} tickLine={false} axisLine={false} dy={4}/>
+          <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":"0"}/>
           <Tooltip content={<CT/>} cursor={{stroke:"#cbd5e1",strokeDasharray:"4 4"}}/>
-          <Area type="monotone" dataKey="Total" stroke="#0e7490" strokeWidth={2.6} fill="url(#gFat)" dot={{r:3.5,fill:"#0e7490",strokeWidth:2,stroke:"#fff"}} activeDot={{r:5.5,strokeWidth:2,stroke:"#fff"}} label={{position:"top",fontSize:10,fill:"#98a2b3",formatter:v=>v>0?Math.round(v/1000)+"k":""}}/>
+          <Area type="monotone" dataKey="Total" stroke="#0e7490" strokeWidth={2.6} fill="url(#gFat)" dot={{r:3.5,fill:"#0e7490",strokeWidth:2,stroke:"#fff"}} activeDot={{r:5.5,strokeWidth:2,stroke:"#fff"}} label={{position:"top",fontSize:10,fill:"var(--ink-3)",formatter:v=>v>0?Math.round(v/1000)+"k":""}}/>
         </AreaChart>
       </ResponsiveContainer>
     </div>;
@@ -1473,8 +1498,8 @@ export default function App(){
     <ResponsiveContainer width="100%" height={175}>
       <BarChart data={gDia} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="22%">
         <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-        <XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/>
-        <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
+        <XAxis dataKey="dia" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/>
+        <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
         <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
         <ReferenceLine y={metaDia} stroke="#dc2626" strokeDasharray="4 2" strokeWidth={1.5}/>
         <Bar dataKey="pote" name="Assinatura" stackId="a" fill="#d97706"/>
@@ -1485,7 +1510,7 @@ export default function App(){
     </ResponsiveContainer>
     <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:8,justifyContent:"center"}}>
       {[["Assinatura","#d97706"],["Serviços","#0e7490"],["Extras","#0284c7"],["Produtos","#059669"],["Meta do dia","#dc2626"]].map(([l,c])=>
-        <div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#667085"}}><span style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>)}
+        <div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"var(--ink-2)"}}><span style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>)}
     </div>
   </div>
 
@@ -1502,7 +1527,7 @@ export default function App(){
         <div className="st" style={{marginBottom:0}}>📅 Faturamento por período</div>
         <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"6px 9px"}} value={filtDe} onChange={e=>setFiltDe(e.target.value)}/>
-          <span style={{fontSize:11,color:"#98a2b3"}}>até</span>
+          <span style={{fontSize:11,color:"var(--ink-3)"}}>até</span>
           <input type="date" className="inp" style={{width:"auto",fontSize:12,padding:"6px 9px"}} value={filtAte} onChange={e=>setFiltAte(e.target.value)}/>
         </div>
       </div>
@@ -1515,7 +1540,7 @@ export default function App(){
           </div>)}
       </div>
       <div style={{marginTop:12,padding:"12px 14px",background:"#101828",borderRadius:11,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontSize:11,color:"#98a2b3",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Total no período</span>
+        <span style={{fontSize:11,color:"var(--ink-3)",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Total no período</span>
         <span style={{fontSize:20,fontWeight:800,color:"#fff"}}>{R(totP)}</span>
       </div>
     </div>;
@@ -1529,7 +1554,7 @@ export default function App(){
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
           <span style={{width:22,height:22,borderRadius:"50%",background:i===0?"#d97706":i===1?"#98a2b3":i===2?"#b45309":"#f2f4f7",color:i<3?"#fff":"#98a2b3",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,flexShrink:0}}>{i+1}</span>
           <BAv b={getB(b.id)} size={32} fs={13}/>
-          <div style={{flex:1,minWidth:0}}><div style={{fontWeight:600,fontSize:13}}>{b.nome.split(" ")[0]}</div><div style={{fontSize:11,color:"#98a2b3"}}>{b.ftot}pts · {b.atend} atend</div></div>
+          <div style={{flex:1,minWidth:0}}><div style={{fontWeight:600,fontSize:13}}>{b.nome.split(" ")[0]}</div><div style={{fontSize:11,color:"var(--ink-3)"}}>{b.ftot}pts · {b.atend} atend</div></div>
           <div style={{textAlign:"right"}}><div style={{fontSize:15,fontWeight:700,color:b.cor}}>{R(b.totCBon)}</div><DB v={b.crescB}/></div>
         </div>
         <PB val={b.totCBon} max={maxC} cor={b.cor} pct={false}/>
@@ -1543,7 +1568,7 @@ export default function App(){
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
             <BAv b={getB(b.id)} size={30} fs={12}/>
             <span style={{flex:1,fontSize:13,fontWeight:600,minWidth:0}}>{b.nome.split(" ")[0]}</span>
-            <span style={{fontSize:11,color:"#98a2b3"}}>{R(b.bruto)}</span>
+            <span style={{fontSize:11,color:"var(--ink-3)"}}>{R(b.bruto)}</span>
             <span style={{fontSize:15,fontWeight:800,color:b.cor,minWidth:54,textAlign:"right"}}>{b.pctFat.toFixed(1)}%</span>
           </div>
           <PB val={b.pctFat} max={100} cor={b.cor} pct={false}/>
@@ -1574,7 +1599,7 @@ export default function App(){
       <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8,padding:"9px 11px"}}><div style={{fontSize:10,color:"#059669",fontWeight:700}}>🛍️ PRODUTOS</div><div style={{fontSize:18,fontWeight:800,color:"#059669"}}>{R(b.fPr)}</div><div style={{fontSize:11,color:"var(--ink-3)"}}>{b.qProd} unid</div></div>
     </div>
     <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-      <div style={{flex:1,minWidth:150}}><ResponsiveContainer width="100%" height={110}><RadarChart data={[{m:"Vendas",v:Math.min(100,b.pctM)},{m:"Extras",v:Math.min(100,b.upsell)},{m:"Produtos",v:Math.min(100,(b.qProd/Math.max(metasBon.find(x=>x.id==="prod")?.meta||15,1))*100)},{m:"Streak",v:Math.min(100,b.streak*10)}]}><PolarGrid stroke="var(--bd)"/><PolarAngleAxis dataKey="m" tick={{fill:"#98a2b3",fontSize:10.5}}/><Radar dataKey="v" stroke={b.cor} fill={b.cor} fillOpacity={0.25}/></RadarChart></ResponsiveContainer></div>
+      <div style={{flex:1,minWidth:150}}><ResponsiveContainer width="100%" height={110}><RadarChart data={[{m:"Vendas",v:Math.min(100,b.pctM)},{m:"Extras",v:Math.min(100,b.upsell)},{m:"Produtos",v:Math.min(100,(b.qProd/Math.max(metasBon.find(x=>x.id==="prod")?.meta||15,1))*100)},{m:"Streak",v:Math.min(100,b.streak*10)}]}><PolarGrid stroke="var(--bd)"/><PolarAngleAxis dataKey="m" tick={{fill:"var(--ink-3)",fontSize:10.5}}/><Radar dataKey="v" stroke={b.cor} fill={b.cor} fillOpacity={0.25}/></RadarChart></ResponsiveContainer></div>
       <div style={{flex:2,minWidth:160}}><div style={{fontSize:11,fontWeight:700,color:"var(--ink-3)",marginBottom:6,textTransform:"uppercase"}}>Metas de bônus (todas)</div>{b.bonDet.map((m,i)=><div key={i} style={{marginBottom:4}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:1}}><span style={{fontSize:11}}>{m.nome}</span><span style={{fontSize:11,fontWeight:600,color:m.bateu?"#059669":"#888"}}>{m.qt}/{m.meta}{m.bateu&&" ✓"}</span></div><PB val={m.qt} max={m.meta} cor={m.bateu?"#059669":b.cor} pct={false}/></div>)}</div>
     </div>
   </div>)}
@@ -1852,7 +1877,7 @@ export default function App(){
   </div>
   <div className="card"><div className="st">🥧 Mix de Venda</div>{mix.map((m,i)=><div key={i} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,fontWeight:600,color:m.c}}>{m.l}</span><span style={{fontSize:12,fontWeight:700,color:m.c}}>{m.pct.toFixed(0)}%</span></div><div style={{background:"var(--bd)",borderRadius:4,height:8}}><div style={{height:8,borderRadius:4,background:m.c,width:m.pct+"%",transition:"width .8s"}}/></div></div>)}</div>
   <div className="card"><div className="st">💼 Receita por dia trabalhado</div><div style={{display:"flex",gap:14,flexWrap:"wrap"}}><div style={{flex:1,minWidth:100,textAlign:"center"}}><div style={{fontSize:10,color:"var(--ink-3)"}}>DIAS TRABALHADOS</div><div style={{fontSize:20,fontWeight:800,color:"#1a1a2e"}}>{diasTrab}</div></div><div style={{flex:1,minWidth:100,textAlign:"center"}}><div style={{fontSize:10,color:"var(--ink-3)"}}>FATUROU</div><div style={{fontSize:20,fontWeight:800,color:"#059669"}}>{R(b.totC)}</div></div><div style={{flex:1,minWidth:100,textAlign:"center"}}><div style={{fontSize:10,color:"var(--ink-3)"}}>R$/DIA</div><div style={{fontSize:20,fontWeight:800,color:"#0e7490"}}>{R(rDia)}</div></div></div></div>
-  <div className="card"><div className="st">📈 Evolução — últimos 6 meses</div><ResponsiveContainer width="100%" height={140}><BarChart data={evoChart} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%"><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="label" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false}/><YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><Bar dataKey="total" name="Total" fill={b.cor} radius={[6,6,0,0]} maxBarSize={46}/></BarChart></ResponsiveContainer></div>
+  <div className="card"><div className="st">📈 Evolução — últimos 6 meses</div><ResponsiveContainer width="100%" height={140}><BarChart data={evoChart} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%"><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="label" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/><YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><Bar dataKey="total" name="Total" fill={b.cor} radius={[6,6,0,0]} maxBarSize={46}/></BarChart></ResponsiveContainer></div>
 </div>;})()}
 
 {/* ─── BARBEIRO ─── */}
@@ -1874,7 +1899,7 @@ export default function App(){
               <input type="number" min="0" max="100" step="0.5" autoFocus className="inp" style={{width:66,textAlign:"center",fontWeight:700,fontSize:13,padding:"4px 6px"}}
                 value={bAtSel.txPct}
                 onChange={e=>{const v=e.target.value===""?null:Math.max(0,Math.min(100,+e.target.value||0));setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:v}:x));}}/>
-              <span style={{fontSize:12,fontWeight:700,color:"#475467"}}>%</span>
+              <span style={{fontSize:12,fontWeight:700,color:"var(--ink-2)"}}>%</span>
               {proprio&&<button className="bdel" title={"Voltar para a taxa geral ("+txB+"%)"} onClick={()=>setBarbs(bs=>bs.map(x=>x.id===bAtSel.id?{...x,com:null}:x))}>↺</button>}
               <button className="btn bsm" style={{padding:"4px 10px"}} onClick={()=>setEditCom(false)}>ok</button>
             </div>;
@@ -2357,8 +2382,8 @@ export default function App(){
       <ResponsiveContainer width="100%" height={230}>
         <BarChart data={calcBInc.map(b=>({nome:b.nome.split(" ")[0],Assinatura:b.cPote,Avulso:b.fAv*(b.txPct/100),Extras:b.fEx*(b.txPct/100),Produtos:b.fPr,Bônus:b.bonTotal}))} margin={{top:8,right:4,left:-14,bottom:0}} barCategoryGap="26%">
           <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-          <XAxis dataKey="nome" tick={{fill:"#98a2b3",fontSize:11}} tickLine={false} axisLine={false}/>
-          <YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
+          <XAxis dataKey="nome" tick={{fill:"var(--ink-3)",fontSize:11}} tickLine={false} axisLine={false}/>
+          <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
           <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
           <Bar dataKey="Assinatura" stackId="c" fill="#d97706"/>
           <Bar dataKey="Avulso" stackId="c" fill="#0e7490"/>
@@ -2368,7 +2393,7 @@ export default function App(){
         </BarChart>
       </ResponsiveContainer>
       <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:6,justifyContent:"center"}}>
-        {[["Assinatura","#d97706"],["Avulso","#0e7490"],["Extras","#0284c7"],["Produtos","#059669"],["Bônus","#84cc16"]].map(([l,c])=><div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"#667085"}}><span style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>)}
+        {[["Assinatura","#d97706"],["Avulso","#0e7490"],["Extras","#0284c7"],["Produtos","#059669"],["Bônus","#84cc16"]].map(([l,c])=><div key={l} style={{display:"flex",alignItems:"center",gap:5,fontSize:11,color:"var(--ink-2)"}}><span style={{width:8,height:8,borderRadius:2,background:c}}/>{l}</div>)}
       </div>
     </div>}
 
@@ -2484,15 +2509,15 @@ export default function App(){
               </PieChart>
             </ResponsiveContainer>
             <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}>
-              <div style={{fontSize:10,color:"#98a2b3",fontWeight:600,textTransform:"uppercase",letterSpacing:".07em"}}>Total</div>
-              <div style={{fontSize:17,fontWeight:800,color:"#101828"}}>{R(somaComp)}</div>
+              <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".07em"}}>Total</div>
+              <div style={{fontSize:17,fontWeight:800,color:"var(--ink)"}}>{R(somaComp)}</div>
             </div>
           </div>
           <div style={{flex:1,minWidth:190}}>
             {comp.map(x=><div key={x.name} style={{marginBottom:11}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,gap:8}}>
-                <span style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5,color:"#475467"}}><span style={{width:9,height:9,borderRadius:3,background:x.cor}}/>{x.name}</span>
-                <span style={{fontSize:12.5,fontWeight:700,color:x.cor}}>{R(x.value)} <span style={{color:"#98a2b3",fontWeight:500}}>· {((x.value/somaComp)*100).toFixed(0)}%</span></span>
+                <span style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5,color:"var(--ink-2)"}}><span style={{width:9,height:9,borderRadius:3,background:x.cor}}/>{x.name}</span>
+                <span style={{fontSize:12.5,fontWeight:700,color:x.cor}}>{R(x.value)} <span style={{color:"var(--ink-3)",fontWeight:500}}>· {((x.value/somaComp)*100).toFixed(0)}%</span></span>
               </div>
               <div style={{background:"#f2f4f7",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:((x.value/somaComp)*100)+"%",background:x.cor}}/></div>
             </div>)}
@@ -2649,8 +2674,8 @@ export default function App(){
         <ResponsiveContainer width="100%" height={Math.max(180,Math.min(10,itensFiltrados.length)*38)}>
           <BarChart data={itensFiltrados.slice(0,10).map(i=>({nome:i.nome.length>22?i.nome.slice(0,21)+"…":i.nome,Contribuição:Math.round(i.contribTotal),mc:i.mc}))} layout="vertical" margin={{top:0,right:16,left:8,bottom:0}} barCategoryGap="28%">
             <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" horizontal={false}/>
-            <XAxis type="number" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>=1000?Math.round(v/1000)+"k":v}/>
-            <YAxis type="category" dataKey="nome" width={130} tick={{fill:"#475467",fontSize:11}} tickLine={false} axisLine={false}/>
+            <XAxis type="number" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>=1000?Math.round(v/1000)+"k":v}/>
+            <YAxis type="category" dataKey="nome" width={130} tick={{fill:"var(--ink-2)",fontSize:11}} tickLine={false} axisLine={false}/>
             <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
             <Bar dataKey="Contribuição" radius={[0,6,6,0]} maxBarSize={26}>
               {itensFiltrados.slice(0,10).map((i,idx)=><Cell key={idx} fill={corMc(i.mc)}/>)}
@@ -2720,12 +2745,12 @@ export default function App(){
 
 {/* ─── INTELIGÊNCIA ─── */}
 {aba==="intel"&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card"><div className="st">Acumulado vs meta</div><ResponsiveContainer width="100%" height={150}><AreaChart data={gDia.map((d,i)=>({...d,acum:gDia.slice(0,i+1).reduce((a,x)=>a+x.tot,0),meta2:(meta/dim)*(i+1)}))} margin={{top:4,right:4,left:-20,bottom:0}}><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="dia" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/><YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>Math.round(v/1000)+"k"}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><defs><linearGradient id="gAcum" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.28}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="acum" name="Realizado" stroke="#0e7490" fill="url(#gAcum)" strokeWidth={2.4} dot={false} activeDot={{r:4,strokeWidth:2,stroke:"#fff"}}/><Area type="monotone" dataKey="meta2" name="Meta" stroke="#dc2626" fill="none" strokeWidth={1.5} strokeDasharray="4 4"/></AreaChart></ResponsiveContainer></div>
+  <div className="card"><div className="st">Acumulado vs meta</div><ResponsiveContainer width="100%" height={150}><AreaChart data={gDia.map((d,i)=>({...d,acum:gDia.slice(0,i+1).reduce((a,x)=>a+x.tot,0),meta2:(meta/dim)*(i+1)}))} margin={{top:4,right:4,left:-20,bottom:0}}><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="dia" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} interval={3}/><YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>Math.round(v/1000)+"k"}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><defs><linearGradient id="gAcum" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#0e7490" stopOpacity={0.28}/><stop offset="100%" stopColor="#0e7490" stopOpacity={0}/></linearGradient></defs><Area type="monotone" dataKey="acum" name="Realizado" stroke="#0e7490" fill="url(#gAcum)" strokeWidth={2.4} dot={false} activeDot={{r:4,strokeWidth:2,stroke:"#fff"}}/><Area type="monotone" dataKey="meta2" name="Meta" stroke="#dc2626" fill="none" strokeWidth={1.5} strokeDasharray="4 4"/></AreaChart></ResponsiveContainer></div>
   <div className="card"><div className="st">📅 Filtrar período — Evolução por Barbeiro</div><div className="g2">
     <div><span className="lbl">De</span><div style={{display:"flex",gap:6}}><select className="inp" value={histDe.m} onChange={e=>setHistDe(h=>({...h,m:+e.target.value}))}>{MESES.map((mm,i)=><option key={i} value={i}>{mm}</option>)}</select><select className="inp" value={histDe.a} onChange={e=>setHistDe(h=>({...h,a:+e.target.value}))}>{[ano-2,ano-1,ano].map(a=><option key={a} value={a}>{a}</option>)}</select></div></div>
     <div><span className="lbl">Até</span><div style={{display:"flex",gap:6}}><select className="inp" value={histAte.m} onChange={e=>setHistAte(h=>({...h,m:+e.target.value}))}>{MESES.map((mm,i)=><option key={i} value={i}>{mm}</option>)}</select><select className="inp" value={histAte.a} onChange={e=>setHistAte(h=>({...h,a:+e.target.value}))}>{[ano-2,ano-1,ano].map(a=><option key={a} value={a}>{a}</option>)}</select></div></div>
   </div></div>
-  <div className="card"><div className="st">📊 Histórico — período selecionado (Total)</div><ResponsiveContainer width="100%" height={150}><BarChart data={histRange} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%"><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="label" tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false}/><YAxis tick={{fill:"#98a2b3",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><Bar dataKey="total" name="Total" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={46}/></BarChart></ResponsiveContainer></div>
+  <div className="card"><div className="st">📊 Histórico — período selecionado (Total)</div><ResponsiveContainer width="100%" height={150}><BarChart data={histRange} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%"><CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/><XAxis dataKey="label" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/><YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/><Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/><Bar dataKey="total" name="Total" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={46}/></BarChart></ResponsiveContainer></div>
   <div className="card"><div className="st">Evolução por Barbeiro — início vs fim do período</div>{barbs.map(b=>{const atual=histRange[histRange.length-1]?.perBarber.find(x=>x.id===b.id)?.total||0;const antigo=histRange[0]?.perBarber.find(x=>x.id===b.id)?.total||0;const varPct=antigo>0?((atual-antigo)/antigo)*100:0;return <div key={b.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,padding:"6px 8px",background:"var(--surface-2)",borderRadius:7}}><BAv b={b} size={26}/><span style={{flex:1,fontSize:13,fontWeight:600}}>{b.nome.split(" ")[0]}</span><span style={{fontSize:11,color:"var(--ink-3)"}}>{R(antigo)} → {R(atual)}</span><DB v={varPct}/></div>;})}</div>
 </div>}
 
@@ -2777,7 +2802,16 @@ export default function App(){
 
 {/* ─── CONFIG ─── */}
 {aba==="cfg"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
-  <div className="card" style={{borderLeft:"3px solid #0e7490"}}><div className="st">🏢 Empresa</div><div className="g2"><div><span className="lbl">CNPJ Barbearia</span><input className="inp" value={cnpj} onChange={e=>setCnpj(e.target.value)}/></div><div><span className="lbl">Meta mensal</span><div style={{display:"flex",gap:6}}><input className="inp" type="number" value={metaI} onChange={e=>setMetaI(e.target.value)}/><button className="btn bsm" onClick={()=>setMeta(parseFloat(metaI)||meta)}>OK</button></div></div></div>
+  <div className="card" style={{borderLeft:"3px solid #0e7490"}}><div className="st">🏢 Empresa</div><div className="g2"><div><span className="lbl">CNPJ Barbearia</span><input className="inp" value={cnpj} onChange={e=>setCnpj(e.target.value)}/></div><div><span className="lbl">Meta mensal (geral)</span><div style={{display:"flex",gap:6}}><input className="inp" type="number" value={metaI} onChange={e=>setMetaI(e.target.value)}/><button className="btn bsm" onClick={()=>setMeta(parseFloat(metaI)||meta)}>OK</button></div></div></div>
+    <div style={{marginTop:14}}>
+      <span className="lbl">Metas por categoria (0 = sem meta cadastrada)</span>
+      <div className="g4">
+        {[["assin","Assinatura"],["avulso","Avulso"],["extras","Extras"],["prod","Produtos"]].map(([k,l])=>
+          <div key={k}><span style={{fontSize:10.5,color:"var(--ink-3)",display:"block",marginBottom:4}}>{l}</span><input className="inp" type="number" style={{fontSize:12,padding:"6px 8px"}} value={metaCatI[k]} onChange={e=>setMetaCatI(m=>({...m,[k]:e.target.value}))}/></div>
+        )}
+      </div>
+      <button className="btn bsm" style={{marginTop:10}} onClick={()=>setMetaCat({assin:parseFloat(metaCatI.assin)||0,avulso:parseFloat(metaCatI.avulso)||0,extras:parseFloat(metaCatI.extras)||0,prod:parseFloat(metaCatI.prod)||0})}>Salvar metas por categoria</button>
+    </div>
   </div>
   <div className="card" style={{borderLeft:"3px solid #0e7490"}}>
     <div className="st">🖼️ Logo da barbearia</div>
