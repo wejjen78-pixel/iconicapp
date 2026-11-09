@@ -1364,17 +1364,20 @@ export default function App(){
   {/* ── METAS POR CATEGORIA ── */}
   {(()=>{
     const cats=[
-      {k:"assin",l:"💳 Assinatura",cor:"#d97706",val:tPote,meta:metaCat.assin},
-      {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",val:tSvcU,meta:metaCat.avulso},
-      {k:"extras",l:"✨ Extras",cor:"#0284c7",val:tExt,meta:metaCat.extras},
-      {k:"prod",l:"🛍️ Produtos",cor:"#059669",val:tProdBruto,meta:metaCat.prod},
+      {k:"assin",l:"💳 Assinatura",cor:"#d97706",val:tPote,meta:metaCat.assin,tm:ticketCat.assin},
+      {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",val:tSvcU,meta:metaCat.avulso,tm:ticketCat.avulso},
+      {k:"extras",l:"✨ Extras",cor:"#0284c7",val:tExt,meta:metaCat.extras,tm:ticketCat.extras},
+      {k:"prod",l:"🛍️ Produtos",cor:"#059669",val:tProdBruto,meta:metaCat.prod,tm:ticketCat.prod},
     ];
     if(!cats.some(c=>c.meta>0))return null;
     return <div className="card">
       <div className="st" style={{marginBottom:12}}>Metas por categoria</div>
       <div className="g2">
         {cats.map(c=>c.meta>0?
-          <div key={c.k}><PB val={c.val} max={c.meta} cor={c.cor} lbl={c.l+" — "+R(c.val)+" / "+R(c.meta)} pct sub={c.val>=c.meta?"✓ Meta batida":"Falta "+R(c.meta-c.val)}/></div>
+          <div key={c.k}>
+            <PB val={c.val} max={c.meta} cor={c.cor} lbl={c.l+" — "+R(c.val)+" / "+R(c.meta)} pct sub={c.val>=c.meta?"✓ Meta batida":"Falta "+R(c.meta-c.val)}/>
+            <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:3}}>Ticket médio por atendimento: <b style={{color:"var(--ink-2)"}}>{R(c.tm)}</b></div>
+          </div>
           :<div key={c.k} style={{opacity:.5}}><div style={{fontSize:11,marginBottom:3}}>{c.l}</div><div style={{fontSize:11,color:"var(--ink-3)"}}>Sem meta cadastrada</div></div>
         )}
       </div>
@@ -1388,6 +1391,40 @@ export default function App(){
     <KPI lbl="🛍️ Produtos" val={R(tProdBruto)} cor="#059669" glow sub={fat>0?((tProdBruto/fat)*100).toFixed(0)+"% do faturamento":null}/>
     <KPI lbl="🚀 Sem assinatura" val={R(tSvcU+tExt+tProdBruto)} cor="#0284c7" glow sub="avulso + extras + produtos"/>
   </div>
+
+  {/* ── DISTRIBUIÇÃO DO FATURAMENTO ── */}
+  {(()=>{
+    const dist=[{name:"Assinatura",value:tPote,cor:"#d97706"},{name:"Avulso",value:tSvcU,cor:"#0e7490"},{name:"Extras",value:tExt,cor:"#0284c7"},{name:"Produtos",value:tProdBruto,cor:"#059669"}].filter(x=>x.value>0);
+    if(!dist.length)return null;
+    return <div className="card">
+      <div className="st">Distribuição do faturamento</div>
+      <div style={{display:"flex",alignItems:"center",gap:18,flexWrap:"wrap"}}>
+        <div style={{width:190,height:190,flexShrink:0,position:"relative"}}>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie data={dist} dataKey="value" nameKey="name" innerRadius={58} outerRadius={86} paddingAngle={2} stroke="none">
+                {dist.map(x=><Cell key={x.name} fill={x.cor}/>)}
+              </Pie>
+              <Tooltip content={<CT/>}/>
+            </PieChart>
+          </ResponsiveContainer>
+          <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",pointerEvents:"none"}}>
+            <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".07em"}}>Total</div>
+            <div style={{fontSize:17,fontWeight:800,color:"var(--ink)"}}>{R(fat)}</div>
+          </div>
+        </div>
+        <div style={{flex:1,minWidth:190}}>
+          {dist.map(x=><div key={x.name} style={{marginBottom:11}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4,gap:8}}>
+              <span style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5,color:"var(--ink-2)"}}><span style={{width:9,height:9,borderRadius:3,background:x.cor}}/>{x.name}</span>
+              <span style={{fontSize:12.5,fontWeight:700,color:x.cor}}>{R(x.value)} <span style={{color:"var(--ink-3)",fontWeight:500}}>· {fat>0?((x.value/fat)*100).toFixed(0):0}%</span></span>
+            </div>
+            <div style={{background:"var(--bd-2)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(fat>0?(x.value/fat)*100:0)+"%",background:x.cor}}/></div>
+          </div>)}
+        </div>
+      </div>
+    </div>;
+  })()}
   <div className="g4">
     <KPI lbl="Faturado hoje" val={R(fatHjVal)} cor="#0284c7"/>
     <KPI lbl="Ticket médio" val={R(ticketM)}/>
@@ -2603,7 +2640,7 @@ export default function App(){
                 <span style={{display:"flex",alignItems:"center",gap:7,fontSize:12.5,color:"var(--ink-2)"}}><span style={{width:9,height:9,borderRadius:3,background:x.cor}}/>{x.name}</span>
                 <span style={{fontSize:12.5,fontWeight:700,color:x.cor}}>{R(x.value)} <span style={{color:"var(--ink-3)",fontWeight:500}}>· {((x.value/somaComp)*100).toFixed(0)}%</span></span>
               </div>
-              <div style={{background:"#f2f4f7",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:((x.value/somaComp)*100)+"%",background:x.cor}}/></div>
+              <div style={{background:"var(--bd-2)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:((x.value/somaComp)*100)+"%",background:x.cor}}/></div>
             </div>)}
           </div>
         </div>
