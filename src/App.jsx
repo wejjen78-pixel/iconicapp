@@ -29,6 +29,8 @@ const normSvc=s=>s?s.trim().replace(/&amp;/g,"&").replace(/\s+/g," "):s;
 const getTipoFicha=svc=>{if(!svc)return null;const k=normSvc(svc).toLowerCase();if(k.includes("cabelo & barba")||k.includes("cabelo e barba"))return"cortebarba";if(k.includes("pézinho + barba")||k.includes("pezinho + barba"))return"acabbarba";if(k==="club - barba")return"barba";if(k==="club - pezinho"||k==="club - pézinho")return"pezinho";if(k.includes("club")||k.includes("retoque"))return"corte";return null;};
 const getFichasPorTipo=svc=>{const t=getTipoFicha(svc);return t?TIPO_FICHAS[t]:0;};
 const isClub=svc=>{if(!svc)return false;const k=normSvc(svc).toLowerCase();return k.startsWith("club ")||k.startsWith("retoque - club");};
+// Perfil do serviço avulso/extra (cabelo, barba, cabelo+barba, outros) — pra ticket médio por perfil.
+const perfilServico=svc=>{const k=normSvc(svc||"").toLowerCase();const temCabelo=k.includes("cabelo")||k.includes("corte")||k.includes("pigmenta");const temBarba=k.includes("barba")||k.includes("pezinho")||k.includes("pézinho");if(temCabelo&&temBarba)return"Cabelo + Barba";if(temBarba)return"Barba";if(temCabelo)return"Cabelo";return"Outros";};
 const EXT_KEYS=["sobrancelha","depilação nasal","hidratação barba","hidratação cabelo","limpeza de pele","pigmentação","camuflagem barba","camuflagem capilar","selagem capilar"];
 const SVC_COMP_SOB=["corte e sobrancelha","corte + barba e sobrancelha","corte e barba e sobrancelha"];
 const isExtraSob=svc=>{const k=normSvc(svc||"").toLowerCase();if(!k.includes("sobrancelha"))return false;if(SVC_COMP_SOB.some(c=>k.includes(c)))return false;if(k.includes("corte")||k.includes("barba"))return false;return true;};
@@ -776,6 +778,20 @@ export default function App(){
   const ritmo=metaDia*dAt>0?((fat/(metaDia*dAt))*100)-100:0;
   const falta=Math.max(0,meta-fat);
   const tAtS=aM.reduce((a,s)=>a+s.qt,0)+lM.length;const ticketM=tAtS>0?tSvcU/tAtS:0;
+  // Ticket médio por categoria (por atendimento/unidade — o Iconic não identifica cliente único por venda).
+  const qtdExtrasU=eM.length+eAM.length;const qtdProdU=pM.reduce((a,p)=>a+p.qt,0);
+  const ticketCat={
+    assin:assinD.ativas>0?tPote/assinD.ativas:0,
+    avulso:ticketM,
+    extras:qtdExtrasU>0?tExt/qtdExtrasU:0,
+    prod:qtdProdU>0?tProdBruto/qtdProdU:0,
+  };
+  // Ticket médio por perfil de serviço (avulso + extras, classificados por nome).
+  const perfilGrupos={};
+  [...aM.flatMap(s=>Array(s.qt||1).fill(s)),...eM,...eAM].forEach(s=>{const p=perfilServico(s.svc);if(!perfilGrupos[p])perfilGrupos[p]={perfil:p,qt:0,receita:0};perfilGrupos[p].qt++;perfilGrupos[p].receita+=s.val;});
+  const perfilLista=["Cabelo","Barba","Cabelo + Barba","Outros"].map(p=>{const g=perfilGrupos[p]||{perfil:p,qt:0,receita:0};return{...g,ticket:g.qt>0?g.receita/g.qt:0};});
+  const maxPerfilTicket=Math.max(...perfilLista.map(p=>p.ticket),1);
+  const atendMes=aM.reduce((a,s)=>a+s.qt,0)+[...eM,...eAM].length+lM.length;
   const fatHjVal=poM.filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)+aM.filter(s=>s.dt===hjS).reduce((a,s)=>a+s.val*s.qt,0)+lM.filter(l=>l.dt===hjS).reduce((a,l)=>a+l.vb,0)+[...eM,...eAM].filter(e=>e.dt===hjS).reduce((a,e)=>a+e.val,0)+pM.filter(p=>p.dt===hjS).reduce((a,p)=>a+p.val*p.qt,0);
   const gDia=Array.from({length:dim},(_,i)=>{const d=i+1;const dS=ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");return{dia:String(d),pote:poM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),svc:aM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lM.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0),ext:[...eM,...eAM].filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),prod:pM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)};}).map(d=>({...d,tot:d.pote+d.svc+d.ext+d.prod}));
   // Faturamento por dia do mês anterior, para comparar o mesmo período.
@@ -1379,9 +1395,10 @@ export default function App(){
     const custoVarComissaoPct=fat>0?(totalComissoesMes+custoVarMes)/fat:custoVarPct+txB/100;
     const lucroProjetado=proj-(proj*custoVarComissaoPct)-fixosTotalMes;
     const margemProjetada=proj>0?(lucroProjetado/proj)*100:0;
+    const lucroPorAtend=atendMes>0?lucroAtual/atendMes:0;
     return <div className="card">
       <div className="st" style={{marginBottom:12}}>Lucro estimado do mês</div>
-      <div className="g2">
+      <div className="g3">
         <div>
           <div style={{fontSize:11,color:"var(--ink-3)"}}>Até dia {dAt} (realizado)</div>
           <div style={{fontSize:24,fontWeight:800,color:lucroAtual>=0?"#059669":"#dc2626"}}>{lucroAtual>=0?"":"−"}{R(Math.abs(lucroAtual))}</div>
@@ -1392,8 +1409,44 @@ export default function App(){
           <div style={{fontSize:24,fontWeight:800,color:lucroProjetado>=0?"#059669":"#dc2626"}}>{lucroProjetado>=0?"":"−"}{R(Math.abs(lucroProjetado))}</div>
           <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemProjetada.toFixed(1)}% de margem · no ritmo atual</div>
         </div>
+        <div>
+          <div style={{fontSize:11,color:"var(--ink-3)"}}>Lucro por atendimento</div>
+          <div style={{fontSize:24,fontWeight:800,color:lucroPorAtend>=0?"#059669":"#dc2626"}}>{lucroPorAtend>=0?"":"−"}{R(Math.abs(lucroPorAtend))}</div>
+          <div style={{fontSize:12,color:"var(--ink-3)"}}>{atendMes} atendimento{atendMes===1?"":"s"} no mês</div>
+        </div>
       </div>
       <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:10}}>Estimativa: desconta comissões, custos fixos, CLT e uma taxa variável aproximada (cartão + imposto + gerente). Pra conta exata item a item, veja o relatório <b>Profit</b>.</div>
+    </div>;
+  })()}
+
+  {/* ── TICKET MÉDIO ── */}
+  {(()=>{
+    const cats=[
+      {k:"assin",l:"💳 Assinatura",cor:"#d97706",v:ticketCat.assin,sub:assinD.ativas+" assinante"+(assinD.ativas===1?"":"s")+" ativo"+(assinD.ativas===1?"":"s")},
+      {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",v:ticketCat.avulso,sub:tAtS+" atendimento"+(tAtS===1?"":"s")},
+      {k:"extras",l:"✨ Extras",cor:"#0284c7",v:ticketCat.extras,sub:qtdExtrasU+" extra"+(qtdExtrasU===1?"":"s")},
+      {k:"prod",l:"🛍️ Produtos",cor:"#059669",v:ticketCat.prod,sub:qtdProdU+" unidade"+(qtdProdU===1?"":"s")},
+    ];
+    const maxTicket=Math.max(...cats.map(c=>c.v),1);
+    return <div className="card">
+      <div className="st" style={{marginBottom:2}}>Ticket médio por categoria</div>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Valor médio por atendimento/unidade em {MESES[mes]} — o Iconic não identifica cliente único por venda, então não dá pra calcular por cliente.</div>
+      <div className="g4" style={{marginBottom:16}}>
+        {cats.map(c=><div key={c.k} style={{padding:"11px 13px",background:"var(--surface-2)",border:"1px solid var(--bd)",borderRadius:11}}>
+          <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{c.l}</div>
+          <div style={{fontSize:18,fontWeight:800,color:c.cor,marginTop:4}}>{R(c.v)}</div>
+          <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:2}}>{c.sub}</div>
+        </div>)}
+      </div>
+      <div className="st" style={{marginBottom:2}}>Ticket médio por perfil de serviço</div>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:10}}>Avulso + extras, classificados pelo nome do serviço.</div>
+      {perfilLista.map(p=><div key={p.perfil} style={{marginBottom:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+          <span style={{color:"var(--ink-2)"}}>{p.perfil}</span>
+          <span style={{fontWeight:600}}>{p.qt>0?R(p.ticket)+" · "+p.qt+"x":"—"}</span>
+        </div>
+        <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(p.ticket/maxPerfilTicket*100||0)+"%",background:"#0e7490",transition:"width .8s"}}/></div>
+      </div>)}
     </div>;
   })()}
 
