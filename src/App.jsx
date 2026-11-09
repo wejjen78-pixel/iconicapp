@@ -56,29 +56,29 @@ const CSS=`
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 :root{--pri:#0e7490;--pri-d:#155e75;--pri-lt:#67e8f9;--pri-bg:#ecfeff;--pri-bd:#a5f3fc;
 --ink:#101828;--ink-2:#475467;--ink-3:#98a2b3;--bd:#e9ecf2;--bd-2:#f2f4f7;--bg:#f7f8fa;
---surface:#fff;--surface-2:#fafbfc;--surface-in:#fff;--bd-in:#dfe3ea;
---sh:0 1px 2px rgba(16,24,40,.04);--sh-2:0 4px 14px rgba(16,24,40,.07)}
+--surface:#fff;--surface-2:#fafbfc;--surface-in:#fff;--bd-in:#dfe3ea;--sb-bg:#0b1220;
+--sh:0 1px 2px rgba(16,24,40,.04);--sh-2:0 4px 14px rgba(16,24,40,.07);--r:16px;--r-sm:11px}
 :root[data-theme="dark"]{--pri-lt:#67e8f9;--pri-bg:#0e749026;--pri-bd:#0e749066;
 --ink:#eef1f6;--ink-2:#aab2c0;--ink-3:#7b8496;--bd:#232a38;--bd-2:#1b212c;--bg:#0b0f17;
---surface:#131926;--surface-2:#1a2130;--surface-in:#171e2b;--bd-in:#2a3242;
---sh:0 1px 2px rgba(0,0,0,.2);--sh-2:0 4px 18px rgba(0,0,0,.35)}
+--surface:#131926;--surface-2:#1a2130;--surface-in:#171e2b;--bd-in:#2a3242;--sb-bg:#080b11;
+--sh:0 1px 2px rgba(0,0,0,.25);--sh-2:0 4px 18px rgba(0,0,0,.4)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#d0d5dd;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#b7bec9}
 :root[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#2a3242}:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover{background:#384158}
-.inp{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink);padding:9px 12px;font-family:'Inter',sans-serif;font-size:13px;border-radius:9px;width:100%;outline:none;transition:border .15s,box-shadow .15s}
+.inp{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink);padding:9px 13px;font-family:'Inter',sans-serif;font-size:13px;border-radius:var(--r-sm);width:100%;outline:none;transition:border .15s,box-shadow .15s}
 .inp:focus{border-color:var(--pri);box-shadow:0 0 0 3px #0e74901f}
-.btn{background:var(--pri);color:#fff;border:none;padding:10px 20px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border-radius:9px;transition:all .15s;box-shadow:var(--sh)}
-.btn:hover{background:var(--pri-d);box-shadow:var(--sh-2)}.btn:active{transform:translateY(1px)}
-.bsm{padding:6px 13px!important;font-size:11px!important}
-.bg{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink-2);padding:8px 14px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:9px;transition:all .15s}
+.btn{background:var(--pri);color:#fff;border:none;padding:10px 20px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border-radius:999px;transition:all .15s;box-shadow:var(--sh)}
+.btn:hover{background:var(--pri-d);box-shadow:var(--sh-2);transform:translateY(-1px)}.btn:active{transform:translateY(1px)}
+.bsm{padding:6px 15px!important;font-size:11px!important}
+.bg{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink-2);padding:8px 16px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:999px;transition:all .15s}
 .bg:hover{border-color:var(--pri);color:var(--pri);background:var(--pri-bg)}
 .bg.on{border-color:var(--pri);color:var(--pri);background:var(--pri-bg);font-weight:600}
 .bdel{background:none;border:none;color:#cbd2dc;cursor:pointer;font-size:15px;padding:2px 4px;border-radius:5px;transition:all .15s}
 .bdel:hover{color:#dc2626;background:#fef2f2}
-.card{background:var(--surface);border:1px solid var(--bd);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+.card{background:var(--surface);border:1px solid var(--bd);border-radius:var(--r);padding:19px;box-shadow:var(--sh);transition:box-shadow .2s,border-color .2s}
 .lbl{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:6px}
-.st{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:14px}
+.st{font-size:10.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px}
 .row{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--bd-2);font-size:13px;transition:background .12s}
 .row:hover{background:var(--surface-2)}.row:last-child{border-bottom:none}
 .av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
@@ -86,30 +86,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);font-s
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .shell{display:flex;min-height:100vh}
-.sb{width:238px;min-width:238px;background:#0b1220;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0}
+.sb{width:242px;min-width:242px;background:var(--sb-bg);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;flex-shrink:0;border-right:1px solid #ffffff0d}
 .sb::-webkit-scrollbar-thumb{background:#ffffff1a}
-.sblogo{padding:22px 20px 18px;text-align:center}
+.sblogo{padding:24px 20px 20px;text-align:center}
 .sblogo img{margin:0 auto}
 .brand{font-size:15px;font-weight:700;color:#fff;margin-top:8px;letter-spacing:.02em}.brand span{color:var(--pri-lt)}
 .sub{font-size:11px;color:#ffffff4d;margin-top:3px;letter-spacing:.14em;text-transform:uppercase}
-.sbnav{flex:1;padding:6px 10px 14px}
-.ni{display:flex;align-items:center;gap:11px;padding:9px 12px;margin-bottom:2px;color:#ffffff8a;font-size:13px;font-weight:500;cursor:pointer;border-radius:9px;transition:all .15s;white-space:nowrap}
+.sbnav{flex:1;padding:8px 12px 14px}
+.ni{display:flex;align-items:center;gap:11px;padding:10px 13px;margin-bottom:3px;color:#ffffff8a;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--r-sm);transition:all .15s;white-space:nowrap}
 .ni:hover{background:#ffffff0f;color:#fff}
-.ni.on{background:linear-gradient(90deg,#0e749038,#0e749010);color:var(--pri-lt);font-weight:600;box-shadow:inset 2px 0 0 var(--pri-lt)}
+.ni.on{background:var(--pri-bg);color:var(--pri-lt);font-weight:700;box-shadow:inset 0 0 0 1px #0e749055}
 .ni svg{width:17px;height:17px;flex-shrink:0;opacity:.65;stroke-width:1.7}.ni.on svg{opacity:1}
 .sbft{padding:12px;border-top:1px solid #ffffff12;margin:0 10px 8px}
-.sfui{display:flex;align-items:center;gap:10px;margin-bottom:10px;background:#ffffff0a;border:1px solid #ffffff10;border-radius:11px;padding:10px}
+.sfui{display:flex;align-items:center;gap:10px;margin-bottom:10px;background:#ffffff0a;border:1px solid #ffffff10;border-radius:var(--r-sm);padding:10px}
 .sfav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:#0e749040;color:var(--pri-lt);flex-shrink:0;overflow:hidden}
 .sfnm{font-size:12.5px;color:#fff;font-weight:600}
 .sfrole{font-size:10px;color:var(--pri-lt);background:#0e749030;border-radius:20px;padding:1px 7px;display:inline-block;margin-top:3px;font-weight:600}
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .tb{background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--bd);padding:14px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:50}
-.tbt{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.tbt{font-size:19px;font-weight:800;letter-spacing:-.02em}
 .pb{padding:22px 26px;flex:1}
-.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--bd);box-shadow:var(--sh-2);border-radius:11px;padding:10px 16px;font-size:12px;color:#059669;z-index:999}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--bd);box-shadow:var(--sh-2);border-radius:var(--r-sm);padding:10px 16px;font-size:12px;color:#059669;z-index:999}
 .dp{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
-.grp-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface-2);border-radius:10px;cursor:pointer;margin-bottom:2px;border:1px solid var(--bd);transition:all .15s}
-.thtg{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink-2);width:30px;height:30px;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;flex-shrink:0}
+.grp-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--surface-2);border-radius:var(--r-sm);cursor:pointer;margin-bottom:2px;border:1px solid var(--bd);transition:all .15s}
+.thtg{background:var(--surface-in);border:1px solid var(--bd-in);color:var(--ink-2);width:30px;height:30px;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s;flex-shrink:0}
 .thtg:hover{border-color:var(--pri);color:var(--pri)}
 :root[data-theme="dark"] .logo-auto{filter:invert(1) grayscale(1) contrast(.9) brightness(1.6)}
 .grp-hd:hover{background:var(--pri-bg);border-color:var(--pri-bd)}
@@ -1381,75 +1381,6 @@ export default function App(){
     </div>;
   })()}
 
-  {/* ── LUCRO ESTIMADO DO MÊS ── */}
-  {(()=>{
-    const custosFixosMes=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
-    const totalCLTMes=clt.reduce((a,c)=>a+(c.salario||0),0);
-    const totalComissoesMes=calcB.reduce((a,b)=>a+b.totCBon,0);
-    const custoVarPct=((profitPrem.cartao||0)+(profitPrem.imposto||0)+(profitPrem.gerente||0))/100;
-    const custoVarMes=fat*custoVarPct;
-    const fixosTotalMes=custosFixosMes+totalCLTMes;
-    const lucroAtual=fat-totalComissoesMes-custoVarMes-fixosTotalMes;
-    const margemAtual=fat>0?(lucroAtual/fat)*100:0;
-    // Projeção pro fim do mês: aplica a mesma proporção de comissão+custo variável de hoje sobre a projeção de faturamento.
-    const custoVarComissaoPct=fat>0?(totalComissoesMes+custoVarMes)/fat:custoVarPct+txB/100;
-    const lucroProjetado=proj-(proj*custoVarComissaoPct)-fixosTotalMes;
-    const margemProjetada=proj>0?(lucroProjetado/proj)*100:0;
-    const lucroPorAtend=atendMes>0?lucroAtual/atendMes:0;
-    return <div className="card">
-      <div className="st" style={{marginBottom:12}}>Lucro estimado do mês</div>
-      <div className="g3">
-        <div>
-          <div style={{fontSize:11,color:"var(--ink-3)"}}>Até dia {dAt} (realizado)</div>
-          <div style={{fontSize:24,fontWeight:800,color:lucroAtual>=0?"#059669":"#dc2626"}}>{lucroAtual>=0?"":"−"}{R(Math.abs(lucroAtual))}</div>
-          <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemAtual.toFixed(1)}% de margem</div>
-        </div>
-        <div>
-          <div style={{fontSize:11,color:"var(--ink-3)"}}>Projeção pro fim do mês</div>
-          <div style={{fontSize:24,fontWeight:800,color:lucroProjetado>=0?"#059669":"#dc2626"}}>{lucroProjetado>=0?"":"−"}{R(Math.abs(lucroProjetado))}</div>
-          <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemProjetada.toFixed(1)}% de margem · no ritmo atual</div>
-        </div>
-        <div>
-          <div style={{fontSize:11,color:"var(--ink-3)"}}>Lucro por atendimento</div>
-          <div style={{fontSize:24,fontWeight:800,color:lucroPorAtend>=0?"#059669":"#dc2626"}}>{lucroPorAtend>=0?"":"−"}{R(Math.abs(lucroPorAtend))}</div>
-          <div style={{fontSize:12,color:"var(--ink-3)"}}>{atendMes} atendimento{atendMes===1?"":"s"} no mês</div>
-        </div>
-      </div>
-      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:10}}>Estimativa: desconta comissões, custos fixos, CLT e uma taxa variável aproximada (cartão + imposto + gerente). Pra conta exata item a item, veja o relatório <b>Profit</b>.</div>
-    </div>;
-  })()}
-
-  {/* ── TICKET MÉDIO ── */}
-  {(()=>{
-    const cats=[
-      {k:"assin",l:"💳 Assinatura",cor:"#d97706",v:ticketCat.assin,sub:assinD.ativas+" assinante"+(assinD.ativas===1?"":"s")+" ativo"+(assinD.ativas===1?"":"s")},
-      {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",v:ticketCat.avulso,sub:tAtS+" atendimento"+(tAtS===1?"":"s")},
-      {k:"extras",l:"✨ Extras",cor:"#0284c7",v:ticketCat.extras,sub:qtdExtrasU+" extra"+(qtdExtrasU===1?"":"s")},
-      {k:"prod",l:"🛍️ Produtos",cor:"#059669",v:ticketCat.prod,sub:qtdProdU+" unidade"+(qtdProdU===1?"":"s")},
-    ];
-    const maxTicket=Math.max(...cats.map(c=>c.v),1);
-    return <div className="card">
-      <div className="st" style={{marginBottom:2}}>Ticket médio por categoria</div>
-      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Valor médio por atendimento/unidade em {MESES[mes]} — o Iconic não identifica cliente único por venda, então não dá pra calcular por cliente.</div>
-      <div className="g4" style={{marginBottom:16}}>
-        {cats.map(c=><div key={c.k} style={{padding:"11px 13px",background:"var(--surface-2)",border:"1px solid var(--bd)",borderRadius:11}}>
-          <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{c.l}</div>
-          <div style={{fontSize:18,fontWeight:800,color:c.cor,marginTop:4}}>{R(c.v)}</div>
-          <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:2}}>{c.sub}</div>
-        </div>)}
-      </div>
-      <div className="st" style={{marginBottom:2}}>Ticket médio por perfil de serviço</div>
-      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:10}}>Avulso + extras, classificados pelo nome do serviço.</div>
-      {perfilLista.map(p=><div key={p.perfil} style={{marginBottom:8}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
-          <span style={{color:"var(--ink-2)"}}>{p.perfil}</span>
-          <span style={{fontWeight:600}}>{p.qt>0?R(p.ticket)+" · "+p.qt+"x":"—"}</span>
-        </div>
-        <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(p.ticket/maxPerfilTicket*100||0)+"%",background:"#0e7490",transition:"width .8s"}}/></div>
-      </div>)}
-    </div>;
-  })()}
-
   {/* ── COMPOSIÇÃO DO FATURAMENTO ── */}
   <div className="g4">
     <KPI lbl="💳 Assinatura" val={R(tPote)} cor="#d97706" glow sub={fat>0?((tPote/fat)*100).toFixed(0)+"% do faturamento":null}/>
@@ -2335,7 +2266,7 @@ export default function App(){
 {/* ─── EXTRAS ─── */}
 {/* ─── RELATÓRIO: guia para escolher o relatório ─── */}
 {aba==="rel"&&isDono&&(()=>{
-  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"],["brutos","🧾","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
+  const OPC=[["geral","📊","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","✨","Extras","Quantidade, receita e ranking de extras"],["comis","💰","Comissões","Comissão de cada barbeiro no mês"],["profit","📈","Profit","Margem de contribuição por serviço e produto"],["lucro","💵","Lucro estimado","Lucro do mês, projeção e lucro por atendimento"],["ticket","🎫","Ticket médio","Por categoria e por perfil de serviço"],["brutos","🧾","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
   if(!relSub)return <div className="card"><div className="st">Qual relatório você quer ver?</div>
     <div className="g2" style={{gap:10}}>{OPC.map(([k,ic,t,d])=><button key={k} onClick={()=>setRelSub(k)} style={{textAlign:"left",background:"var(--surface-2)",border:"1px solid #eee",borderRadius:10,padding:"14px 16px",cursor:"pointer"}}>
       <div style={{fontSize:22}}>{ic}</div><div style={{fontWeight:700,fontSize:14,marginTop:4}}>{t}</div><div style={{fontSize:12,color:"var(--ink-3)",marginTop:2}}>{d}</div></button>)}</div></div>;
@@ -2349,6 +2280,74 @@ export default function App(){
   <div className="g4"><KPI lbl="Total" val={[...eM,...eAM].length} cor="#0284c7" glow/><KPI lbl="Receita" val={R(tExt)} cor="#0e7490"/><KPI lbl="TM" val={R([...eM,...eAM].length>0?tExt/[...eM,...eAM].length:0)} cor="#059669"/><KPI lbl="% fatur." val={fat>0?(tExt/fat*100).toFixed(1)+"%":"0%"} cor="#d97706"/></div>
   <div className="card"><div className="st">Ranking extras</div>{(()=>{const g=[...eM,...eAM].reduce((a,e)=>{if(!a[e.svc])a[e.svc]={nome:e.svc,qt:0,rec:0};a[e.svc].qt++;a[e.svc].rec+=e.val;return a;},{});return Object.values(g).sort((a,b2)=>b2.rec-a.rec).map((e,i)=><div key={i} className="row"><span style={{width:18,height:18,borderRadius:"50%",background:i===0?"#fef3c7":"var(--bd-2)",color:i===0?"#d97706":"#888",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:700,flexShrink:0}}>{i+1}</span><div style={{flex:1,fontSize:13}}>{e.nome}</div><span style={{fontSize:11,color:"var(--ink-3)"}}>{e.qt}x</span><span style={{fontWeight:700,color:"#0e7490"}}>{R(e.rec)}</span></div>);})()}</div>
 </div>}
+
+{/* ─── LUCRO ESTIMADO ─── */}
+{relVer("lucro")&&isDono&&(()=>{
+  const custosFixosMes=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
+  const totalCLTMes=clt.reduce((a,c)=>a+(c.salario||0),0);
+  const totalComissoesMes=calcB.reduce((a,b)=>a+b.totCBon,0);
+  const custoVarPct=((profitPrem.cartao||0)+(profitPrem.imposto||0)+(profitPrem.gerente||0))/100;
+  const custoVarMes=fat*custoVarPct;
+  const fixosTotalMes=custosFixosMes+totalCLTMes;
+  const lucroAtual=fat-totalComissoesMes-custoVarMes-fixosTotalMes;
+  const margemAtual=fat>0?(lucroAtual/fat)*100:0;
+  // Projeção pro fim do mês: aplica a mesma proporção de comissão+custo variável de hoje sobre a projeção de faturamento.
+  const custoVarComissaoPct=fat>0?(totalComissoesMes+custoVarMes)/fat:custoVarPct+txB/100;
+  const lucroProjetado=proj-(proj*custoVarComissaoPct)-fixosTotalMes;
+  const margemProjetada=proj>0?(lucroProjetado/proj)*100:0;
+  const lucroPorAtend=atendMes>0?lucroAtual/atendMes:0;
+  return <div className="card">
+    <div className="st" style={{marginBottom:12}}>Lucro estimado do mês</div>
+    <div className="g3">
+      <div>
+        <div style={{fontSize:11,color:"var(--ink-3)"}}>Até dia {dAt} (realizado)</div>
+        <div style={{fontSize:24,fontWeight:800,color:lucroAtual>=0?"#059669":"#dc2626"}}>{lucroAtual>=0?"":"−"}{R(Math.abs(lucroAtual))}</div>
+        <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemAtual.toFixed(1)}% de margem</div>
+      </div>
+      <div>
+        <div style={{fontSize:11,color:"var(--ink-3)"}}>Projeção pro fim do mês</div>
+        <div style={{fontSize:24,fontWeight:800,color:lucroProjetado>=0?"#059669":"#dc2626"}}>{lucroProjetado>=0?"":"−"}{R(Math.abs(lucroProjetado))}</div>
+        <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemProjetada.toFixed(1)}% de margem · no ritmo atual</div>
+      </div>
+      <div>
+        <div style={{fontSize:11,color:"var(--ink-3)"}}>Lucro por atendimento</div>
+        <div style={{fontSize:24,fontWeight:800,color:lucroPorAtend>=0?"#059669":"#dc2626"}}>{lucroPorAtend>=0?"":"−"}{R(Math.abs(lucroPorAtend))}</div>
+        <div style={{fontSize:12,color:"var(--ink-3)"}}>{atendMes} atendimento{atendMes===1?"":"s"} no mês</div>
+      </div>
+    </div>
+    <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:10}}>Estimativa: desconta comissões, custos fixos, CLT e uma taxa variável aproximada (cartão + imposto + gerente). Pra conta exata item a item, veja o relatório <b>Profit</b>.</div>
+  </div>;
+})()}
+
+{/* ─── TICKET MÉDIO ─── */}
+{relVer("ticket")&&isDono&&(()=>{
+  const cats=[
+    {k:"assin",l:"💳 Assinatura",cor:"#d97706",v:ticketCat.assin,sub:assinD.ativas+" assinante"+(assinD.ativas===1?"":"s")+" ativo"+(assinD.ativas===1?"":"s")},
+    {k:"avulso",l:"✂️ Avulso",cor:"#0e7490",v:ticketCat.avulso,sub:tAtS+" atendimento"+(tAtS===1?"":"s")},
+    {k:"extras",l:"✨ Extras",cor:"#0284c7",v:ticketCat.extras,sub:qtdExtrasU+" extra"+(qtdExtrasU===1?"":"s")},
+    {k:"prod",l:"🛍️ Produtos",cor:"#059669",v:ticketCat.prod,sub:qtdProdU+" unidade"+(qtdProdU===1?"":"s")},
+  ];
+  return <div className="card">
+    <div className="st" style={{marginBottom:2}}>Ticket médio por categoria</div>
+    <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Valor médio por atendimento/unidade em {MESES[mes]} — o Iconic não identifica cliente único por venda, então não dá pra calcular por cliente.</div>
+    <div className="g4" style={{marginBottom:16}}>
+      {cats.map(c=><div key={c.k} style={{padding:"11px 13px",background:"var(--surface-2)",border:"1px solid var(--bd)",borderRadius:11}}>
+        <div style={{fontSize:10,color:"var(--ink-3)",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>{c.l}</div>
+        <div style={{fontSize:18,fontWeight:800,color:c.cor,marginTop:4}}>{R(c.v)}</div>
+        <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:2}}>{c.sub}</div>
+      </div>)}
+    </div>
+    <div className="st" style={{marginBottom:2}}>Ticket médio por perfil de serviço</div>
+    <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:10}}>Avulso + extras, classificados pelo nome do serviço.</div>
+    {perfilLista.map(p=><div key={p.perfil} style={{marginBottom:8}}>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+        <span style={{color:"var(--ink-2)"}}>{p.perfil}</span>
+        <span style={{fontWeight:600}}>{p.qt>0?R(p.ticket)+" · "+p.qt+"x":"—"}</span>
+      </div>
+      <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(p.ticket/maxPerfilTicket*100||0)+"%",background:"#0e7490",transition:"width .8s"}}/></div>
+    </div>)}
+  </div>;
+})()}
 
 {/* ─── ÚLTIMOS LANÇAMENTOS (brutos) ─── */}
 {relVer("brutos")&&isDono&&(()=>{
