@@ -764,9 +764,11 @@ export default function App(){
   const gDia=Array.from({length:dim},(_,i)=>{const d=i+1;const dS=ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");return{dia:String(d),pote:poM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),svc:aM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lM.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0),ext:[...eM,...eAM].filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),prod:pM.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)};}).map(d=>({...d,tot:d.pote+d.svc+d.ext+d.prod}));
   // Faturamento por dia do mês anterior, para comparar o mesmo período.
   const dimA=new Date(aA2,mA2+1,0).getDate();
-  const gDiaAnt=Array.from({length:dimA},(_,i)=>{const dS=aA2+"-"+String(mA2+1).padStart(2,"0")+"-"+String(i+1).padStart(2,"0");
-    return poMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0)+aMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lMA.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0)+eMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0)+pMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0);});
-  const fatAntMesmoPeriodo=gDiaAnt.slice(0,dAt).reduce((a,v)=>a+v,0);
+  const gDiaAnt=Array.from({length:dimA},(_,i)=>{const dS=aA2+"-"+String(mA2+1).padStart(2,"0")+"-"+String(i+1).padStart(2,"0");return{dia:String(i+1),pote:poMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),svc:aMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)+lMA.filter(l=>l.dt===dS).reduce((a,l)=>a+l.vb,0),ext:eMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val,0),prod:pMA.filter(e=>e.dt===dS).reduce((a,e)=>a+e.val*e.qt,0)};}).map(d=>({...d,tot:d.pote+d.svc+d.ext+d.prod}));
+  const fatAntMesmoPeriodo=gDiaAnt.slice(0,dAt).reduce((a,d)=>a+d.tot,0);
+  // Breakdown por categoria do mesmo período (mês atual vs. anterior), pra explicar a diferença.
+  const catAtual={pote:gDia.slice(0,dAt).reduce((a,d)=>a+d.pote,0),svc:gDia.slice(0,dAt).reduce((a,d)=>a+d.svc,0),ext:gDia.slice(0,dAt).reduce((a,d)=>a+d.ext,0),prod:gDia.slice(0,dAt).reduce((a,d)=>a+d.prod,0)};
+  const catAnt={pote:gDiaAnt.slice(0,dAt).reduce((a,d)=>a+d.pote,0),svc:gDiaAnt.slice(0,dAt).reduce((a,d)=>a+d.svc,0),ext:gDiaAnt.slice(0,dAt).reduce((a,d)=>a+d.ext,0),prod:gDiaAnt.slice(0,dAt).reduce((a,d)=>a+d.prod,0)};
 
   const fbMap=barbs.map(b=>{const ss2=sM.filter(s=>s.bId===b.id);const ftot=ss2.reduce((acc,s)=>acc+(getFichasPorTipo(s.svc)*(s.qt||1)),0);return{...b,ss2,ftot};});
   const tFich=fbMap.reduce((a,b)=>a+b.ftot,0);const vPt=tFich>0?tPote/tFich:0;
@@ -1349,6 +1351,12 @@ export default function App(){
     }));
     const dif=fat-fatAntMesmoPeriodo;
     const difPct=fatAntMesmoPeriodo>0?(dif/fatAntMesmoPeriodo)*100:0;
+    const cats=[
+      {l:"Assinatura",c:"#d97706",at:catAtual.pote,an:catAnt.pote},
+      {l:"Avulso + Extras",c:"#0e7490",at:catAtual.svc+catAtual.ext,an:catAnt.svc+catAnt.ext},
+      {l:"Produtos",c:"#059669",at:catAtual.prod,an:catAnt.prod},
+    ].map(c=>({...c,dif:c.at-c.an})).sort((a,b)=>Math.abs(b.dif)-Math.abs(a.dif));
+    const principal=cats[0];
     return <div className="card">
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:10,marginBottom:14}}>
         <div>
@@ -1369,6 +1377,21 @@ export default function App(){
           <div style={{display:"flex",alignItems:"center",gap:7}}><span style={{width:9,height:9,borderRadius:3,background:"#98a2b3"}}/><span style={{fontSize:11,color:"#667085",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{MESES[mA2]} (mesmo período)</span></div>
           <div style={{fontSize:22,fontWeight:800,color:"#667085",marginTop:5}}>{R(fatAntMesmoPeriodo)}</div>
         </div>
+      </div>
+      {fatAntMesmoPeriodo>0&&dif!==0&&<div style={{padding:"10px 14px",background:dif>=0?"#f0fdf4":"#fef2f2",border:`1px solid ${dif>=0?"#bbf7d0":"#fecaca"}`,borderRadius:11,fontSize:12.5,color:"#344054",marginBottom:14,lineHeight:1.5}}>
+        O faturamento ficou {dif>=0?"maior":"menor"} principalmente por <b style={{color:principal.c}}>{principal.l}</b>, que {principal.dif>=0?"subiu":"caiu"} {R(Math.abs(principal.dif))} vs {MESES[mA2]}.
+      </div>}
+      <div style={{marginBottom:14}}>
+        {cats.map((c,i)=><div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:i<cats.length-1?"1px solid var(--bd)":"none"}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{width:9,height:9,borderRadius:3,background:c.c,flexShrink:0}}/>
+            <span style={{fontSize:13,fontWeight:600}}>{c.l}</span>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:13,fontWeight:700,color:c.dif>=0?"#059669":"#dc2626"}}>{c.dif>=0?"+":"−"}{R(Math.abs(c.dif))}</div>
+            <div style={{fontSize:10.5,color:"#98a2b3"}}>{R(c.an)} → {R(c.at)}</div>
+          </div>
+        </div>)}
       </div>
       <ResponsiveContainer width="100%" height={230}>
         <AreaChart data={dados} margin={{top:6,right:12,left:-14,bottom:0}}>
