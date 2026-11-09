@@ -1365,6 +1365,38 @@ export default function App(){
     </div>;
   })()}
 
+  {/* ── LUCRO ESTIMADO DO MÊS ── */}
+  {(()=>{
+    const custosFixosMes=custos.filter(c=>c.tipo==="fixo"&&c.direcao==="saida").reduce((a,c)=>a+c.valor,0);
+    const totalCLTMes=clt.reduce((a,c)=>a+(c.salario||0),0);
+    const totalComissoesMes=calcB.reduce((a,b)=>a+b.totCBon,0);
+    const custoVarPct=((profitPrem.cartao||0)+(profitPrem.imposto||0)+(profitPrem.gerente||0))/100;
+    const custoVarMes=fat*custoVarPct;
+    const fixosTotalMes=custosFixosMes+totalCLTMes;
+    const lucroAtual=fat-totalComissoesMes-custoVarMes-fixosTotalMes;
+    const margemAtual=fat>0?(lucroAtual/fat)*100:0;
+    // Projeção pro fim do mês: aplica a mesma proporção de comissão+custo variável de hoje sobre a projeção de faturamento.
+    const custoVarComissaoPct=fat>0?(totalComissoesMes+custoVarMes)/fat:custoVarPct+txB/100;
+    const lucroProjetado=proj-(proj*custoVarComissaoPct)-fixosTotalMes;
+    const margemProjetada=proj>0?(lucroProjetado/proj)*100:0;
+    return <div className="card">
+      <div className="st" style={{marginBottom:12}}>Lucro estimado do mês</div>
+      <div className="g2">
+        <div>
+          <div style={{fontSize:11,color:"var(--ink-3)"}}>Até dia {dAt} (realizado)</div>
+          <div style={{fontSize:24,fontWeight:800,color:lucroAtual>=0?"#059669":"#dc2626"}}>{lucroAtual>=0?"":"−"}{R(Math.abs(lucroAtual))}</div>
+          <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemAtual.toFixed(1)}% de margem</div>
+        </div>
+        <div>
+          <div style={{fontSize:11,color:"var(--ink-3)"}}>Projeção pro fim do mês</div>
+          <div style={{fontSize:24,fontWeight:800,color:lucroProjetado>=0?"#059669":"#dc2626"}}>{lucroProjetado>=0?"":"−"}{R(Math.abs(lucroProjetado))}</div>
+          <div style={{fontSize:12,color:"var(--ink-3)"}}>{margemProjetada.toFixed(1)}% de margem · no ritmo atual</div>
+        </div>
+      </div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:10}}>Estimativa: desconta comissões, custos fixos, CLT e uma taxa variável aproximada (cartão + imposto + gerente). Pra conta exata item a item, veja o relatório <b>Profit</b>.</div>
+    </div>;
+  })()}
+
   {/* ── COMPOSIÇÃO DO FATURAMENTO ── */}
   <div className="g4">
     <KPI lbl="💳 Assinatura" val={R(tPote)} cor="#d97706" glow sub={fat>0?((tPote/fat)*100).toFixed(0)+"% do faturamento":null}/>
