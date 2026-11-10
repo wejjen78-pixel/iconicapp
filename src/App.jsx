@@ -124,7 +124,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);font-s
 @media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr}}
 `;
 
-const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>,profit:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>};
+const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>,profit:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,recup:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 11.5a8.5 8.5 0 01-12.5 7.5L3 20l1-5.5A8.5 8.5 0 1121 11.5z"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg>};
 
 // ── SMALL COMPONENTS ─────────────────────────────────────────────────────────
 function CT({active,payload,label}){if(!active||!payload?.length)return null;return <div style={{background:"#101828",border:"1px solid #1f2a3a",borderRadius:10,padding:"9px 13px",fontSize:12,boxShadow:"0 8px 24px rgba(16,24,40,.18)"}}><div style={{color:"var(--ink-3)",marginBottom:5,fontSize:11,fontWeight:500}}>{label}</div>{payload.map((p,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:7,color:"#fff",fontWeight:600,marginTop:i?3:0}}><span style={{width:7,height:7,borderRadius:"50%",background:p.color||"#0e7490",flexShrink:0}}/><span style={{color:"#cbd5e1",fontWeight:500}}>{p.name}:</span> {p.value>200?R(p.value):p.value}</div>)}</div>;}
@@ -538,6 +538,10 @@ export default function App(){
   const[pdfLoading,setPdfLoading]=useState(false);const[pdfProgress,setPdfProgress]=useState(0);
   const[pdfApplied,setPdfApplied]=useState(false);const[pdfErr,setPdfErr]=useState("");
   const[editQtdOpen,setEditQtdOpen]=useState(false);const[lastImportIds,setLastImportIds]=useState(null);
+  const[clientesInativos,setClientesInativos]=useState([]);
+  const[inatFile,setInatFile]=useState(null);const[inatLoading,setInatLoading]=useState(false);const[inatProgress,setInatProgress]=useState(0);const[inatErr,setInatErr]=useState("");const[inatParsed,setInatParsed]=useState(null);
+  const[inatBusca,setInatBusca]=useState("");const[inatLimite,setInatLimite]=useState(60);
+  const[inatMsg,setInatMsg]=useState("Oi {nome}! Faz tempo que a gente não te vê por aqui 💈 Que tal agendar um horário essa semana? Temos vários horários livres te esperando!");
   const[importHistory,setImportHistory]=useState([]);
   const[melhoresDiasOpen,setMelhoresDiasOpen]=useState(false);
   const[editCom,setEditCom]=useState(false);
@@ -587,7 +591,7 @@ export default function App(){
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
 
   function exportarBackup(){
-    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_backup:new Date().toISOString()};
+    const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,clientesInativos,_backup:new Date().toISOString()};
     const blob=new Blob([JSON.stringify(dados,null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob);const a=document.createElement("a");
     a.href=url;a.download="backup-"+hj()+".json";
@@ -616,6 +620,7 @@ export default function App(){
       if(d.vales){excluirRemoto("vales",delDiff(vales,d.vales));setVales(d.vales);}
       if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
       if(d.metaCat)setMetaCat(mc=>({...mc,...d.metaCat}));
+      if(d.clientesInativos)setClientesInativos(d.clientesInativos);
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
@@ -636,12 +641,12 @@ export default function App(){
   const addNotif=useCallback((icon,msg)=>{const n={id:uid(),icon,msg};notifRef.current=[...notifRef.current.slice(-4),n];setNotifs([...notifRef.current]);setTimeout(()=>{notifRef.current=notifRef.current.filter(x=>x.id!==n.id);setNotifs([...notifRef.current]);},4000);setAuditLog(a=>[{id:n.id,icon,msg,dt:new Date().toLocaleString("pt-BR")},...a].slice(0,200));},[]);
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
-  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["rel","Relatório"],["fech","Fechamento"],["custos","Custos"],["intel","Inteligência"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
+  const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["rel","Relatório"],["fech","Fechamento"],["custos","Custos"],["intel","Inteligência"],["recup","Recuperação"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["intel","Inteligência"]];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
-  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,taxas:ICO.fech,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump}[k]||ICO.dash);
-  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",taxas:"💳 Taxas Cel Cash",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance"}[k]||k);
+  const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,taxas:ICO.fech,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,recup:ICO.recup}[k]||ICO.dash);
+  const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",taxas:"💳 Taxas Cel Cash",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance",recup:"🔁 Recuperação de clientes"}[k]||k);
 
   // ── CARREGAR DADOS (Supabase) ────────────────────────────────────────────
   const[loadError,setLoadError]=useState(null);const[loadTick,setLoadTick]=useState(0);
@@ -679,6 +684,7 @@ export default function App(){
       if(d.assinD)setAssinD(d.assinD);
       if(d.meta){setMeta(d.meta);setMetaI(String(d.meta));}
       if(d.metaCat)setMetaCat(mc=>({...mc,...d.metaCat}));
+      if(d.clientesInativos)setClientesInativos(d.clientesInativos);
       if(d.prodLst)setProdLst(d.prodLst);if(d.estoque)setEstoque(d.estoque);
       if(d.niveis)setNiveis(d.niveis);if(d.metasBon)setMetasBon(d.metasBon);
       if(d.txB!=null)setTxB(d.txB);if(d.txBar!=null)setTxBar(d.txBar);if(d.cnpj)setCnpj(d.cnpj);
@@ -721,11 +727,11 @@ export default function App(){
     // Os arrays de lançamentos (svcs/avul/ext/extAv/prod/pote/lote/assinV/vales/coaching/instaLancamentos)
     // NÃO entram mais aqui — cada um sincroniza linha a linha via useLancamentoSync, para não reescrever
     // o histórico inteiro a cada mudança (era isso que estourava o tempo limite do banco).
-    const payload={barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+    const payload={barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,clientesInativos,_at:new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
     const{error}=await supabase.from("org_data").update({data:payload,atualizado_em:new Date().toISOString()}).eq("org_id",orgId);
     if(error){setSs("err");setSaveErrMsg(error.message||error.code||"Erro desconhecido ao salvar");}else{setSv(payload._at);setSaveErrMsg("");setSs("saved");setTimeout(()=>setSs("idle"),2500);}
   };
-  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,loaded,isDono,orgId,loadError,saveRetryTick]);
+  useEffect(()=>{if(!loaded||!isDono||!orgId||loadError)return;if(stRef.current)clearTimeout(stRef.current);setSs("saving");stRef.current=setTimeout(()=>{stRef.current=null;salvarRef.current();},1200);},[barbs,assinD,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,metaHist,horasTrab,auditLog,instaMeta,desafioPessoal,desafio,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,clientesInativos,loaded,isDono,orgId,loadError,saveRetryTick]);
   // Sincroniza cada tipo de lançamento linha a linha (só a diferença desde a última vez, nunca o histórico inteiro).
   const lancFlushRegistry=useRef(new Set());
   const lancReady=loaded&&isDono&&!!orgId&&!loadError;
@@ -1229,6 +1235,56 @@ export default function App(){
     const result=[];
     for(const r of rows){const prof=String(r[colProf]||"").trim();const svc=normSvc(String(r[colSvc]||"").trim());const dt=pd(r[colDt]);if(!prof||!svc||!dt)continue;const val=colValItem?pv(r[colValItem]):pv(r[colVal]);if(ehProd){const qt=Math.max(1,Math.round(pv(r[colQtd])||1));result.push({id:uid(),prof,svc,val:Math.round(val/qt*100)/100,qt,dt,ehProd:true});}else result.push({id:uid(),prof,svc,val,dt});}
     onP&&onP(90);if(!result.length)throw new Error("Nenhum registro válido.");return result;
+  }
+
+  async function runInatImport(){
+    if(!inatFile)return;setInatLoading(true);setInatErr("");setInatParsed(null);setInatProgress(10);
+    try{
+      const rows=await parseExcelInativos(inatFile,p=>setInatProgress(p));
+      setInatProgress(100);setInatParsed(rows);
+    }catch(e){setInatErr(e.message||"Erro ao ler a planilha.");}
+    setInatLoading(false);
+  }
+  function aplicarInativos(){
+    if(!inatParsed)return;
+    setClientesInativos(prev=>{
+      const byPhone={};
+      prev.forEach(c=>{byPhone[c.celular]=c;});
+      inatParsed.forEach(novo=>{const existente=byPhone[novo.celular];byPhone[novo.celular]={...novo,contatado:existente?existente.contatado:false};});
+      return Object.values(byPhone).sort((a,b)=>b.dias-a.dias);
+    });
+    addNotif("📋",inatParsed.length+" clientes inativos importados!");
+    setInatParsed(null);setInatFile(null);setInatProgress(0);
+  }
+
+  // Normaliza celular BR pro formato que o wa.me/a API do WhatsApp esperam (55 + DDD + número, só dígitos).
+  function normPhoneBR(v){
+    const d=String(v||"").replace(/\D/g,"");
+    if(!d||/^0+$/.test(d))return"";
+    if(d.length===10||d.length===11)return"55"+d;
+    if((d.length===12||d.length===13)&&d.startsWith("55"))return d;
+    return"";
+  }
+
+  // Relatório AppBarber "Dias Sem vir (Último Agendamento)": Cliente, Último Serviço, Profissional, Data, Dias, Email, Celular.
+  async function parseExcelInativos(file,onP){
+    if(!window.XLSX){await new Promise((res,rej)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";s.onload=res;s.onerror=()=>rej(new Error("Falha SheetJS"));document.head.appendChild(s);});}
+    const XLSX=window.XLSX;const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:""});onP&&onP(40);
+    if(!rows.length)throw new Error("Planilha vazia.");
+    const keys=Object.keys(rows[0]);const fc=c=>keys.find(k=>c.some(x=>k.toLowerCase().includes(x.toLowerCase())))||null;
+    const colNome=fc(["Cliente"]);const colSvc=fc(["Último Serviço","Ultimo Servico","Serviço"]);const colProf=fc(["Profissional","Prof","Barbeiro"]);
+    const colDt=fc(["Data"]);const colDias=fc(["Dias"]);const colEmail=fc(["Email","E-mail"]);const colCel=fc(["Celular","Telefone","WhatsApp"]);
+    if(!colNome||!colCel)throw new Error("Colunas não reconhecidas (preciso de Cliente e Celular).");
+    const result=[];let semTel=0;
+    for(const r of rows){
+      const nome=String(r[colNome]||"").trim();const cel=normPhoneBR(r[colCel]);
+      if(!nome)continue;
+      if(!cel){semTel++;continue;}
+      result.push({id:uid(),nome,servico:colSvc?String(r[colSvc]||"").trim():"",prof:colProf?String(r[colProf]||"").trim():"",
+        dt:colDt?String(r[colDt]||"").trim():"",dias:colDias?Math.round(parseFloat(r[colDias])||0):0,
+        email:colEmail?String(r[colEmail]||"").trim():"",celular:cel,contatado:false});
+    }
+    onP&&onP(90);if(!result.length)throw new Error("Nenhum registro válido.");result.semTel=semTel;return result;
   }
 
   async function runImport(){
@@ -2957,6 +3013,65 @@ export default function App(){
   <div className="g3"><KPI lbl="Produtos" val={prodLst.length} cor="#0e7490" glow/><KPI lbl="Sem estoque" val={prodLst.filter(p=>p.comissao>0&&(estoque[p.nome]||0)===0).length} cor="#dc2626"/><KPI lbl="Estoque baixo" val={prodLst.filter(p=>p.comissao>0&&(estoque[p.nome]||0)>0&&(estoque[p.nome]||0)<=2).length} cor="#d97706"/></div>
   {[{titulo:"Pomadas",f:p=>p.comissao>0&&p.nome.toLowerCase().includes("pomada")},{titulo:"Grooming",f:p=>p.comissao>0&&p.nome.toLowerCase().includes("grooming")},{titulo:"Cuidados & Cabelo",f:p=>p.comissao>0&&!p.nome.toLowerCase().includes("pomada")&&!p.nome.toLowerCase().includes("grooming")},{titulo:"Bebidas",f:p=>p.comissao===0}].map(({titulo,f})=>{const ps=prodLst.filter(f);if(!ps.length)return null;return <div key={titulo} className="card"><div className="st">{titulo}</div>{ps.map((p,i)=><div key={i} className="row"><div style={{flex:2,fontSize:12}}>{p.nome}</div><span style={{fontSize:11,color:"var(--ink-3)"}}>{R(p.v)}</span><div style={{display:"flex",alignItems:"center",gap:8}}><button className="bg bsm" style={{padding:"3px 9px",fontWeight:700}} onClick={()=>setEstoque(e=>({...e,[p.nome]:Math.max(0,(e[p.nome]||0)-1)}))} disabled={(estoque[p.nome]||0)===0}>−</button><span style={{minWidth:28,textAlign:"center",fontWeight:700,color:(estoque[p.nome]||0)===0?"#dc2626":(estoque[p.nome]||0)<=2?"#d97706":"#059669",fontSize:14}}>{estoque[p.nome]||0}</span><button className="bg bsm" style={{padding:"3px 9px",fontWeight:700}} onClick={()=>setEstoque(e=>({...e,[p.nome]:(e[p.nome]||0)+1}))}>+</button></div></div>)}</div>;})}
 </div>}
+
+{/* ─── RECUPERAÇÃO DE CLIENTES ─── */}
+{aba==="recup"&&isDono&&(()=>{
+  const naoContatados=clientesInativos.filter(c=>!c.contatado).length;
+  const contatados=clientesInativos.filter(c=>c.contatado).length;
+  const filtrados=clientesInativos.filter(c=>!inatBusca||c.nome.toLowerCase().includes(inatBusca.toLowerCase()));
+  const montarMsg=nome=>inatMsg.replace(/\{nome\}/g,nome.split(" ")[0]);
+  const linkWa=c=>"https://wa.me/"+c.celular+"?text="+encodeURIComponent(montarMsg(c.nome));
+  return <div style={{display:"flex",flexDirection:"column",gap:14}}>
+    <div className="card" style={{borderLeft:"3px solid #0e7490"}}>
+      <div style={{fontWeight:700,fontSize:15,marginBottom:4}}>🔁 Recuperação de clientes</div>
+      <div style={{fontSize:12,color:"var(--ink-2)"}}>Importe o relatório "Dias Sem vir (Último Agendamento)" do AppBarber e mande a mensagem de retorno direto pelo seu WhatsApp — um clique por cliente, sem risco de banir o número (ainda não é automático).</div>
+    </div>
+
+    <div className="g3">
+      <KPI lbl="Clientes inativos" val={clientesInativos.length} cor="#0e7490" glow/>
+      <KPI lbl="Não contatados" val={naoContatados} cor="#dc2626"/>
+      <KPI lbl="Já contatados" val={contatados} cor="#059669"/>
+    </div>
+
+    <div className="card">
+      <div className="st" style={{marginBottom:2}}>Importar planilha</div>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:10}}>No AppBarber: Relatórios → Agendamentos → Clientes, tipo "Dias Sem vir (Último Agendamento)", 60 dias → Pesquisar → botão Excel.</div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+        <input type="file" accept=".xlsx,.xls" onChange={e=>setInatFile(e.target.files[0])}/>
+        <button className="btn bsm" onClick={runInatImport} disabled={!inatFile||inatLoading}>{inatLoading?"Lendo...":"Ler planilha"}</button>
+      </div>
+      {inatLoading&&<div style={{marginTop:8}}><PB val={inatProgress} max={100} pct={false}/></div>}
+      {inatErr&&<div style={{color:"#dc2626",fontSize:12,marginTop:8}}>{inatErr}</div>}
+      {inatParsed&&<div style={{marginTop:10,padding:"10px 14px",background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:8}}>
+        <div style={{fontWeight:700,color:"#059669"}}>✅ {inatParsed.length} clientes com telefone válido</div>
+        {inatParsed.semTel>0&&<div style={{fontSize:11,color:"var(--ink-3)",marginTop:2}}>{inatParsed.semTel} linha(s) sem telefone válido foram ignoradas.</div>}
+        <button className="btn bsm" style={{marginTop:8}} onClick={aplicarInativos}>Aplicar</button>
+      </div>}
+    </div>
+
+    {clientesInativos.length>0&&<div className="card">
+      <div className="st" style={{marginBottom:2}}>Mensagem de retorno</div>
+      <div style={{fontSize:11,color:"var(--ink-3)",marginBottom:8}}>Use {"{nome}"} pra personalizar com o primeiro nome do cliente.</div>
+      <textarea className="inp" rows={3} value={inatMsg} onChange={e=>setInatMsg(e.target.value)} style={{resize:"vertical"}}/>
+    </div>}
+
+    {clientesInativos.length>0&&<div className="card">
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8,marginBottom:10}}>
+        <div className="st" style={{marginBottom:0}}>Lista de clientes ({filtrados.length})</div>
+        <input className="inp" style={{width:220}} placeholder="Buscar por nome..." value={inatBusca} onChange={e=>{setInatBusca(e.target.value);setInatLimite(60);}}/>
+      </div>
+      {filtrados.slice(0,inatLimite).map(c=><div key={c.id} className="row" style={{alignItems:"center",opacity:c.contatado?0.55:1}}>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:600,fontSize:13}}>{c.nome}</div>
+          <div style={{fontSize:10.5,color:"var(--ink-3)"}}>{c.servico||"—"}{c.prof?" · "+c.prof:""} · {c.dias} dias sem vir</div>
+        </div>
+        <a href={linkWa(c)} target="_blank" rel="noopener noreferrer" className="btn bsm" style={{background:"#25D366",textDecoration:"none",flexShrink:0}} onClick={()=>setClientesInativos(cs=>cs.map(x=>x.id===c.id?{...x,contatado:true}:x))}>📱 WhatsApp</a>
+        <button className="bg bsm" style={{marginLeft:6,flexShrink:0}} onClick={()=>setClientesInativos(cs=>cs.map(x=>x.id===c.id?{...x,contatado:!x.contatado}:x))}>{c.contatado?"Desmarcar":"✓ Contatado"}</button>
+      </div>)}
+      {filtrados.length>inatLimite&&<button className="bg bsm" style={{marginTop:10}} onClick={()=>setInatLimite(l=>l+60)}>Mostrar mais ({filtrados.length-inatLimite} restantes)</button>}
+    </div>}
+  </div>;
+})()}
 
 {/* ─── IMPORTAR EXCEL ─── */}
 {aba==="pdf"&&isDono&&<div style={{display:"flex",flexDirection:"column",gap:14}}>
