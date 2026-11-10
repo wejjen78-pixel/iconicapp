@@ -45,42 +45,66 @@ log("AppBarber: login ok");
 
 await page.waitForTimeout(2500);
 
-// Em vez de clicar por texto (ambíguo — há "Clientes" em mais de um lugar do menu),
-// extrai todos os links de rota (href com #/) do menu lateral: href + texto visível.
-// É só estrutura de navegação, zero dado de cliente.
-const links = await page.evaluate(() => {
-  return Array.from(document.querySelectorAll("a[href*='#/']")).map((a) => ({
-    href: a.getAttribute("href"),
-    texto: (a.innerText || a.textContent || "").trim().replace(/\s+/g, " ").slice(0, 60),
-  })).filter((l) => l.texto);
-});
-log(`=== LINKS DO MENU (${links.length}) ===`);
-log(JSON.stringify(links));
+// Tentativas anteriores (clique por texto; extração de a[href*='#/']) falharam:
+// o menu lateral não usa <a href> simples pros itens — provavelmente são
+// <li>/<span>/<div> com ng-click ou que só aparecem depois de expandir um
+// item "pai" (ex.: "Relatórios"). Esta versão: (1) dump de QUALQUER elemento
+// clicável/com atributo Angular na área do menu (só rótulos de menu, nunca
+// dado de cliente); (2) tenta expandir "Relatórios" e "Agendamentos" clicando
+// e re-dump depois de cada clique, pra comparar antes/depois.
 
-// Tenta achar e abrir diretamente o link cujo texto é "Clientes" dentro da árvore de Relatórios/Agendamentos,
-// usando o próprio texto do link (não um clique ambíguo em vários elementos).
-const candidato = links.find((l) => /clientes/i.test(l.texto) && /rel/i.test(l.href));
-log(`Candidato a relatório de clientes: ${candidato ? JSON.stringify(candidato) : "nenhum achado por heurística — ver lista completa acima"}`);
-
-if (candidato) {
-  await page.goto(`${APPBARBER_URL}/index.php${candidato.href.replace(/^#/, "#")}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForTimeout(3000);
-  log(`URL atual: ${page.url()}`);
-  const estrutura = await page.evaluate(() => {
-    const selects = Array.from(document.querySelectorAll("select")).map((s) => ({
-      id: s.id || null, name: s.name || null,
-      options: Array.from(s.options).map((o) => ({ value: o.value, text: o.text.trim() })),
-    }));
-    const inputs = Array.from(document.querySelectorAll("input")).map((i) => ({
-      id: i.id || null, name: i.name || null, type: i.type, placeholder: i.placeholder || null,
-    }));
-    const botoesRel = Array.from(document.querySelectorAll("button, a.btn, a[class*='btn']")).map((b) => ({
-      id: b.id || null, classe: b.className || null, texto: (b.innerText || "").trim().slice(0, 40),
-    })).filter((b) => b.texto || b.id);
-    return { selects, inputs, botoesRel, titulo: document.title };
+async function dumpMenu(label) {
+  const info = await page.evaluate(() => {
+    function describe(el) {
+      return {
+        tag: el.tagName.toLowerCase(),
+        texto: (el.innerText || el.textContent || "").trim().replace(/\s+/g, " ").slice(0, 60),
+        href: el.getAttribute ? el.getAttribute("href") : null,
+        classe: el.className || null,
+        attrsAngular: Array.from(el.attributes || [])
+          .map((a) => a.name)
+          .filter((n) => /^(ng-|data-ng-|ui-sref|\(click\)|routerlink)/i.test(n)),
+      };
+    }
+    // Candidatos a "contêiner do menu lateral": tenta seletores comuns primeiro.
+    const seletoresMenu = ["aside", "nav", ".sidebar", "#sidebar", ".main-sidebar", ".sidebar-menu", ".treeview-menu", "[class*='sidebar']", "[class*='menu-lateral']"];
+    let container = null;
+    for (const sel of seletoresMenu) {
+      const el = document.querySelector(sel);
+      if (el && el.innerText && el.innerText.trim().length > 10) { container = el; break; }
+    }
+    const escopo = container || document.body;
+    const candidatos = Array.from(escopo.querySelectorAll("a, li, span, div, button"))
+      .filter((el) => {
+        const t = (el.innerText || el.textContent || "").trim();
+        return t.length > 0 && t.length < 40 && el.children.length <= 6;
+      })
+      .map(describe)
+      .filter((d) => d.texto);
+    // dedup por (tag+texto+href)
+    const vistos = new Set();
+    const dedup = candidatos.filter((d) => {
+      const k = d.tag + "|" + d.texto + "|" + d.href;
+      if (vistos.has(k)) return false;
+      vistos.add(k);
+      return true;
+    });
+    return { containerAchado: !!container, containerSeletor: container ? container.className || container.tagName : null, total: dedup.length, itens: dedup.slice(0, 400) };
   });
-  log("=== ESTRUTURA DA TELA DE CLIENTES (sem dados de cliente) ===");
-  log(JSON.stringify(estrutura));
+  log(`=== MENU (${label}) — container=${info.containerAchado} (${info.containerSeletor}) itens=${info.total} ===`);
+  log(JSON.stringify(info.itens));
+}
+
+await dumpMenu("inicial");
+
+// Tenta expandir itens "pai" clicando por texto exato, um de cada vez, e redumpando.
+for (const termo of ["Relatórios", "Agendamentos", "Relatorios"]) {
+  const el = page.getByText(termo, { exact: false }).first();
+  const visivel = await el.isVisible().catch(() => false);
+  if (!visivel) { log(`"${termo}": não visível, pulando.`); continue; }
+  await el.click().catch((e) => log(`"${termo}": clique falhou — ${e.message}`));
+  await page.waitForTimeout(1200);
+  await dumpMenu(`após clicar "${termo}"`);
 }
 
 await browser.close();
