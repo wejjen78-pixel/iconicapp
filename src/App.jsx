@@ -643,8 +643,17 @@ export default function App(){
 
   const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["rel","Relatório"],["fech","Fechamento"],["custos","Custos"],["intel","Inteligência"],["recup","Recuperação"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
   const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["intel","Inteligência"]];
+  // Menu lateral do dono agrupado em categorias (estilo Farol) — reduz 13 itens soltos a poucas linhas.
+  const GRUPOS_DONO=[
+    {k:"dash"},{k:"rel"},{k:"intel"},{k:"recup"},
+    {nome:"Equipe",itens:["barb","pump","lanc"]},
+    {nome:"Financeiro",itens:["gal","taxas","assi","custos","fech"]},
+    {nome:"Ferramentas",itens:["pdf","cfg"]},
+  ];
   useEffect(()=>{setAba(isDono?"dash":"meu");},[isDono]);
   const abas=isDono?ABAS_DONO:ABAS_BARB;
+  const[navAberto,setNavAberto]=useState({});
+  useEffect(()=>{const grp=GRUPOS_DONO.find(g=>g.itens&&g.itens.includes(aba));if(grp)setNavAberto(n=>n[grp.nome]?n:{...n,[grp.nome]:true});},[aba]);
   const aIcon=k=>({dash:ICO.dash,barb:ICO.barb,lanc:ICO.lanc,gal:ICO.gal,taxas:ICO.fech,assi:ICO.assi,extv:ICO.ext,rel:ICO.rel,fech:ICO.fech,comis:ICO.comis,custos:ICO.custos,profit:ICO.profit,gest:ICO.gest,equi:ICO.equi,equiv:ICO.equi,game:ICO.game,intel:ICO.intel,pdf:ICO.pdf,cfg:ICO.cfg,meu:ICO.meu,estoque:ICO.estoque,pump:ICO.pump,perf:ICO.pump,recup:ICO.recup}[k]||ICO.dash);
   const aTit=k=>({dash:"Dashboard",barb:"Barbeiro",lanc:"Lançamento",gal:"Galaxy Pay",taxas:"💳 Taxas Cel Cash",assi:"Assinatura",extv:"Extras",rel:"Relatório",fech:"Fechamento",comis:"💰 Comissões",custos:"📉 Custos",profit:"📈 Profit",gest:"Gestão",equi:"Equipe",equiv:"Equipe",game:"Gamificação",intel:"Inteligência",pdf:"Importar Excel",cfg:"⚙️ Config",meu:"Meu Desempenho",estoque:"Estoque",pump:"PUMP",perf:"🎯 Centro de Performance",recup:"🔁 Recuperação de clientes"}[k]||k);
 
@@ -1370,7 +1379,16 @@ export default function App(){
 
     <aside className="sb">
       <div className="sblogo">{orgLogoUrl?<img src={orgLogoUrl} alt={orgNome} style={{maxHeight:38,maxWidth:"100%",display:"block",margin:"0 auto"}}/>:<div className="brand" style={{fontSize:17}}>{orgNome}</div>}</div>
-      <nav className="sbnav">{abas.map(([k,v])=><div key={k} className={"ni"+(aba===k?" on":"")} onClick={()=>setAba(k)}>{aIcon(k)}<span>{v}</span></div>)}</nav>
+      <nav className="sbnav">{isDono?GRUPOS_DONO.map(g=>g.itens?
+        <div key={g.nome}>
+          <div className="ni" style={{cursor:"pointer"}} onClick={()=>setNavAberto(n=>({...n,[g.nome]:!n[g.nome]}))}>
+            {aIcon(g.itens[0])}<span style={{flex:1}}>{g.nome}</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" style={{transform:navAberto[g.nome]?"rotate(180deg)":"none",transition:"transform .15s",opacity:.7,flexShrink:0}}><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          {navAberto[g.nome]&&g.itens.map(k=><div key={k} className={"ni"+(aba===k?" on":"")} style={{paddingLeft:40}} onClick={()=>setAba(k)}>{aIcon(k)}<span>{ABAS_DONO.find(([kk])=>kk===k)?.[1]}</span></div>)}
+        </div>
+        :<div key={g.k} className={"ni"+(aba===g.k?" on":"")} onClick={()=>setAba(g.k)}>{aIcon(g.k)}<span>{ABAS_DONO.find(([kk])=>kk===g.k)?.[1]}</span></div>
+      ):ABAS_BARB.map(([k,v])=><div key={k} className={"ni"+(aba===k?" on":"")} onClick={()=>setAba(k)}>{aIcon(k)}<span>{v}</span></div>)}</nav>
       <div className="sbft"><div className="sfui"><div className="sfav">{isBarb&&getB(user.bId)?.foto?.length>50?<img src={getB(user.bId).foto} style={{width:"100%",height:"100%",objectFit:"cover"}} alt=""/>:user.nome.charAt(0)}</div><div><div className="sfnm">{user.nome.split(" ")[0]}</div><div className="sfrole">{isDono?"Dono":"Barbeiro"}</div></div></div><div className="ni" style={{padding:"7px 0",color:"#ff6b6b",cursor:"pointer"}} onClick={logout}>{ICO.sair}<span style={{fontSize:12}}>Sair</span></div></div>
     </aside>
 
