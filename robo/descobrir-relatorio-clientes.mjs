@@ -43,59 +43,44 @@ if (resultado !== "ok") {
 }
 log("AppBarber: login ok");
 
-// Tenta abrir o menu lateral Relatórios → Agendamentos → Clientes clicando pelo texto visível
-// (não dependemos de saber a rota de antemão).
-async function tentarClicar(texto) {
-  const loc = page.getByText(texto, { exact: true }).first();
-  const visivel = await loc.isVisible().catch(() => false);
-  if (visivel) {
-    await loc.click();
-    await page.waitForTimeout(800);
-    return true;
-  }
-  return false;
-}
-
-await page.waitForTimeout(2000);
-const abriuRelatorios = await tentarClicar("Relatórios");
-log(`Cliquei em "Relatórios": ${abriuRelatorios}`);
-const abriuAgendamentos = await tentarClicar("Agendamentos");
-log(`Cliquei em "Agendamentos": ${abriuAgendamentos}`);
-const abriuClientes = await tentarClicar("Clientes");
-log(`Cliquei em "Clientes": ${abriuClientes}`);
 await page.waitForTimeout(2500);
 
-const url = page.url();
-log(`URL atual: ${url}`);
-
-// Estrutura dos filtros (selects, inputs, botões) — só ids/labels/opções, nunca dados de linha.
-const estrutura = await page.evaluate(() => {
-  const selects = Array.from(document.querySelectorAll("select")).map((s) => ({
-    id: s.id || null,
-    name: s.name || null,
-    options: Array.from(s.options).map((o) => ({ value: o.value, text: o.text.trim() })),
-  }));
-  const inputs = Array.from(document.querySelectorAll("input")).map((i) => ({
-    id: i.id || null,
-    name: i.name || null,
-    type: i.type,
-    placeholder: i.placeholder || null,
-  }));
-  const botoes = Array.from(document.querySelectorAll("button, a.btn, a[class*='btn']")).map((b) => ({
-    id: b.id || null,
-    classe: b.className || null,
-    texto: (b.innerText || "").trim().slice(0, 40),
-  })).filter((b) => b.texto || b.id);
-  // Cabeçalhos de tabela: são só rótulos de coluna (Cliente, Celular, etc.), nunca dado de linha.
-  const tabelas = Array.from(document.querySelectorAll("table")).map((t) => ({
-    id: t.id || null,
-    classe: t.className || null,
-    cabecalhos: Array.from(t.querySelectorAll("thead th")).map((th) => th.innerText.trim()),
-  }));
-  return { selects, inputs, botoes, tabelas, titulo: document.title };
+// Em vez de clicar por texto (ambíguo — há "Clientes" em mais de um lugar do menu),
+// extrai todos os links de rota (href com #/) do menu lateral: href + texto visível.
+// É só estrutura de navegação, zero dado de cliente.
+const links = await page.evaluate(() => {
+  return Array.from(document.querySelectorAll("a[href*='#/']")).map((a) => ({
+    href: a.getAttribute("href"),
+    texto: (a.innerText || a.textContent || "").trim().replace(/\s+/g, " ").slice(0, 60),
+  })).filter((l) => l.texto);
 });
+log(`=== LINKS DO MENU (${links.length}) ===`);
+log(JSON.stringify(links));
 
-log("=== ESTRUTURA DA PÁGINA (sem dados de cliente) ===");
-log(JSON.stringify(estrutura, null, 2));
+// Tenta achar e abrir diretamente o link cujo texto é "Clientes" dentro da árvore de Relatórios/Agendamentos,
+// usando o próprio texto do link (não um clique ambíguo em vários elementos).
+const candidato = links.find((l) => /clientes/i.test(l.texto) && /rel/i.test(l.href));
+log(`Candidato a relatório de clientes: ${candidato ? JSON.stringify(candidato) : "nenhum achado por heurística — ver lista completa acima"}`);
+
+if (candidato) {
+  await page.goto(`${APPBARBER_URL}/index.php${candidato.href.replace(/^#/, "#")}`, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await page.waitForTimeout(3000);
+  log(`URL atual: ${page.url()}`);
+  const estrutura = await page.evaluate(() => {
+    const selects = Array.from(document.querySelectorAll("select")).map((s) => ({
+      id: s.id || null, name: s.name || null,
+      options: Array.from(s.options).map((o) => ({ value: o.value, text: o.text.trim() })),
+    }));
+    const inputs = Array.from(document.querySelectorAll("input")).map((i) => ({
+      id: i.id || null, name: i.name || null, type: i.type, placeholder: i.placeholder || null,
+    }));
+    const botoesRel = Array.from(document.querySelectorAll("button, a.btn, a[class*='btn']")).map((b) => ({
+      id: b.id || null, classe: b.className || null, texto: (b.innerText || "").trim().slice(0, 40),
+    })).filter((b) => b.texto || b.id);
+    return { selects, inputs, botoesRel, titulo: document.title };
+  });
+  log("=== ESTRUTURA DA TELA DE CLIENTES (sem dados de cliente) ===");
+  log(JSON.stringify(estrutura));
+}
 
 await browser.close();
