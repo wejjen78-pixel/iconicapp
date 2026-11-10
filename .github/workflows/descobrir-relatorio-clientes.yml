@@ -1,0 +1,24 @@
+name: Descobrir relatório de clientes (leitura)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  descobrir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: robo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Rodar
+        env:
+          APPBARBER_EMAIL: ${{ secrets.APPBARBER_EMAIL }}
+          APPBARBER_SENHA: ${{ secrets.APPBARBER_SENHA }}
+        run: node descobrir-relatorio-clientes.mjs
