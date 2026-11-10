@@ -2847,19 +2847,20 @@ export default function App(){
         </div>
         {itensFiltrados.length===0?<div style={{color:"var(--ink-3)",textAlign:"center",padding:14,fontSize:12}}>Nenhuma venda lançada.</div>:
         <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:900}}>
-          <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Item","Qtd","Preço médio","Comissão %","Cartão %","Taxa fixa R$","Insumos R$","Imposto %","MC %","Contribuição R$"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 7px",fontSize:10,color:"var(--ink-3)",fontWeight:600,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+          <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Item","Qtd","Preço médio","Comissão %","Cartão %","Taxa fixa R$","Insumos R$","Imposto %","Lucro/unidade R$","MC %","Contribuição R$"].map(h=><th key={h} style={{textAlign:"left",padding:"6px 7px",fontSize:10,color:"var(--ink-3)",fontWeight:600,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
           <tbody>{itensFiltrados.map(i=><tr key={keyOf(i.cat,i.nome)} style={{borderBottom:"1px solid var(--bd-2)"}}>
             <td style={{padding:"6px 7px"}}><div style={{fontWeight:600}}>{i.nome}</div><div style={{fontSize:10,color:"var(--ink-3)"}}>{i.cat}</div></td>
             <td style={{padding:"6px 7px",color:"var(--ink-3)"}}>{i.qtd}</td>
             <td style={{padding:"6px 7px",fontWeight:600}}>{R(i.preco)}</td>
             {[["comissao",1],["cartao",0.1],["taxaFixa",0.01],["insumos",0.01],["imposto",0.1]].map(([campo,step])=><td key={campo} style={{padding:"6px 7px"}}><input type="number" step={step} style={inpMini} value={i[campo]} onChange={e=>setOv(i.cat,i.nome,campo,+e.target.value||0)}/></td>)}
+            <td style={{padding:"6px 7px",fontWeight:700,color:i.contribUnit>=0?"#059669":"#dc2626"}}>{R(i.contribUnit)}</td>
             <td style={{padding:"6px 7px"}}><span style={{fontWeight:800,color:corMc(i.mc),background:corMc(i.mc)+"15",padding:"2px 7px",borderRadius:20}}>{i.mc.toFixed(1)}%</span></td>
             <td style={{padding:"6px 7px",fontWeight:700,color:i.contribTotal>=0?"#059669":"#dc2626"}}>{R(i.contribTotal)}</td>
           </tr>)}
           <tr style={{borderTop:"2px solid var(--bd)",background:"var(--surface-2)"}}>
             <td style={{padding:"7px",fontWeight:700}}>TOTAL</td>
             <td style={{padding:"7px",fontWeight:700}}>{itensFiltrados.reduce((a,i)=>a+i.qtd,0)}</td>
-            <td colSpan={7}/>
+            <td colSpan={8}/>
             <td style={{padding:"7px",fontWeight:800}}>{R(itensFiltrados.reduce((a,i)=>a+i.contribTotal,0))}</td>
           </tr></tbody></table></div>}
         <div style={{fontSize:11,color:"var(--ink-3)",marginTop:10}}>💡 Insumos = quanto você gasta de material em cada atendimento/produto (lâmina, toalha, custo de compra). É o único campo que o app não tem como saber sozinho.</div>
