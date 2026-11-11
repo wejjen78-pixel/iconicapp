@@ -91,7 +91,10 @@ async function entrarIconic(context) {
     throw new Error(`servidor recusou o login (HTTP ${r.status()}: ${corpo.error_description || corpo.msg || corpo.error || "?"}). Confira os segredos ICONIC_EMAIL/ICONIC_SENHA.`);
   }
   try {
-    await page.getByText("Importar Excel", { exact: true }).first().waitFor({ timeout: 60_000 });
+    // Não espera por "Importar Excel": desde o menu lateral agrupado, esse
+    // link só existe no DOM com o grupo "Ferramentas" expandido. ".tbt" é o
+    // título da topbar, sempre visível assim que a tela principal carrega.
+    await page.locator(".tbt").first().waitFor({ timeout: 60_000 });
   } catch {
     await print(page, "iconic-login");
     const erro = await page.locator("form .card div, form div").filter({ hasText: /inválid|incorret|erro|Invalid/i }).first().innerText().catch(() => "");
@@ -134,7 +137,17 @@ async function importadosNoDia(page, apikey, tipos) {
 }
 
 async function abrirAba(page, nome) {
-  await page.getByText(nome, { exact: true }).first().click();
+  const link = page.getByText(nome, { exact: true }).first();
+  if (!(await link.isVisible().catch(() => false))) {
+    // O item pode estar dentro de um grupo colapsado do menu lateral
+    // (ex.: "Importar Excel" mora em "Ferramentas") — expande o grupo-pai.
+    const grupo = page.locator(".ni", { hasText: "Ferramentas" }).first();
+    if (await grupo.isVisible().catch(() => false)) {
+      await grupo.click();
+      await page.waitForTimeout(400);
+    }
+  }
+  await link.click();
   await page.waitForTimeout(1500);
 }
 
