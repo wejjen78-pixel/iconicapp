@@ -666,7 +666,7 @@ export default function App(){
   const findBarb=useCallback(n=>findBarbByName(n,barbs),[barbs]);
 
   const ABAS_DONO=[["dash","Dashboard"],["pump","PUMP"],["barb","Barbeiro"],["lanc","Lançamento"],["gal","Galaxy Pay"],["taxas","Taxas"],["assi","Assinatura"],["rel","Relatório"],["fech","Fechamento"],["custos","Custos"],["intel","Inteligência"],["recup","Recuperação"],["pdf","Importar Excel"],["cfg","⚙️ Config"]];
-  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["dash","Dashboard"],["intel","Inteligência"]];
+  const ABAS_BARB=[["meu","Meu Desempenho"],["perf","🎯 Performance"],["pump","PUMP"],["intel","Inteligência"]];
   // Menu lateral do dono agrupado em categorias (estilo Farol) — reduz 13 itens soltos a poucas linhas.
   const GRUPOS_DONO=[
     {k:"dash"},{k:"rel"},{k:"intel"},{k:"recup"},
