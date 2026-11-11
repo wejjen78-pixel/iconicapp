@@ -64,16 +64,16 @@ insert into organizations (nome, slug) values ('Iconic Barbearia', 'iconic-barbe
 insert into org_data (org_id, data)
 select id, jsonb_build_object(
   'barbs', jsonb_build_array(
-    jsonb_build_object('id',1,'nome','Brendo Neves','cor','#7c3aed','meta',8000,'metaAssin',4000,'metaAvulso',4000,'foto','','cnpj','60.548.824/0001-80'),
-    jsonb_build_object('id',2,'nome','Ithalo Souza','cor','#0891b2','meta',7000,'metaAssin',3500,'metaAvulso',3500,'foto','','cnpj','64.590.765/0001-01'),
-    jsonb_build_object('id',3,'nome','Luís Vitor','cor','#059669','meta',7500,'metaAssin',3750,'metaAvulso',3750,'foto','','cnpj','54.698.466/0001-31'),
-    jsonb_build_object('id',4,'nome','Welton','cor','#dc2626','meta',6500,'metaAssin',3250,'metaAvulso',3250,'foto','','cnpj','64.584.571/0001-01'),
+    jsonb_build_object('id',1,'nome','Brendo Neves','cor','#7c3aed','meta',8000,'metaAssin',4000,'metaAvulso',4000,'foto','','cnpj',''),
+    jsonb_build_object('id',2,'nome','Ithalo Souza','cor','#0891b2','meta',7000,'metaAssin',3500,'metaAvulso',3500,'foto','','cnpj',''),
+    jsonb_build_object('id',3,'nome','Luís Vitor','cor','#059669','meta',7500,'metaAssin',3750,'metaAvulso',3750,'foto','','cnpj',''),
+    jsonb_build_object('id',4,'nome','Welton','cor','#dc2626','meta',6500,'metaAssin',3250,'metaAvulso',3250,'foto','','cnpj',''),
     jsonb_build_object('id',5,'nome','Pedro Lucas','cor','#d97706','meta',6000,'metaAssin',3000,'metaAvulso',3000,'foto','','cnpj','')
   ),
   'meta', 60000,
   'txB', 45,
   'txBar', 55,
-  'cnpj', '46.027.240/0001-80',
+  'cnpj', '',
   'svcs', '[]'::jsonb, 'avul', '[]'::jsonb, 'ext', '[]'::jsonb, 'extAv', '[]'::jsonb,
   'prod', '[]'::jsonb, 'pote', '[]'::jsonb, 'lote', '[]'::jsonb,
   'assinD', jsonb_build_object('ativas',0,'novas',0,'canceladas',0),
