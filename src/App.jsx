@@ -2494,6 +2494,19 @@ export default function App(){
       </div>
       <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(p.ticket/maxPerfilTicket*100||0)+"%",background:"#0e7490",transition:"width .8s"}}/></div>
     </div>)}
+    <Hd style={{marginBottom:2,marginTop:6}}>Ticket médio por barbeiro</Hd>
+    <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:10}}>Avulso por atendimento (mesmo critério do ticket médio geral) — pra comparar entre barbeiros.</div>
+    {(()=>{
+      const barbTicket=calcB.map(b=>({...b,atsB:b.avB.reduce((a,s)=>a+s.qt,0)+b.lotB.length})).sort((a,b2)=>b2.ticket-a.ticket);
+      const maxBarbTicket=Math.max(...barbTicket.map(b=>b.ticket),1);
+      return barbTicket.map(b=><div key={b.id} style={{marginBottom:8}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:12,marginBottom:3}}>
+          <span style={{display:"flex",alignItems:"center",gap:6,color:"var(--ink-2)"}}><BAv b={b} size={18} fs={9}/>{b.nome.split(" ")[0]}</span>
+          <span style={{fontWeight:600}}>{b.atsB>0?R(b.ticket)+" · "+b.atsB+"x":"—"}</span>
+        </div>
+        <div style={{background:"var(--bd)",borderRadius:4,height:6}}><div style={{height:6,borderRadius:4,width:(b.ticket/maxBarbTicket*100||0)+"%",background:b.cor||"#0e7490",transition:"width .8s"}}/></div>
+      </div>);
+    })()}
   </div>;
 })()}
 
