@@ -123,6 +123,28 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 @media(max-width:900px){.sb{width:58px;min-width:58px}.ni span,.brand,.sub,.sfnm,.sfrole{display:none}.ni{justify-content:center;padding:11px}.sblogo{padding:14px 8px;display:flex;justify-content:center}.sbnav{padding:6px}.sbft{padding:8px;margin:0 6px 6px}.sfui{justify-content:center;padding:6px;background:none;border:none}.pb{padding:14px 12px}.tb{padding:12px 14px}}
 @media(max-width:700px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.g2,.g3,.g4{grid-template-columns:1fr}}
+/* Telas de login: vídeo de fundo + widgets de vidro (glassmorphism) */
+.auth-glass{position:relative;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden;background:#05070b;
+--ink:#fff;--ink-2:rgba(255,255,255,.82);--ink-3:rgba(255,255,255,.62);--surface-in:rgba(255,255,255,.08);--bd-in:rgba(255,255,255,.2);--pri:#22b8d4}
+.auth-glass>.auth-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.auth-glass::before{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(5,7,11,.35) 0%,rgba(5,7,11,.55) 55%,rgba(5,7,11,.82) 100%)}
+.auth-glass>*:not(.auth-bg){position:relative;z-index:2}
+.auth-glass .card{position:relative;overflow:hidden;color:#fff;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.05));-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(255,255,255,.22);border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -1px 0 rgba(255,255,255,.06);animation:glassIn .6s cubic-bezier(.2,.8,.2,1) both}
+.auth-glass .card::before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 45%,transparent 60%);background-size:250% 100%;animation:glassShine 7s ease-in-out infinite}
+.auth-glass .card>*{position:relative}
+.auth-glass .inp{color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.auth-glass .inp::placeholder{color:rgba(255,255,255,.45)}
+.auth-glass .inp:focus{border-color:rgba(255,255,255,.55);box-shadow:0 0 0 3px rgba(255,255,255,.12)}
+.auth-glass .inp option{color:#101828}
+.auth-glass .bg{color:#fff}.auth-glass .bg:hover{background:rgba(255,255,255,.16)}
+.auth-glass .btn{background:#fff;color:#0b1220;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.auth-glass .btn:hover:not(:disabled){background:#e9f6f9}
+.auth-glass span[style*="#0e7490"],.auth-glass span[style*="rgb(14, 116, 144)"]{color:#8be9fb!important}
+.auth-glass img.logo-auto{filter:invert(1) grayscale(1) brightness(2) drop-shadow(0 4px 18px rgba(0,0,0,.5))!important}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.auth-glass .card{background:rgba(16,22,34,.82)}}
+@keyframes glassIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes glassShine{0%,100%{background-position:120% 0}50%{background-position:-20% 0}}
+@media(prefers-reduced-motion:reduce){.auth-glass .card,.auth-glass .card::before{animation:none}}
 `;
 
 const ICO={dash:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,barb:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 7c0 4-3 6-8 6S4 11 4 7"/><circle cx="12" cy="4" r="2"/><path d="M8 17l-3 4m7-4v4m5-4l3 4"/></svg>,lanc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>,gal:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c-3 3-5 6-5 10s2 7 5 10M12 2c3 3 5 6 5 10s-2 7-5 10"/></svg>,assi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,ext:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>,rel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,gest:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,equi:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,game:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h2"/></svg>,intel:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></svg>,pdf:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>,fech:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>,cfg:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>,meu:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,tv:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,sair:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>,estoque:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,pump:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,insta:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r="0.6" fill="currentColor" stroke="none"/></svg>,comis:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>,custos:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a1.5 1.5 0 000 3h4v-3z"/></svg>,profit:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,recup:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.5 8.5 0 01-12.5 7.5L3 20l1-5.5A8.5 8.5 0 1121 11.5z"/><path d="M8 11h.01M12 11h.01M16 11h.01"/></svg>,lucro:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5v11M15 9.3c0-1.4-1.4-2.3-3-2.3s-3 .9-3 2.3 1.3 2 3 2.5 3 1.1 3 2.5-1.4 2.2-3 2.2-3-.9-3-2.2"/></svg>,ticket:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2.5a1.8 1.8 0 000 3V16a2 2 0 01-2 2H5a2 2 0 01-2-2v-2.5a1.8 1.8 0 000-3z"/><line x1="12" y1="6.5" x2="12" y2="17.5" strokeDasharray="2.2 2.2"/></svg>,estrat:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2"/><path d="M12 2.3V5M12 19v2.7M2.3 12H5M19 12h2.7"/></svg>};
@@ -166,6 +188,11 @@ function BAv({b,size=30,fs=12}){if(b?.foto?.length>50)return <div style={{width:
 function EditModal({item,fields,barbs,onSave,onClose}){const[tmp,setTmp]=useState({...item});const upd=(k,v)=>setTmp(t=>({...t,[k]:v}));return <div style={{position:"fixed",inset:0,background:"#0008",zIndex:400,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}><div style={{background:"var(--surface)",color:"var(--ink)",borderRadius:12,padding:24,width:"100%",maxWidth:440,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}><div style={{fontWeight:700,fontSize:15,marginBottom:16}}>✏️ Editar</div>{fields.map(f=><div key={f.key} style={{marginBottom:11}}><span className="lbl">{f.label}</span>{f.type==="barbSelect"?<select className="inp" value={tmp[f.key]||1} onChange={e=>upd(f.key,+e.target.value)}>{barbs.map(b=><option key={b.id} value={b.id}>{b.nome}</option>)}</select>:f.type==="select"?<select className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}>{(f.options||[]).map(o=><option key={o}>{o}</option>)}</select>:f.type==="date"?<input type="date" className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}/>:f.type==="number"?<input type="number" className="inp" value={tmp[f.key]||0} onChange={e=>upd(f.key,parseFloat(e.target.value)||0)}/>:<input type="text" className="inp" value={tmp[f.key]||""} onChange={e=>upd(f.key,e.target.value)}/>}</div>)}<div style={{display:"flex",gap:10,marginTop:16}}><button className="btn" onClick={()=>onSave(tmp)}>Salvar</button><button className="bg" onClick={onClose}>Cancelar</button></div></div></div>;}
 function GrupoColapsavel({titulo,cor,qt,total,children,acoes,isPts=false}){const[open,setOpen]=useState(false);return <div style={{marginBottom:8}}><div className="grp-hd" onClick={()=>setOpen(o=>!o)}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:13}}>{open?"▼":"▶"}</span><span style={{fontWeight:600,fontSize:13,color:cor||"var(--ink)"}}>{titulo}</span><span style={{background:cor+"18",color:cor,borderRadius:20,padding:"1px 8px",fontSize:11,fontWeight:600}}>{qt}x</span></div><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontWeight:700,color:cor||"var(--ink)"}}>{isPts?total+"pts":R(total)}</span>{acoes&&<div onClick={e=>e.stopPropagation()}>{acoes}</div>}</div></div>{open&&<div style={{border:"1px solid var(--bd)",borderTop:"none",borderRadius:"0 0 7px 7px",overflow:"hidden"}}>{children}</div>}</div>;}
 
+// Vídeo de fundo das telas de login (public/login-bg.mp4). Sem som, em loop;
+// com "reduzir movimento" ligado fica só a imagem estática.
+const AUTH_BG=import.meta.env.BASE_URL+"login-bg";
+function AuthBg(){const reduz=typeof window!=="undefined"&&window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;return reduz?<img className="auth-bg" src={AUTH_BG+".jpg"} alt=""/>:<video className="auth-bg" src={AUTH_BG+".mp4"} poster={AUTH_BG+".jpg"} autoPlay muted loop playsInline preload="auto" aria-hidden="true"/>;}
+
 // ── LOGIN / CADASTRO (Supabase Auth) ────────────────────────────────────────
 function Login({onProvisioned}){
   const[mode,setMode]=useState("login"); // login | signup | check-email | forgot | forgot-sent
@@ -205,7 +232,7 @@ function Login({onProvisioned}){
     setLoad(false);
   }
 
-  if(mode==="check-email")return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  if(mode==="check-email")return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     <div className="card" style={{padding:24,textAlign:"center"}}>
       <div style={{fontSize:32,marginBottom:10}}>📧</div>
@@ -215,7 +242,7 @@ function Login({onProvisioned}){
     </div>
   </div></div>;
 
-  if(mode==="forgot-sent")return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  if(mode==="forgot-sent")return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     <div className="card" style={{padding:24,textAlign:"center"}}>
       <div style={{fontSize:32,marginBottom:10}}>📬</div>
@@ -225,7 +252,7 @@ function Login({onProvisioned}){
     </div>
   </div></div>;
 
-  if(mode==="forgot")return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  if(mode==="forgot")return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     <form className="card" style={{padding:24}} onSubmit={e=>{e.preventDefault();forgot();}}>
       <div style={{fontWeight:700,marginBottom:4}}>Esqueceu sua senha?</div>
@@ -237,7 +264,7 @@ function Login({onProvisioned}){
     </form>
   </div></div>;
 
-  return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     {/* form real com autoComplete correto: assim o navegador oferece salvar a senha e preenche sozinho da próxima vez */}
     <form className="card" style={{padding:24}} autoComplete="on" onSubmit={e=>{e.preventDefault();mode==="signup"?signup():go();}}>
@@ -266,7 +293,7 @@ function ResetPassword(){
     if(error){setErr(error.message);setLoad(false);return;}
     setDone(true);setLoad(false);
   }
-  return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     <form className="card" style={{padding:24}} onSubmit={e=>{e.preventDefault();go();}}>
       {done?<div style={{textAlign:"center"}}><div style={{fontSize:32,marginBottom:10}}>✅</div><div style={{fontWeight:700,marginBottom:8}}>Senha atualizada!</div><div style={{fontSize:13,color:"var(--ink-2)"}}>Já pode continuar usando o app normalmente.</div></div>:<>
@@ -291,7 +318,7 @@ function CompleteSignup({onDone,onLogout}){
     if(error){setErr(error.message);setLoad(false);return;}
     onDone&&onDone();
   }
-  return <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><style>{CSS}</style><div style={{width:"100%",maxWidth:360}}>
+  return <div className="auth-glass"><style>{CSS}</style><AuthBg/><div style={{width:"100%",maxWidth:360}}>
     <div style={{textAlign:"center",marginBottom:24}}><LogoSVG height={60}/></div>
     <div className="card" style={{padding:24}}>
       <div style={{fontWeight:700,marginBottom:4}}>Falta pouco!</div>
