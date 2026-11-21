@@ -62,6 +62,23 @@ async function print(page, nome) {
   }
 }
 
+// Avisos (toast) do AppBarber às vezes ficam por cima de um botão e travam o
+// clique por até 30s (já aconteceu com o #btnPesquisarRanking). window.toastr
+// é a lib que gera esse aviso — toastr.clear() remove todos na hora. Limpa
+// antes de cada tentativa e tenta de novo se um aviso novo atrapalhar.
+async function clicarResiliente(locator, tentativas = 5) {
+  for (let i = 0; i < tentativas; i++) {
+    await locator.page().evaluate(() => { try { window.toastr?.clear(); } catch {} }).catch(() => {});
+    try {
+      await locator.click({ timeout: 8_000 });
+      return;
+    } catch (e) {
+      if (i === tentativas - 1) throw e;
+      await locator.page().waitForTimeout(500);
+    }
+  }
+}
+
 // ── Iconic ─────────────────────────────────────────────────────────────────
 
 async function entrarIconic(context) {
@@ -210,7 +227,7 @@ async function exportarRelatorio(page, rel) {
     throw new Error(`não consegui definir os filtros do relatório de ${rel.nome} (datas ${f.di} a ${f.df}, tipo ${f.tipo}).`);
   }
   const busca = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
-  await page.click("#btnPesquisarRanking");
+  await clicarResiliente(page.locator("#btnPesquisarRanking"));
   const rb = await busca;
   log(`AppBarber ${rel.nome}: busca ${rb ? "HTTP " + rb.status() : "não respondeu"}`);
 
@@ -221,7 +238,7 @@ async function exportarRelatorio(page, rel) {
 
   // A tabela de detalhes carrega por AJAX depois de abrir; espera a resposta.
   const detResp = page.waitForResponse((r) => r.url().includes("buscaRelGerencialRankingv5"), { timeout: 60_000 }).catch(() => null);
-  await detalhes.click();
+  await clicarResiliente(detalhes);
   await detResp;
   const info = page.locator(`#${rel.tabela}_info`);
   await info.waitFor({ timeout: 30_000 });
