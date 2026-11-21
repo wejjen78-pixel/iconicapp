@@ -2513,6 +2513,10 @@ export default function App(){
 {/* ─── VISÃO ESTRATÉGICA ─── */}
 {relVer("estrat")&&isDono&&(()=>{
   const atual=computeMonthCategorias(mes,ano);
+  const histAno=Array.from({length:mes+1},(_,i)=>{const d=computeMonthCategorias(i,ano);return{label:MESES[i].slice(0,3),...d};});
+  const nMesesAno=histAno.length;
+  const anoTot={pote:histAno.reduce((a,h)=>a+h.pote,0),svc:histAno.reduce((a,h)=>a+h.svc,0),ext:histAno.reduce((a,h)=>a+h.ext,0),prod:histAno.reduce((a,h)=>a+h.prod,0),total:histAno.reduce((a,h)=>a+h.total,0)};
+  const anoMedia={pote:anoTot.pote/nMesesAno,svc:anoTot.svc/nMesesAno,ext:anoTot.ext/nMesesAno,prod:anoTot.prod/nMesesAno,total:anoTot.total/nMesesAno};
   const diasDetalhe=Array.from({length:dim},(_,i)=>{
     const d=i+1;const dS=ano+"-"+String(mes+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
     const avD=aM.filter(s=>s.dt===dS);const loD=lM.filter(l=>l.dt===dS);const exD=[...eM,...eAM].filter(e=>e.dt===dS);const prD=pM.filter(p=>p.dt===dS);const poD=poM.filter(p=>p.dt===dS);
@@ -2535,6 +2539,30 @@ export default function App(){
         <KPI lbl="TM Extras" val={R(atual.tmExtras)} cor="#0284c7"/>
         <KPI lbl="TM Produtos" val={R(atual.tmProd)} cor="#059669"/>
       </div>
+    </div>
+
+    <div className="card">
+      <Hd>Visão anual — {ano}</Hd>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Soma de {MESES[0]} a {MESES[mes]} de {ano} ({nMesesAno} mês{nMesesAno===1?"":"es"}).</div>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:380}}>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Categoria","Total no ano","Média mensal"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>
+          {[["Assinatura",anoTot.pote,anoMedia.pote],["Avulso",anoTot.svc,anoMedia.svc],["Extras",anoTot.ext,anoMedia.ext],["Produtos",anoTot.prod,anoMedia.prod],["Total",anoTot.total,anoMedia.total]].map(([lbl,tot,med])=>
+            <tr key={lbl} style={{borderBottom:"1px solid var(--bd-2)"}}>
+              <td style={{...td,fontWeight:lbl==="Total"?700:600,color:lbl==="Total"?"var(--ink)":"var(--ink-2)"}}>{lbl}</td>
+              <td style={{...td,fontWeight:lbl==="Total"?700:400}}>{R(tot)}</td>
+              <td style={td}>{R(med)}</td>
+            </tr>
+          )}
+        </tbody>
+      </table></div>
+      <div style={{marginTop:16}}><ResponsiveContainer width="100%" height={180}><BarChart data={histAno} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%">
+        <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
+        <XAxis dataKey="label" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/>
+        <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
+        <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
+        <Bar dataKey="total" name="Total" fill="#4f46e5" radius={[6,6,0,0]} maxBarSize={46}/>
+      </BarChart></ResponsiveContainer></div>
     </div>
 
     <div className="card">
