@@ -2668,6 +2668,8 @@ export default function App(){
   }).sort((a,b2)=>b2.atual.totC-a.atual.totC);
   const deltasCat=[["Serviços",p1.svc-p2.svc],["Extras",p1.ext-p2.ext],["Produtos",p1.prod-p2.prod]];
   const maiorDeltaCat=deltasCat.reduce((a,b)=>Math.abs(b[1])>Math.abs(a[1])?b:a);
+  const barbComVar=porBarbeiro.filter(b=>b.varB!=null);
+  const maiorDeltaBarb=barbComVar.length?barbComVar.reduce((a,b)=>Math.abs(b.atual.totC-b.anterior.totC)>Math.abs(a.atual.totC-a.anterior.totC)?b:a):null;
   const chartData=porBarbeiro.map(b=>({nome:b.nome.split(" ")[0],Atual:b.atual.totC,Anterior:b.anterior.totC}));
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
     <div className="card">
@@ -2711,48 +2713,10 @@ export default function App(){
         <KPI lbl="Comissão no período" val={R(comissaoP1)} cor="#d97706"/>
         <KPI lbl="Atendimentos" val={p1.atend}/>
       </div>
-      <div style={{fontSize:12,color:"var(--ink-2)"}}>
-        {maiorDeltaCat[1]>=0?"▲":"▼"} Categoria que mais {maiorDeltaCat[1]>=0?"subiu":"caiu"}: <b>{maiorDeltaCat[0]}</b> ({maiorDeltaCat[1]>=0?"+":"−"}{R(Math.abs(maiorDeltaCat[1]))})
+      <div style={{fontSize:12,color:"var(--ink-2)",display:"flex",flexDirection:"column",gap:4}}>
+        <div>{maiorDeltaCat[1]>=0?"▲":"▼"} Categoria que mais {maiorDeltaCat[1]>=0?"subiu":"caiu"}: <b>{maiorDeltaCat[0]}</b> ({maiorDeltaCat[1]>=0?"+":"−"}{R(Math.abs(maiorDeltaCat[1]))})</div>
+        {maiorDeltaBarb&&<div>{maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"▲":"▼"} Barbeiro que mais {maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"subiu":"caiu"}: <b>{maiorDeltaBarb.nome.split(" ")[0]}</b> ({maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"+":"−"}{R(Math.abs(maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC))})</div>}
       </div>
-    </div>
-
-    <div className="card">
-      <Hd>Por barbeiro — por que o resultado mudou</Hd>
-      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:14}}>O resultado da barbearia é a soma do que cada um fez. Ordenado por quem mais mudou entre os dois períodos.</div>
-      <div className="g3">
-        {[...porBarbeiro].sort((a,b2)=>Math.abs(b2.atual.totC-b2.anterior.totC)-Math.abs(a.atual.totC-a.anterior.totC)).map(b=>{
-          const delta=b.atual.totC-b.anterior.totC;
-          const pos=b.varB==null?null:delta>=0;
-          return <div key={b.id} style={{background:"var(--surface-2)",border:"2px solid "+(pos==null?"var(--bd)":pos?"#bbf7d0":"#fecaca"),borderRadius:14,padding:"14px 16px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-              <BAv b={getB(b.id)} size={38} fs={15}/>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontWeight:700,fontSize:14}}>{b.nome.split(" ")[0]}</div>
-                <div style={{fontSize:11,color:"var(--ink-3)"}}>{b.atual.atend} atend.{b.atual.notaMedia!=null?" · ⭐"+b.atual.notaMedia.toFixed(1):""}</div>
-              </div>
-              {pos!=null&&<span style={{fontSize:22,lineHeight:1,color:pos?"#059669":"#dc2626"}}>{pos?"▲":"▼"}</span>}
-            </div>
-            <div style={{fontSize:24,fontWeight:800,color:b.cor}}>{R(b.atual.totC)}</div>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:4}}>
-              <span style={{fontSize:11,color:"var(--ink-3)"}}>antes: {R(b.anterior.totC)}</span>
-              {b.varB!=null&&<DB v={b.varB}/>}
-            </div>
-          </div>;
-        })}
-      </div>
-      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:12}}>Valor é a comissão gerada no período (mesmo critério do relatório de Comissões), não o faturamento bruto do barbeiro.</div>
-    </div>
-
-    <div className="card">
-      <Hd>Atual vs. anterior por barbeiro</Hd>
-      <ResponsiveContainer width="100%" height={220}><BarChart data={chartData} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%">
-        <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-        <XAxis dataKey="nome" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/>
-        <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
-        <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
-        <Bar dataKey="Atual" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={36}/>
-        <Bar dataKey="Anterior" fill="#98a2b3" radius={[6,6,0,0]} maxBarSize={36}/>
-      </BarChart></ResponsiveContainer>
     </div>
 
     <div className="card">
@@ -2772,6 +2736,36 @@ export default function App(){
         </tbody>
       </table></div>
       <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Ticket médio é avulso+extras por atendimento.</div>
+    </div>
+
+    <div className="card">
+      <Hd>Por barbeiro</Hd>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:520}}>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Barbeiro","Atual","Atend. atual","Nota atual","Anterior","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>
+          {porBarbeiro.map(b=><tr key={b.id} style={{borderBottom:"1px solid var(--bd-2)"}}>
+            <td style={{...td,fontWeight:600}}><span style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={18} fs={9}/>{b.nome.split(" ")[0]}</span></td>
+            <td style={{...td,fontWeight:700,color:b.cor}}>{R(b.atual.totC)}</td>
+            <td style={td}>{b.atual.atend}</td>
+            <td style={td}>{b.atual.notaMedia==null?"—":"⭐"+b.atual.notaMedia.toFixed(1)}</td>
+            <td style={td}>{R(b.anterior.totC)}</td>
+            <td style={td}>{b.varB==null?"—":<DB v={b.varB}/>}</td>
+          </tr>)}
+        </tbody>
+      </table></div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Valor é a comissão gerada no período (mesmo critério do relatório de Comissões), não o faturamento bruto do barbeiro. Nota é a média das notas de atendimento (avulso) do período, quando lançada.</div>
+    </div>
+
+    <div className="card">
+      <Hd>Atual vs. anterior por barbeiro</Hd>
+      <ResponsiveContainer width="100%" height={220}><BarChart data={chartData} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%">
+        <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
+        <XAxis dataKey="nome" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/>
+        <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
+        <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
+        <Bar dataKey="Atual" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={36}/>
+        <Bar dataKey="Anterior" fill="#98a2b3" radius={[6,6,0,0]} maxBarSize={36}/>
+      </BarChart></ResponsiveContainer>
     </div>
   </div>;
 })()}
