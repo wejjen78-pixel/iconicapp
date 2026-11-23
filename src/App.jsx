@@ -19,6 +19,7 @@ const VAPID_PUBLICA="BDRu0BVE2knfRY4OQ97MJRU8i2RjqYC5rjmxqAn26JUXLvOYQKnCtT-gOrJ
 // Data de hoje no fuso do aparelho (AAAA-MM-DD). toISOString() usa UTC e no Brasil
 // já virava o dia às 21h, lançando no dia seguinte.
 const hj=()=>new Date().toLocaleDateString("en-CA");
+const addDias=(dataStr,n)=>{const d=new Date(dataStr+"T12:00:00");d.setDate(d.getDate()+n);return d.toLocaleDateString("en-CA");};
 
 // ── COR DINÂMICA (vermelho → verde conforme % da meta) ────────────────────────
 function interpolateColor(a,b,t){const r=Math.round(a[0]+(b[0]-a[0])*t);const g=Math.round(a[1]+(b[1]-a[1])*t);const bl=Math.round(a[2]+(b[2]-a[2])*t);return`rgb(${r},${g},${bl})`;}
@@ -613,6 +614,12 @@ export default function App(){
   const[filtAte,setFiltAte]=useState(hj());
   const[barbFiltDe,setBarbFiltDe]=useState(ano+"-"+String(mes+1).padStart(2,"0")+"-01");
   const[barbFiltAte,setBarbFiltAte]=useState(hj());
+  // Reunião: dois períodos livres (calendário) pra comparar — semana, mês ou
+  // qualquer intervalo. Padrão: últimos 7 dias vs os 7 dias anteriores.
+  const[reunDe1,setReunDe1]=useState(addDias(hj(),-6));
+  const[reunAte1,setReunAte1]=useState(hj());
+  const[reunDe2,setReunDe2]=useState(addDias(hj(),-13));
+  const[reunAte2,setReunAte2]=useState(addDias(hj(),-7));
 
   function exportarBackup(){
     const dados={barbs,svcs,avul,ext,extAv,prod,pote,lote,assinD,assinV,vales,meta,metaCat,prodLst,estoque,niveis,metasBon,txB,txBar,cnpj,coaching,metaHist,horasTrab,auditLog,instaMeta,instaLancamentos,desafioPessoal,clt,custos,saldoAtual,diaPagAssin,diaPagAvulso,comisExcl,importHistory,profitPrem,profitItens,clientesInativos,_backup:new Date().toISOString()};
@@ -2412,7 +2419,7 @@ export default function App(){
 {/* ─── EXTRAS ─── */}
 {/* ─── RELATÓRIO: guia para escolher o relatório ─── */}
 {aba==="rel"&&isDono&&(()=>{
-  const OPC=[["geral","dash","#0e7490","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","ext","#0284c7","Extras","Quantidade, receita e ranking de extras"],["comis","comis","#d97706","Comissões","Comissão de cada barbeiro no mês"],["profit","profit","#059669","Profit","Margem de contribuição por serviço e produto"],["lucro","lucro","#7c3aed","Lucro estimado","Lucro do mês, projeção e lucro por atendimento"],["ticket","ticket","#db2777","Ticket médio","Por categoria e por perfil de serviço"],["estrat","estrat","#4f46e5","Visão Estratégica","Detalhamento diário e comparativo mensal"],["reuniao","reuniao","#0d9488","Reunião","Resumo dos últimos 3 meses pra reunião semanal"],["brutos","pdf","#667085","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
+  const OPC=[["geral","dash","#0e7490","Visão geral","Faturamento, serviços mais vendidos e evolução do mês"],["extv","ext","#0284c7","Extras","Quantidade, receita e ranking de extras"],["comis","comis","#d97706","Comissões","Comissão de cada barbeiro no mês"],["profit","profit","#059669","Profit","Margem de contribuição por serviço e produto"],["lucro","lucro","#7c3aed","Lucro estimado","Lucro do mês, projeção e lucro por atendimento"],["ticket","ticket","#db2777","Ticket médio","Por categoria e por perfil de serviço"],["estrat","estrat","#4f46e5","Visão Estratégica","Detalhamento diário e comparativo mensal"],["reuniao","reuniao","#0d9488","Reunião","Compara dois períodos (semana, mês ou livre) por categoria e por barbeiro"],["brutos","pdf","#667085","Últimos lançamentos","Lançamentos crus: Cel Cash, Avulsos e Produtos"]];
   if(!relSub)return <div className="card"><Hd>Qual relatório você quer ver?</Hd>
     <div className="g2" style={{gap:10}}>{OPC.map(([k,ic,cor,t,d])=><button key={k} className="rel-opc" onClick={()=>setRelSub(k)} style={{textAlign:"left",background:"var(--surface)",border:"1px solid var(--bd)",borderRadius:"var(--r)",padding:"16px",cursor:"pointer",display:"flex",flexDirection:"column",gap:10}}>
       <div style={{width:40,height:40,borderRadius:12,background:cor+"1a",color:cor,display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:20,height:20}}>{ICO[ic]}</div></div>
@@ -2597,72 +2604,148 @@ export default function App(){
   </div>;
 })()}
 
-{/* ─── REUNIÃO (resumo dos últimos 3 meses) ─── */}
+{/* ─── REUNIÃO (comparar dois períodos — semana, mês ou qualquer intervalo) ─── */}
 {relVer("reuniao")&&isDono&&(()=>{
   const th={textAlign:"left",padding:"6px 8px",fontSize:10,color:"var(--ink-3)",fontWeight:600,whiteSpace:"nowrap"};
   const td={padding:"6px 8px",fontSize:12,whiteSpace:"nowrap"};
-  const hist3=Array.from({length:3},(_,i)=>{let m2=mes-i,a2=ano;while(m2<0){m2+=12;a2-=1;}
-    const cat=computeMonthCategorias(m2,a2);
-    const com=computeMonthTotals(m2,a2);
-    return{label:MESES[m2].slice(0,3)+"/"+String(a2).slice(2),...cat,comissao:com.total};
-  }).reverse();
-  const totalPeriodo={svc:hist3.reduce((a,h)=>a+h.svc,0),ext:hist3.reduce((a,h)=>a+h.ext,0),prod:hist3.reduce((a,h)=>a+h.prod,0),comissao:hist3.reduce((a,h)=>a+h.comissao,0),atend:hist3.reduce((a,h)=>a+h.atend,0)};
-  const faturPeriodo=totalPeriodo.svc+totalPeriodo.ext+totalPeriodo.prod;
-  const ultimo=hist3[2],penult=hist3[1];
-  const faturUlt=ultimo.svc+ultimo.ext+ultimo.prod,faturPenult=penult.svc+penult.ext+penult.prod;
-  const varPeriodo=faturPenult>0?((faturUlt-faturPenult)/faturPenult)*100:null;
+  const dtBr=d=>{try{return d.split("-").reverse().join("/");}catch(e){return d;}};
+  function computeRangeCategorias(de,ate){
+    const inR=d=>d>=de&&d<=ate;
+    const aM2=avul.filter(s=>inR(s.dt));const lM2=lote.filter(l=>inR(l.dt));
+    const eM2=[...ext,...extAv].filter(e=>inR(e.dt));const pM2=prod.filter(p=>inR(p.dt));
+    const svc2=aM2.reduce((a,s)=>a+s.val*s.qt,0)+lM2.reduce((a,l)=>a+l.vb,0);
+    const ext3=eM2.reduce((a,e)=>a+e.val,0);
+    const prod3=pM2.reduce((a,p)=>a+p.val*p.qt,0);
+    const qtAv=aM2.reduce((a,s)=>a+s.qt,0)+lM2.length;const qtExt=eM2.length;
+    return{svc:svc2,ext:ext3,prod:prod3,atend:qtAv+qtExt};
+  }
+  function computePorBarbeiroRange(de,ate){
+    const inR=d=>d>=de&&d<=ate;
+    const svcR=svcs.filter(s=>inR(s.dt));
+    const ftotGeral=svcR.reduce((a,s)=>a+(getFichasPorTipo(s.svc)*(s.qt||1)),0);
+    const poteR=pote.filter(e=>inR(e.dt)).reduce((a,e)=>a+e.val,0);
+    return barbs.map(b=>{
+      const ss=svcR.filter(s=>s.bId===b.id);const ftot=ss.reduce((a,s)=>a+(getFichasPorTipo(s.svc)*(s.qt||1)),0);
+      const tx=(b.com!=null?b.com:txB)/100;
+      const pct=ftotGeral>0?ftot/ftotGeral:0;const cPote=poteR*pct*tx;
+      const avB=avul.filter(s=>s.bId===b.id&&inR(s.dt));const lotB=lote.filter(l=>l.bId===b.id&&inR(l.dt));
+      const fAv=avB.reduce((a,s)=>a+s.val*s.qt,0)+lotB.reduce((a,l)=>a+l.vb,0);
+      const exB=[...ext,...extAv].filter(e=>e.bId===b.id&&inR(e.dt));const fEx=exB.reduce((a,e)=>a+e.val,0);
+      const prB=prod.filter(p=>p.bId===b.id&&inR(p.dt));
+      const fPr=prB.reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.20);},0);
+      const totC=cPote+(fAv+fEx)*tx+fPr;
+      const atsB=avB.reduce((a,s)=>a+s.qt,0)+lotB.length;
+      return{id:b.id,nome:b.nome,cor:b.cor,totC,atend:atsB+exB.length,ticket:atsB>0?fAv/atsB:0};
+    });
+  }
+  const p1=computeRangeCategorias(reunDe1,reunAte1);
+  const p2=computeRangeCategorias(reunDe2,reunAte2);
+  const barbP1=computePorBarbeiroRange(reunDe1,reunAte1);
+  const barbP2=computePorBarbeiroRange(reunDe2,reunAte2);
+  const comissaoP1=barbP1.reduce((a,b)=>a+b.totC,0),comissaoP2=barbP2.reduce((a,b)=>a+b.totC,0);
+  const fatP1=p1.svc+p1.ext+p1.prod,fatP2=p2.svc+p2.ext+p2.prod;
+  const varFat=fatP2>0?((fatP1-fatP2)/fatP2)*100:null;
   const linhas=[
-    {lbl:"Serviços (avulso)",get:h=>h.svc,fmt:R,tot:totalPeriodo.svc,totFmt:R},
-    {lbl:"Extras",get:h=>h.ext,fmt:R,tot:totalPeriodo.ext,totFmt:R},
-    {lbl:"Produtos",get:h=>h.prod,fmt:R,tot:totalPeriodo.prod,totFmt:R},
-    {lbl:"Comissão",get:h=>h.comissao,fmt:R,tot:totalPeriodo.comissao,totFmt:R},
-    {lbl:"Atendimentos",get:h=>h.atend,fmt:v=>v,tot:totalPeriodo.atend,totFmt:v=>v},
-    {lbl:"Ticket médio",get:h=>h.atend>0?(h.svc+h.ext)/h.atend:0,fmt:R,tot:totalPeriodo.atend>0?(totalPeriodo.svc+totalPeriodo.ext)/totalPeriodo.atend:0,totFmt:R},
+    {lbl:"Serviços (avulso)",v1:p1.svc,v2:p2.svc,fmt:R},
+    {lbl:"Extras",v1:p1.ext,v2:p2.ext,fmt:R},
+    {lbl:"Produtos",v1:p1.prod,v2:p2.prod,fmt:R},
+    {lbl:"Comissão",v1:comissaoP1,v2:comissaoP2,fmt:R},
+    {lbl:"Atendimentos",v1:p1.atend,v2:p2.atend,fmt:v=>v},
+    {lbl:"Ticket médio",v1:p1.atend>0?(p1.svc+p1.ext)/p1.atend:0,v2:p2.atend>0?(p2.svc+p2.ext)/p2.atend:0,fmt:R},
   ];
-  const chartData=hist3.map(h=>({label:h.label,"Serviços":h.svc,"Extras":h.ext,"Produtos":h.prod,"Comissão":h.comissao}));
+  const porBarbeiro=barbs.map(b=>{
+    const a1=barbP1.find(x=>x.id===b.id)||{totC:0,atend:0,ticket:0};
+    const a2=barbP2.find(x=>x.id===b.id)||{totC:0,atend:0,ticket:0};
+    return{id:b.id,nome:b.nome,cor:b.cor,atual:a1,anterior:a2,varB:a2.totC>0?((a1.totC-a2.totC)/a2.totC)*100:null};
+  }).sort((a,b2)=>b2.atual.totC-a.atual.totC);
+  const deltasCat=[["Serviços",p1.svc-p2.svc],["Extras",p1.ext-p2.ext],["Produtos",p1.prod-p2.prod]];
+  const maiorDeltaCat=deltasCat.reduce((a,b)=>Math.abs(b[1])>Math.abs(a[1])?b:a);
+  const barbComVar=porBarbeiro.filter(b=>b.varB!=null);
+  const maiorDeltaBarb=barbComVar.length?barbComVar.reduce((a,b)=>Math.abs(b.atual.totC-b.anterior.totC)>Math.abs(a.atual.totC-a.anterior.totC)?b:a):null;
+  const chartData=porBarbeiro.map(b=>({nome:b.nome.split(" ")[0],Atual:b.atual.totC,Anterior:b.anterior.totC}));
   return <div style={{display:"flex",flexDirection:"column",gap:14}}>
     <div className="card">
-      <Hd>Reunião — últimos 3 meses</Hd>
-      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Resumo de {hist3[0].label} a {hist3[2].label}, pra levar pra reunião semanal.</div>
-      <div className="g4">
-        <KPI lbl="Faturamento do período" val={R(faturPeriodo)}/>
-        <KPI lbl={"vs mês anterior ("+penult.label+" → "+ultimo.label+")"} val={varPeriodo==null?"—":(varPeriodo>=0?"+":"")+varPeriodo.toFixed(1)+"%"} cor={varPeriodo==null?undefined:varPeriodo>=0?"#059669":"#dc2626"}/>
-        <KPI lbl="Comissão do período" val={R(totalPeriodo.comissao)} cor="#d97706"/>
-        <KPI lbl="Atendimentos no período" val={totalPeriodo.atend}/>
+      <Hd>Período</Hd>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:14}}>
+        <button className="bg bsm" onClick={()=>{setReunDe1(addDias(hj(),-6));setReunAte1(hj());setReunDe2(addDias(hj(),-13));setReunAte2(addDias(hj(),-7));}}>Semana atual vs. passada</button>
+        <button className="bg bsm" onClick={()=>{
+          const mAnt=mes===0?11:mes-1,aAnt=mes===0?ano-1:ano;const ultDiaAnt=new Date(aAnt,mAnt+1,0).getDate();
+          setReunDe1(ano+"-"+String(mes+1).padStart(2,"0")+"-01");setReunAte1(hj());
+          setReunDe2(aAnt+"-"+String(mAnt+1).padStart(2,"0")+"-01");setReunAte2(aAnt+"-"+String(mAnt+1).padStart(2,"0")+"-"+String(ultDiaAnt).padStart(2,"0"));
+        }}>Mês atual vs. passado</button>
+      </div>
+      <div className="g2">
+        <div><span className="lbl">Período atual</span><div style={{display:"flex",gap:6}}>
+          <input type="date" className="inp" value={reunDe1} onChange={e=>setReunDe1(e.target.value)}/>
+          <input type="date" className="inp" value={reunAte1} onChange={e=>setReunAte1(e.target.value)}/>
+        </div></div>
+        <div><span className="lbl">Período anterior (comparação)</span><div style={{display:"flex",gap:6}}>
+          <input type="date" className="inp" value={reunDe2} onChange={e=>setReunDe2(e.target.value)}/>
+          <input type="date" className="inp" value={reunAte2} onChange={e=>setReunAte2(e.target.value)}/>
+        </div></div>
+      </div>
+    </div>
+
+    <div className="card">
+      <Hd>Reunião — {dtBr(reunDe1)} a {dtBr(reunAte1)}</Hd>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Comparado com {dtBr(reunDe2)} a {dtBr(reunAte2)}.</div>
+      <div className="g4" style={{marginBottom:12}}>
+        <KPI lbl="Faturamento no período" val={R(fatP1)}/>
+        <KPI lbl="vs período anterior" val={varFat==null?"—":(varFat>=0?"+":"")+varFat.toFixed(1)+"%"} cor={varFat==null?undefined:varFat>=0?"#059669":"#dc2626"}/>
+        <KPI lbl="Comissão no período" val={R(comissaoP1)} cor="#d97706"/>
+        <KPI lbl="Atendimentos" val={p1.atend}/>
+      </div>
+      <div style={{fontSize:12,color:"var(--ink-2)",display:"flex",flexDirection:"column",gap:4}}>
+        <div>{maiorDeltaCat[1]>=0?"▲":"▼"} Categoria que mais {maiorDeltaCat[1]>=0?"subiu":"caiu"}: <b>{maiorDeltaCat[0]}</b> ({maiorDeltaCat[1]>=0?"+":"−"}{R(Math.abs(maiorDeltaCat[1]))})</div>
+        {maiorDeltaBarb&&<div>{maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"▲":"▼"} Barbeiro que mais {maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"subiu":"caiu"}: <b>{maiorDeltaBarb.nome.split(" ")[0]}</b> ({maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC>=0?"+":"−"}{R(Math.abs(maiorDeltaBarb.atual.totC-maiorDeltaBarb.anterior.totC))})</div>}
       </div>
     </div>
 
     <div className="card">
       <Hd>Comparativo por categoria</Hd>
-      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:620}}>
-        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Categoria",...hist3.map(h=>h.label),"Total (3 meses)","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:460}}>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Categoria","Período atual","Período anterior","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
         <tbody>
           {linhas.map(l=>{
-            const atual=l.get(ultimo),anterior=l.get(penult);
-            const varPct=anterior>0?((atual-anterior)/anterior)*100:null;
+            const varPct=l.v2>0?((l.v1-l.v2)/l.v2)*100:null;
             return <tr key={l.lbl} style={{borderBottom:"1px solid var(--bd-2)"}}>
               <td style={{...td,fontWeight:600,color:"var(--ink-2)"}}>{l.lbl}</td>
-              {hist3.map(h=><td key={h.label} style={td}>{l.fmt(l.get(h))}</td>)}
-              <td style={{...td,fontWeight:700}}>{l.totFmt(l.tot)}</td>
+              <td style={{...td,fontWeight:700}}>{l.fmt(l.v1)}</td>
+              <td style={td}>{l.fmt(l.v2)}</td>
               <td style={td}>{varPct==null?"—":<DB v={varPct}/>}</td>
             </tr>;
           })}
         </tbody>
       </table></div>
-      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Variação compara {penult.label} com {ultimo.label}. Ticket médio é avulso+extras por atendimento.</div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Ticket médio é avulso+extras por atendimento.</div>
     </div>
 
     <div className="card">
-      <Hd>Evolução no período</Hd>
+      <Hd>Por barbeiro</Hd>
+      <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:520}}>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Barbeiro","Atual","Atend. atual","Anterior","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <tbody>
+          {porBarbeiro.map(b=><tr key={b.id} style={{borderBottom:"1px solid var(--bd-2)"}}>
+            <td style={{...td,fontWeight:600}}><span style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={18} fs={9}/>{b.nome.split(" ")[0]}</span></td>
+            <td style={{...td,fontWeight:700,color:b.cor}}>{R(b.atual.totC)}</td>
+            <td style={td}>{b.atual.atend}</td>
+            <td style={td}>{R(b.anterior.totC)}</td>
+            <td style={td}>{b.varB==null?"—":<DB v={b.varB}/>}</td>
+          </tr>)}
+        </tbody>
+      </table></div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Valor é a comissão gerada no período (mesmo critério do relatório de Comissões), não o faturamento bruto do barbeiro.</div>
+    </div>
+
+    <div className="card">
+      <Hd>Atual vs. anterior por barbeiro</Hd>
       <ResponsiveContainer width="100%" height={220}><BarChart data={chartData} margin={{top:8,right:4,left:-18,bottom:0}} barCategoryGap="30%">
         <CartesianGrid strokeDasharray="4 4" stroke="var(--bd)" vertical={false}/>
-        <XAxis dataKey="label" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/>
+        <XAxis dataKey="nome" tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false}/>
         <YAxis tick={{fill:"var(--ink-3)",fontSize:10.5}} tickLine={false} axisLine={false} tickFormatter={v=>v>0?Math.round(v/1000)+"k":""}/>
         <Tooltip content={<CT/>} cursor={{fill:"#0e74900d"}}/>
-        <Bar dataKey="Serviços" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={36}/>
-        <Bar dataKey="Extras" fill="#0284c7" radius={[6,6,0,0]} maxBarSize={36}/>
-        <Bar dataKey="Produtos" fill="#059669" radius={[6,6,0,0]} maxBarSize={36}/>
-        <Bar dataKey="Comissão" fill="#d97706" radius={[6,6,0,0]} maxBarSize={36}/>
+        <Bar dataKey="Atual" fill="#0e7490" radius={[6,6,0,0]} maxBarSize={36}/>
+        <Bar dataKey="Anterior" fill="#98a2b3" radius={[6,6,0,0]} maxBarSize={36}/>
       </BarChart></ResponsiveContainer>
     </div>
   </div>;
