@@ -2635,9 +2635,17 @@ export default function App(){
       const fPr=prB.reduce((a,p)=>{const pd=prodLst.find(x=>x.nome===p.prod);return a+p.val*p.qt*(pd?.comissao??0.20);},0);
       const totC=cPote+(fAv+fEx)*tx+fPr;
       const atsB=avB.reduce((a,s)=>a+s.qt,0)+lotB.length;
-      return{id:b.id,nome:b.nome,cor:b.cor,totC,atend:atsB+exB.length,ticket:atsB>0?fAv/atsB:0};
+      const notaMedia=avB.length?avB.reduce((a,s)=>a+(s.nota||5),0)/avB.length:null;
+      return{id:b.id,nome:b.nome,cor:b.cor,totC,atend:atsB+exB.length,ticket:atsB>0?fAv/atsB:0,notaMedia};
     });
   }
+  const inicio7=addDias(hj(),-6);
+  const cat7=computeRangeCategorias(inicio7,hj());
+  const fat7=cat7.svc+cat7.ext+cat7.prod;
+  const mediaDiaria7=fat7/7;
+  const diasRestantesMes=Math.max(0,dim-dAt);
+  const ritmoSemanal=fat+mediaDiaria7*diasRestantesMes;
+  const faltaRitmo=meta-ritmoSemanal;
   const p1=computeRangeCategorias(reunDe1,reunAte1);
   const p2=computeRangeCategorias(reunDe2,reunAte2);
   const barbP1=computePorBarbeiroRange(reunDe1,reunAte1);
@@ -2687,6 +2695,16 @@ export default function App(){
     </div>
 
     <div className="card">
+      <Hd>Ritmo de {MESES[mes]} — baseado nos últimos 7 dias</Hd>
+      <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Se o resto do mês seguir no ritmo dos últimos 7 dias (média de {R(mediaDiaria7)}/dia), fecha assim — diferente da projeção padrão do Dashboard, que usa a média do mês inteiro até agora.</div>
+      <div className="g3">
+        <KPI lbl="Projeção do mês nesse ritmo" val={R(ritmoSemanal)} cor={ritmoSemanal>=meta?"#059669":"#dc2626"}/>
+        <KPI lbl="Meta do mês" val={R(meta)}/>
+        <KPI lbl={faltaRitmo>0?"Falta nesse ritmo":"Sobra nesse ritmo"} val={R(Math.abs(faltaRitmo))} cor={faltaRitmo>0?"#dc2626":"#059669"}/>
+      </div>
+    </div>
+
+    <div className="card">
       <Hd>Reunião — {dtBr(reunDe1)} a {dtBr(reunAte1)}</Hd>
       <div style={{fontSize:11.5,color:"var(--ink-3)",marginBottom:12}}>Comparado com {dtBr(reunDe2)} a {dtBr(reunAte2)}.</div>
       <div className="g4" style={{marginBottom:12}}>
@@ -2723,18 +2741,19 @@ export default function App(){
     <div className="card">
       <Hd>Por barbeiro</Hd>
       <div style={{overflowX:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:12,minWidth:520}}>
-        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Barbeiro","Atual","Atend. atual","Anterior","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+        <thead><tr style={{borderBottom:"2px solid var(--bd-2)"}}>{["Barbeiro","Atual","Atend. atual","Nota atual","Anterior","Variação"].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
         <tbody>
           {porBarbeiro.map(b=><tr key={b.id} style={{borderBottom:"1px solid var(--bd-2)"}}>
             <td style={{...td,fontWeight:600}}><span style={{display:"flex",alignItems:"center",gap:6}}><BAv b={getB(b.id)} size={18} fs={9}/>{b.nome.split(" ")[0]}</span></td>
             <td style={{...td,fontWeight:700,color:b.cor}}>{R(b.atual.totC)}</td>
             <td style={td}>{b.atual.atend}</td>
+            <td style={td}>{b.atual.notaMedia==null?"—":"⭐"+b.atual.notaMedia.toFixed(1)}</td>
             <td style={td}>{R(b.anterior.totC)}</td>
             <td style={td}>{b.varB==null?"—":<DB v={b.varB}/>}</td>
           </tr>)}
         </tbody>
       </table></div>
-      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Valor é a comissão gerada no período (mesmo critério do relatório de Comissões), não o faturamento bruto do barbeiro.</div>
+      <div style={{fontSize:10.5,color:"var(--ink-3)",marginTop:8}}>Valor é a comissão gerada no período (mesmo critério do relatório de Comissões), não o faturamento bruto do barbeiro. Nota é a média das notas de atendimento (avulso) do período, quando lançada.</div>
     </div>
 
     <div className="card">
